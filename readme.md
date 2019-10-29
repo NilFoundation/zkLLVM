@@ -11,8 +11,6 @@ Developed and supported by Nil Foundation: https://nil.foundation.
 
 All the communication is being processed via GitHub issues.
 
----
-
 This repository is a master-repository for the whole suite. Particular-purposed libraries repositories (e.g. ```block``` or  ```hash```) are not intended to be used outside the suite and should be handled with great care.
 
 ## Repository Structure
