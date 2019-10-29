@@ -1,0 +1,12 @@
+{
+  "word_size": 32,
+  "endian": "big",
+  "family": "ppc",
+  "aliases": [
+    "powerpc",
+    "ppc"
+  ],
+  "isa_extensions": [
+    "altivec"
+  ]
+}

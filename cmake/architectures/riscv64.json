@@ -1,0 +1,5 @@
+{
+  "endian": "little",
+  "word_size": 32,
+  "family": "riscv"
+}

@@ -1,0 +1,238 @@
+language: cpp
+sudo: required
+
+matrix:
+  include:
+    - os: osx
+      env: TARGET_NAME_LIBRARY=block TARGET_NAME_TESTS=block COMPILER_VERSION=current
+      compiler: clang
+
+    - os: osx
+      env: TARGET_NAME_LIBRARY=block TARGET_NAME_TESTS=block COMPILER_VERSION=current
+      compiler: gcc
+
+    - os: osx
+      env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=current
+      compiler: clang
+
+    - os: osx
+      env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=current
+      compiler: gcc
+
+    - os: osx
+      env: TARGET_NAME_LIBRARY=None TARGET_NAME_TESTS=codec COMPILER_VERSION=current
+      compiler: clang
+
+    - os: osx
+      env: TARGET_NAME_LIBRARY=None TARGET_NAME_TESTS=codec COMPILER_VERSION=current
+      compiler: gcc
+
+    - os: osx
+      env: TARGET_NAME_LIBRARY=entropy TARGET_NAME_TESTS=None COMPILER_VERSION=current
+      compiler: clang
+
+    - os: osx
+      env: TARGET_NAME_LIBRARY=entropy TARGET_NAME_TESTS=None COMPILER_VERSION=current
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=block TARGET_NAME_TESTS=block COMPILER_VERSION=5.0
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=block TARGET_NAME_TESTS=block COMPILER_VERSION=6.0
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=block TARGET_NAME_TESTS=block COMPILER_VERSION=7
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=block TARGET_NAME_TESTS=block COMPILER_VERSION=8
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=block TARGET_NAME_TESTS=block COMPILER_VERSION=5
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=block TARGET_NAME_TESTS=block COMPILER_VERSION=6
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=block TARGET_NAME_TESTS=block COMPILER_VERSION=7
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=block TARGET_NAME_TESTS=block COMPILER_VERSION=8
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=5.0
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=6.0
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=7
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=8
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=5
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=6
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=7
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=8
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=None TARGET_NAME_TESTS=codec COMPILER_VERSION=5.0
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=None TARGET_NAME_TESTS=codec COMPILER_VERSION=6.0
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=None TARGET_NAME_TESTS=codec COMPILER_VERSION=7
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=None TARGET_NAME_TESTS=codec COMPILER_VERSION=8
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=None TARGET_NAME_TESTS=codec COMPILER_VERSION=5
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=None TARGET_NAME_TESTS=codec COMPILER_VERSION=6
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=None TARGET_NAME_TESTS=codec COMPILER_VERSION=7
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=None TARGET_NAME_TESTS=codec COMPILER_VERSION=8
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=entropy TARGET_NAME_TESTS=None COMPILER_VERSION=5.0
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=entropy TARGET_NAME_TESTS=None COMPILER_VERSION=6.0
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=entropy TARGET_NAME_TESTS=None COMPILER_VERSION=7
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=entropy TARGET_NAME_TESTS=None COMPILER_VERSION=8
+      compiler: clang
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=entropy TARGET_NAME_TESTS=None COMPILER_VERSION=5
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=entropy TARGET_NAME_TESTS=None COMPILER_VERSION=6
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=entropy TARGET_NAME_TESTS=None COMPILER_VERSION=7
+      compiler: gcc
+
+    - os: linux
+      dist: xenial
+      env: TARGET_NAME_LIBRARY=entropy TARGET_NAME_TESTS=None COMPILER_VERSION=8
+      compiler: gcc
+
+before_install:
+  - if [[ $TRAVIS_OS_NAME == linux && $TRAVIS_COMPILER == clang ]]; then
+      wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -;
+      sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-${COMPILER_VERSION} main";
+      sudo apt-get update && sudo apt-get install clang-${COMPILER_VERSION};
+      export CC=/usr/bin/clang-${COMPILER_VERSION};
+      export CXX=/usr/bin/clang++-${COMPILER_VERSION};
+    fi
+  - if [[ $TRAVIS_OS_NAME == linux && $TRAVIS_COMPILER == gcc ]]; then
+      sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test;
+      sudo apt-get update;
+      sudo apt-get install gcc-${COMPILER_VERSION} g++-${COMPILER_VERSION};
+      export CC=/usr/bin/gcc-${COMPILER_VERSION};
+      export CXX=/usr/bin/g++-${COMPILER_VERSION};
+    fi
+  - if [[ $TRAVIS_OS_NAME == linux ]]; then
+      sudo add-apt-repository -y ppa:mhier/libboost-latest;
+      sudo apt-get update;
+      sudo apt-get install libboost1.67-dev;
+      sudo apt-get install bzip2 zlib1g-dev;
+      sudo apt-get install gcc-6-base;
+    fi
+
+install:
+  - mkdir build && cd build && cmake ..;
+
+script:
+  - if [[ "$TARGET_NAME_LIBRARY" != "None" ]]; then
+      if [[ $TRAVIS_OS_NAME == linux ]]; then
+        make -j$(nproc) crypto3_$TARGET_NAME_LIBRARY;
+      elif [[ $TRAVIS_OS_NAME == osx ]]; then
+        make -j$(sysctl -n hw.ncpu) crypto3_$TARGET_NAME_LIBRARY;
+      fi
+    fi
+  - if [[ "$TARGET_NAME_TESTS" != "None" ]]; then
+      if [[ $TRAVIS_OS_NAME == linux ]]; then
+        make -j$(nproc) check-$TARGET_NAME_TESTS;
+      elif [[ $TRAVIS_OS_NAME = osx ]]; then
+        make -j$(sysctl -n hw.ncpu) check-$TARGET_NAME_TESTS;
+      fi
+    fi

@@ -1,0 +1,24 @@
+[submodule "cmake/modules"]
+	path = cmake/modules
+	url = https://github.com/BoostCMake/cmake_modules.git
+[submodule "libs/codec"]
+	path = libs/codec
+	url = https://github.com/nilfoundation/codec.git
+[submodule "libs/block"]
+	path = libs/block
+	url = https://github.com/nilfoundation/block.git
+[submodule "libs/hash"]
+	path = libs/hash
+	url = https://github.com/nilfoundation/hash.git
+[submodule "libs/utilities"]
+	path = libs/utilities
+	url = git@github.com:nemo1369/crypto3_utilities.git
+[submodule "libs/multiprecision"]
+	path = libs/multiprecision
+	url = https://github.com/nilfoundation/multiprecision.git
+[submodule "libs/vdf"]
+	path = libs/vdf
+	url = https://github.com/NilFoundation/vdf.git
+[submodule "libs/modes"]
+	path = libs/modes
+	url = git@github.com:nilfoundation/modes.git

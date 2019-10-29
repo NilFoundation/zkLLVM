@@ -1,0 +1,7 @@
+{
+  "word_size": 64,
+  "endian": "little",
+  "aliases": [
+    "mips64el"
+  ]
+}
