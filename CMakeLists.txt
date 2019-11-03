@@ -39,13 +39,12 @@ endif()
 
 option(BUILD_SHARED_LIBS "Build shared library" TRUE)
 option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
-option(BUILD_UNIT_TESTS "Build unit tests" TRUE)
+option(BUILD_TESTS "Build unit tests" TRUE)
 option(BUILD_FUZZING_TESTS "Build with fuzzing" FALSE)
 option(BUILD_DOXYGEN_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
 
 set(BUILD_WITH_TARGET_ARCHITECTURE "" CACHE STRING "Target build architecture")
 set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_LIST_DIR}/docs" CACHE STRING "Specify doxygen output directory")
-set(APPLE_CODE_SIGN_IDENTITY "iPhone Developer: nemo1369@gmail.com (S686GL5RJ6)" CACHE STRING "Sign identity name")
 
 include(TargetArchitecture)
 
@@ -76,4 +75,5 @@ if(BUILD_FUZZING_TESTS)
     add_subdirectory(fuzzer)
 endif()
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/docs/doxygen/crypto3.doxyfile.in ${CMAKE_BINARY_DIR}/crypto3.doxyfile @ONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/docs/doxygen/crypto3.doxyfile.in
+               ${CMAKE_BINARY_DIR}/crypto3.doxyfile @ONLY)
