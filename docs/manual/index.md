@@ -68,5 +68,5 @@ Later these branches will be factored out to separate Boost-related repository.
 
 ### Particular Module Usage
 
-Usage of particular modules is supposed to be useful for minimization of resulting project sources amount.
-Cryptography suite uses custom C
+Usage of particular modules is supposed to be useful for minimization of resulting project sources amount
+and reducing the dependencies tree height.
