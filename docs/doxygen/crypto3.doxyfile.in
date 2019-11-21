@@ -1221,9 +1221,10 @@ HTML_EXTRA_STYLESHEET  = @PROJECT_SOURCE_DIR@/docs/doxygen/css/customdoxygen.css
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = @PROJECT_SOURCE_DIR@/docs/doxygen/js/doxy-boot.js \
+HTML_EXTRA_FILES       = @PROJECT_SOURCE_DIR@/docs/doxygen/js/doxy_boot.js \
  @PROJECT_SOURCE_DIR@/docs/doxygen/js/jquery.smartmenus.js \
  @PROJECT_SOURCE_DIR@/docs/doxygen/css/bootstrap.min.css \
+ @PROJECT_SOURCE_DIR@/docs/doxygen/css/darkula.css \
  @PROJECT_SOURCE_DIR@/docs/doxygen/addons/bootstrap/jquery.smartmenus.bootstrap.js \
  @PROJECT_SOURCE_DIR@/docs/doxygen/addons/bootstrap/jquery.smartmenus.bootstrap.css
 
@@ -1307,7 +1308,7 @@ GENERATE_DOCSET        = NO
 # The default value is: Doxygen generated docs.
 # This tag requires that the tag GENERATE_DOCSET is set to YES.
 
-DOCSET_FEEDNAME        = "Doxygen generated docs"
+DOCSET_FEEDNAME        = "Nil Foundation's Cryptography Suite"
 
 # This tag specifies a string that should uniquely identify the documentation
 # set bundle. This should be a reverse domain-name style string, e.g.
@@ -1315,7 +1316,7 @@ DOCSET_FEEDNAME        = "Doxygen generated docs"
 # The default value is: org.doxygen.Project.
 # This tag requires that the tag GENERATE_DOCSET is set to YES.
 
-DOCSET_BUNDLE_ID       = org.doxygen.Project
+DOCSET_BUNDLE_ID       = foundation.nil.crypto3
 
 # The DOCSET_PUBLISHER_ID tag specifies a string that should uniquely identify
 # the documentation publisher. This should be a reverse domain-name style
@@ -1323,13 +1324,13 @@ DOCSET_BUNDLE_ID       = org.doxygen.Project
 # The default value is: org.doxygen.Publisher.
 # This tag requires that the tag GENERATE_DOCSET is set to YES.
 
-DOCSET_PUBLISHER_ID    = org.doxygen.Publisher
+DOCSET_PUBLISHER_ID    = foundation.nil.crypto3.documentation
 
 # The DOCSET_PUBLISHER_NAME tag identifies the documentation publisher.
 # The default value is: Publisher.
 # This tag requires that the tag GENERATE_DOCSET is set to YES.
 
-DOCSET_PUBLISHER_NAME  = Publisher
+DOCSET_PUBLISHER_NAME  = Nil Foundation
 
 # If the GENERATE_HTMLHELP tag is set to YES then doxygen generates three
 # additional HTML index files: index.hhp, index.hhc, and index.hhk. The

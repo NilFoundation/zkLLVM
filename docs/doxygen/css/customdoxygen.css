@@ -113,6 +113,8 @@ h1, .h1, h2, .h2, h3, .h3 {
     border-left: 0px solid #222 !important;
     border-right: 0px solid #222 !important;
     border-bottom: 1px solid #3c3c3c !important;
+    padding: 10px;
+    font-size: 1.5em;
 }
 
 table {

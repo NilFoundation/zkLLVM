@@ -23,16 +23,26 @@
     $extrastylesheet
     <link href='https://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="$relpath^bootstrap.min.css">
-    <link rel="stylesheet"
-          href="https:////cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/styles/default.min.css">
-    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/highlight.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     <link href="$relpath^jquery.smartmenus.bootstrap.css" rel="stylesheet">
-
+    <!-- SmartMenus jQuery Plugin -->
     <script type="text/javascript" src="$relpath^jquery.smartmenus.js"></script>
     <!-- SmartMenus jQuery Bootstrap Addon -->
     <script type="text/javascript" src="$relpath^jquery.smartmenus.bootstrap.js"></script>
-    <!-- SmartMenus jQuery plugin -->
+    <!-- highlight.js Syntax Highlighter -->
+    <link rel="stylesheet" href="$relpath^darkula.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/highlight.min.js"></script>
+    <script>
+        $(function () {
+            $(".fragment").each(function (i, node) {
+                var $node = $(node);
+                $node.html("<pre><code class='" +
+                    $node.attr("class") + "'>" +
+                    $node.text() + "</code></pre>");
+                hljs.highlightBlock(node);
+            });
+        });
+    </script>
 </head>
 <body>
 <nav class="navbar navbar-default" role="navigation">
