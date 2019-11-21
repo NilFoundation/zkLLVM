@@ -32,17 +32,17 @@
     <!-- highlight.js Syntax Highlighter -->
     <link rel="stylesheet" href="$relpath^darkula.css">
     <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/highlight.min.js"></script>
-    <script>
-        $(function () {
-            $(".fragment").each(function (i, node) {
-                var $node = $(node);
-                $node.html("<pre><code class='" +
-                    $node.attr("class") + "'>" +
-                    $node.text() + "</code></pre>");
-                hljs.highlightBlock(node);
-            });
-        });
-    </script>
+<!--    <script>-->
+<!--        $(function () {-->
+<!--            $(".fragment").each(function (i, node) {-->
+<!--                var $node = $(node);-->
+<!--                $node.html("<pre><code class='" +-->
+<!--                    $node.attr("class") + "'>" +-->
+<!--                    $node.text() + "</code></pre>");-->
+<!--                hljs.highlightBlock(node);-->
+<!--            });-->
+<!--        });-->
+<!--    </script>-->
 </head>
 <body>
 <nav class="navbar navbar-default" role="navigation">
