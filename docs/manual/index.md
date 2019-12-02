@@ -5,8 +5,6 @@ Crypto3 cryptography suite intention is:
 2. To provide a developer-friendly, modular suite, usable for novel schemes implementation and further
  extension.
 3. To provide a Standard Template Library-alike C++ interface and concept-based architecture implementation.
-4. To extend Boost library set with cryptography suite.
-5. To extend C++ Standard Template Library with cryptography-related proposal using Crypto3 suite as example implementation.
 
 ## Contents
 
