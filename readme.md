@@ -11,7 +11,12 @@ Developed and supported by Nil Foundation: https://nil.foundation.
 
 All the communication is being processed via GitHub issues.
 
-This repository is a master-repository for the whole suite. Particular-purposed libraries repositories (e.g. ```block``` or  ```hash```) are not intended to be used outside the suite and should be handled with great care.
+This repository is a master-repository for the whole
+suite. Particular-purposed libraries repositories
+(e.g. [block](https://github.com/nilfoundation/block)
+or [hash](https://github.com/nilfoundation/hash) are
+not intended to be used outside the suite and should be
+handled with great care.
 
 ## Repository Structure
 
@@ -50,9 +55,10 @@ This repository structure varies depending on particular usage purpose:
      embedding the particular set of libraries in the user's project.
      
         Fine example of such embedding is Nil Foundation's Multithreading Library (https://github.com/nilfoundation/mtl). 
-        It uses only hashes (https://github.com/nilfoundation/hash) so the dependency graph requires for the project
-         to submodule block ciphers library (https://github.com/nilfoundation/block) and optional codec libray for
-          testing
-          purposes (https://github.com/nilfoundation/codec). So, the root MTL repository has only related libraries
-           submoduled: block (https://github.com/nilfoundation/mtl/libs/block), codec (https://github.com
-           /nilfoundation/mtl/libs/codec) and hash (https://github.com/nilfoundation/mtl/hash).
+        It uses only [hashes](https://github.com/nilfoundation/hash) so the dependency graph requires for the project
+        to submodule [block ciphers library](https://github.com/nilfoundation/block) and optional 
+        [codec library](https://github.com/nilfoundation/codec) for testing purposes. So, 
+        the root MTL repository has only related libraries submoduled: 
+        [block](https://github.com/nilfoundation/mtl/libs/block), 
+        [codec](https://github.com/nilfoundation/mtl/libs/codec) and 
+        [hash](https://github.com/nilfoundation/mtl/hash).
