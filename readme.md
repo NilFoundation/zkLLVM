@@ -7,7 +7,7 @@ Development repository is https://github.com/nilfoundation/crypto3.
  
 Rationale, detailed tutorials and references are available at https://crypto3.nil.foundation.
  
-Developed and supported by Nil Foundation: https://nil.foundation.
+Developed by =nil; Crypto3 and supported by =nil; Foundation: https://nil.foundation.
 
 All the communication is being processed via GitHub issues.
 
@@ -49,7 +49,7 @@ This repository structure varies depending on particular usage purpose:
     1. Taking a look at dependency graph of each library (included in every library repository description) and
      embedding the particular set of libraries in the user's project.
      
-        Fine example of such embedding is Nil Foundation's Multithreading Library (https://github.com/nilfoundation/mtl). 
+        Fine example of such embedding is =nil; Foundation's Multithreading Library (https://github.com/nilfoundation/mtl). 
         It uses only hashes (https://github.com/nilfoundation/hash) so the dependency graph requires for the project
          to submodule block ciphers library (https://github.com/nilfoundation/block) and optional codec libray for
           testing
