@@ -1,7 +1,7 @@
-# Nil Foundation Cryptography Library (libcrypto3)
+# =nil; Foundation's Cryptography Suite (libcrypto3)
 [![Build Status](https://travis-ci.com/NilFoundation/crypto3.svg?branch=master)](https://travis-ci.com/NilFoundation/crypto3)[![Coverage Status](https://coveralls.io/repos/github/NilFoundation/crypto3/badge.svg?branch=master)](https://coveralls.io/github/NilFoundation/crypto3?branch=master)
 
-Modern cryptography backend built in C++ with concept-based architecture.
+Modern cryptography suite built in C++ with concept-based architecture.
 
 Development repository is https://github.com/nilfoundation/crypto3.
  
