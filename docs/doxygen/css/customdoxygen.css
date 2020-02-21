@@ -109,7 +109,12 @@ h1, .h1, h2, .h2, h3, .h3 {
 }
 
 .navbar {
-    border: 0px solid #222 !important;
+    border-top: 0px solid #222 !important;
+    border-left: 0px solid #222 !important;
+    border-right: 0px solid #222 !important;
+    border-bottom: 1px solid #3c3c3c !important;
+    padding: 10px;
+    font-size: 1.5em;
 }
 
 table {
@@ -216,11 +221,11 @@ a.qindexHL {
 }
 
 a.code, a.code:visited, a.line, a.line:visited {
-    color: #4665A2;
+    color: #725C70;
 }
 
 a.codeRef, a.codeRef:visited, a.lineRef, a.lineRef:visited {
-    color: #4665A2;
+    color: #725C70;
 }
 
 /* @end */
