@@ -98,3 +98,26 @@ Boost-ified version is a header-only library with bjam-based build system (along
 * Message Authentication Codes (https://github.com/nilfoundation/mac.git)
 * Cipher Modes (https://github.com/nilfoundation/modes.git)
 * Stream Ciphers (https://github.com/nilfoundation/stream.git)
+
+
+## Contributing
+
+### Issues
+
+Preferred way to submit an issue is to submit that to the particular module you think the trouble is in. In case you are not sure, submit an issue to this (master) repository, so the development team could review the contents and create a necessary issues set in modules related.
+
+### Pull Requests
+
+Pull request submission is something more complicated because of the suite is highly modular and particular changes are required to be pulled in convenient repository.
+
+Depending on what you want to change, proceed your pull request to following repositories:
+
+* Block Ciphers (encrypt/decrypt with ```block``` namespace member policy) (https://github.com/nilfoundation/block.git)
+* Codecs (encoding/decoding) (https://github.com/nilfoundation/codec.git)
+* Hashes (hashing) (https://github.com/nilfoundation/hash.git)
+* Key Derivation Functions (derivation) (https://github.com/nilfoundation/kdf.git)
+* Message Authentication Codes (compute/verify) (https://github.com/nilfoundation/mac.git)
+* Cipher Modes (encrypt/decrypt either with ```block``` or with ```stream``` namespace member policies) (https://github.com/nilfoundation/modes.git)
+* Stream Ciphers (encrypt/decrypt with ```stream``` namespace member policy)  (https://github.com/nilfoundation/stream.git)
+
+In case you are not sure which repository to proceed to, create an issue in this repository and ask.
