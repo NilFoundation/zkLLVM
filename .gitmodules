@@ -25,3 +25,9 @@
 [submodule "libs/kdf"]
 	path = libs/kdf
 	url = git@github.com:NilFoundation/kdf.git
+[submodule "libs/mac"]
+	path = libs/mac
+	url = git@github.com:NilFoundation/mac.git
+[submodule "libs/stream"]
+	path = libs/stream
+	url = https://github.com/NilFoundation/stream.git
