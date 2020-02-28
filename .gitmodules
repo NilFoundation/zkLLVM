@@ -22,3 +22,6 @@
 [submodule "libs/modes"]
 	path = libs/modes
 	url = git@github.com:nilfoundation/modes.git
+[submodule "libs/kdf"]
+	path = libs/kdf
+	url = git@github.com:NilFoundation/kdf.git
