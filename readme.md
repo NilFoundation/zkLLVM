@@ -5,24 +5,19 @@ Modern cryptography suite built in C++ with concept-based architecture.
 
 Development repository is https://github.com/nilfoundation/crypto3.
  
-Rationale, detailed tutorials and references are available at https://crypto3.nil.foundation.
+Rationale, detailed tutorials and references are available at https://crypto3.nil.foundation/projects/crypto3.
  
 Developed by =nil; Crypto3 and supported by =nil; Foundation: https://nil.foundation.
 
 All the communication is being processed via GitHub issues.
 
-This repository is a master-repository for the whole
-suite. Particular-purposed libraries repositories
-(e.g. [block](https://github.com/nilfoundation/block)
-or [hash](https://github.com/nilfoundation/hash) are
-not intended to be used outside the suite and should be
-handled with great care.
+This repository is a master-repository for the whole suite. Particular-purposed libraries repositories (e.g. [block](https://github.com/nilfoundation/block) or [hash](https://github.com/nilfoundation/hash) are not intended to be used outside the suite and should be handled with great care.
 
 ## Repository Structure
 
 This repository structure varies depending on particular usage purpose:
 
-1. Generic cryptography suite usage.
+### Generic cryptography suite usage.
 
     Useful for submoduling with projects with CMake build system or for usual build and install routine.
 
@@ -33,7 +28,7 @@ This repository structure varies depending on particular usage purpose:
     Handled by branches ```master```, ```develop``` and ```#issue-name``` branches (uses git-flow) along with semantic versioning-tagged
  ```master``` branch commits (e.g. ```1.2.34```)  
 
-2. In-Boost (https://boost.org) usage.
+### In-Boost (https://boost.org) usage.
 
     Useful for usage with tight Boost library suite integration, represents a Boost-ified version of a
      library.
@@ -42,7 +37,7 @@ This repository structure varies depending on particular usage purpose:
      
      This is handled by branches ```boost-master```, ```boost-develop``` and ```#issues-boost``` branches. Uses CMake and Bjam build systems. 
      
-3. Custom libraries set usage. 
+### Custom libraries set usage. 
 
     Suite is designed in a way for the every particular user could include and exclude
  particular libraries and features depending on a usecase.
@@ -62,3 +57,45 @@ This repository structure varies depending on particular usage purpose:
         [block](https://github.com/nilfoundation/mtl/libs/block), 
         [codec](https://github.com/nilfoundation/mtl/libs/codec) and 
         [hash](https://github.com/nilfoundation/mtl/hash).
+        
+## Repository Contents
+
+### Modularized Version
+
+Modularized version contains all of the modules available emplaced in ```libs``` directory:
+
+* Block Ciphers (https://github.com/nilfoundation/block.git)
+* Codecs (https://github.com/nilfoundation/codec.git)
+* Hashes (https://github.com/nilfoundation/hash.git)
+* Key Derivation Functions (https://github.com/nilfoundation/kdf.git)
+* Message Authentication Codes (https://github.com/nilfoundation/mac.git)
+* Cipher Modes (https://github.com/nilfoundation/modes.git)
+* Multiprecision (https://github.com/nilfoundation/multiprecision.git)
+* Stream Ciphers (https://github.com/nilfoundation/stream.git)
+* Verifiable Delay Functions (https://github.com/nilfoundation/vdf.git)
+
+### Monolithic Version
+
+Monolithic version is a header-only library, which contains all of the modules available merged together an emplaced in ```include``` directory.
+
+* Block Ciphers (https://github.com/nilfoundation/block.git)
+* Codecs (https://github.com/nilfoundation/codec.git)
+* Hashes (https://github.com/nilfoundation/hash.git)
+* Key Derivation Functions (https://github.com/nilfoundation/kdf.git)
+* Message Authentication Codes (https://github.com/nilfoundation/mac.git)
+* Cipher Modes (https://github.com/nilfoundation/modes.git)
+* Multiprecision (https://github.com/nilfoundation/multiprecision.git)
+* Stream Ciphers (https://github.com/nilfoundation/stream.git)
+* Verifiable Delay Functions (https://github.com/nilfoundation/vdf.git)
+
+### Boost-ified Version
+
+Boost-ified version is a header-only library with bjam-based build system (along with traditional CMake-based one), which contains following modules:
+
+* Block Ciphers (https://github.com/nilfoundation/block.git)
+* Codecs (https://github.com/nilfoundation/codec.git)
+* Hashes (https://github.com/nilfoundation/hash.git)
+* Key Derivation Functions (https://github.com/nilfoundation/kdf.git)
+* Message Authentication Codes (https://github.com/nilfoundation/mac.git)
+* Cipher Modes (https://github.com/nilfoundation/modes.git)
+* Stream Ciphers (https://github.com/nilfoundation/stream.git)
