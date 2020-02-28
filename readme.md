@@ -54,7 +54,7 @@ This repository structure varies depending on particular usage purpose:
     1. Taking a look at dependency graph of each library (included in every library repository description) and
      embedding the particular set of libraries in the user's project.
      
-        Fine example of such embedding is Nil Foundation's Multithreading Library (https://github.com/nilfoundation/mtl). 
+        Fine example of such embedding is =nil; Foundation's Multithreading Suite (https://github.com/nilfoundation/mtl). 
         It uses only [hashes](https://github.com/nilfoundation/hash) so the dependency graph requires for the project
         to submodule [block ciphers library](https://github.com/nilfoundation/block) and optional 
         [codec library](https://github.com/nilfoundation/codec) for testing purposes. So, 
