@@ -449,6 +449,10 @@ span.SRScope {
     padding: 7px 8px 6px 8px;
 }
 
+.directory td.even {
+    background-color: #222;
+}
+
 .table > tbody > tr > td.memSeparator {
     line-height: 0;
 . table-hover;
