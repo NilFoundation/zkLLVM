@@ -10,9 +10,6 @@
 [submodule "libs/hash"]
 	path = libs/hash
 	url = https://github.com/nilfoundation/hash.git
-[submodule "libs/utilities"]
-	path = libs/utilities
-	url = git@github.com:nemo1369/crypto3_utilities.git
 [submodule "libs/multiprecision"]
 	path = libs/multiprecision
 	url = https://github.com/nilfoundation/multiprecision.git
@@ -21,7 +18,7 @@
     url = https://github.com/NilFoundation/vdf.git
 [submodule "libs/kdf"]
 	path = libs/kdf
-	url = git@github.com:nilfoundation/kdf.git
+	url = https://github.com/nilfoundation/kdf.git
 [submodule "libs/modes"]
 	path = libs/modes
-	url = git@github.com:nilfoundation/modes.git
+	url = https://github.com/nilfoundation/modes.git
