@@ -18,7 +18,10 @@
 	url = https://github.com/nilfoundation/multiprecision.git
 [submodule "libs/vdf"]
 	path = libs/vdf
-	url = https://github.com/NilFoundation/vdf.git
+    url = https://github.com/NilFoundation/vdf.git
+[submodule "libs/kdf"]
+	path = libs/kdf
+	url = git@github.com:nilfoundation/kdf.git
 [submodule "libs/modes"]
 	path = libs/modes
 	url = git@github.com:nilfoundation/modes.git

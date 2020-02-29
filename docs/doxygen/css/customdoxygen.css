@@ -449,10 +449,19 @@ span.SRScope {
     padding: 7px 8px 6px 8px;
 }
 
+.directory tr.even {
+    background-color: rgba(0, 0, 0, 0);
+}
+
 .table > tbody > tr > td.memSeparator {
     line-height: 0;
 . table-hover;
 
+}
+
+.memtitle {
+    border: 0px solid #222;
+    font-size: 1.5em;
 }
 
 .memItemLeft, .memTemplItemLeft {
