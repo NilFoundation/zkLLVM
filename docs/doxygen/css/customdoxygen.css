@@ -449,8 +449,8 @@ span.SRScope {
     padding: 7px 8px 6px 8px;
 }
 
-.directory td.even {
-    background-color: #222;
+.directory tr.even {
+    background-color: #222 !important;
 }
 
 .table > tbody > tr > td.memSeparator {
