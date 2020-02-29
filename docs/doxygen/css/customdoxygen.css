@@ -450,7 +450,7 @@ span.SRScope {
 }
 
 .directory tr.even {
-    background-color: #222 !important;
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .table > tbody > tr > td.memSeparator {
