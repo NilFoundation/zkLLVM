@@ -1,4 +1,4 @@
-# <span style='font-family: monospace'>=nil;</span> Foundation's Cryptography Suite (libcrypto3) {#mainpage}
+# <span style='font-family: monospace'>=nil;</span> Crypto3 Cryptography Suite (libcrypto3) {#mainpage}
 
 Crypto3 cryptography suite intention is:
 1. To provide a secure, fast and architecturally clean C++ generic cryptography schemes implementation.
