@@ -25,3 +25,6 @@
 [submodule "libs/modes"]
     path = libs/modes
     url = https://github.com/nilfoundation/modes.git
+[submodule "libs/stream"]
+    path = libs/stream
+    url = https://github.com/nilfoundation/stream.git
