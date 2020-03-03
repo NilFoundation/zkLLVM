@@ -20,7 +20,7 @@
     path = libs/kdf
     url = https://github.com/nilfoundation/kdf.git
 [submodule "libs/mac"]
-    path = libs/kdf
+    path = libs/mac
     url = https://github.com/nilfoundation/mac.git
 [submodule "libs/modes"]
     path = libs/modes
