@@ -1,30 +1,30 @@
 [submodule "cmake/modules"]
-	path = cmake/modules
-	url = https://github.com/BoostCMake/cmake_modules.git
+    path = cmake/modules
+    url = https://github.com/BoostCMake/cmake_modules.git
 [submodule "libs/codec"]
-	path = libs/codec
-	url = https://github.com/nilfoundation/codec.git
+    path = libs/codec
+    url = https://github.com/nilfoundation/codec.git
 [submodule "libs/block"]
-	path = libs/block
-	url = https://github.com/nilfoundation/block.git
+    path = libs/block
+    url = https://github.com/nilfoundation/block.git
 [submodule "libs/hash"]
-	path = libs/hash
-	url = https://github.com/nilfoundation/hash.git
+    path = libs/hash
+    url = https://github.com/nilfoundation/hash.git
 [submodule "libs/multiprecision"]
-	path = libs/multiprecision
-	url = https://github.com/nilfoundation/multiprecision.git
+    path = libs/multiprecision
+    url = https://github.com/nilfoundation/multiprecision.git
 [submodule "libs/vdf"]
-	path = libs/vdf
+    path = libs/vdf
     url = https://github.com/NilFoundation/vdf.git
 [submodule "libs/kdf"]
-	path = libs/kdf
-	url = https://github.com/nilfoundation/kdf.git
-[submodule "libs/modes"]
-	path = libs/modes
-	url = https://github.com/nilfoundation/modes.git
+    path = libs/kdf
+    url = https://github.com/nilfoundation/kdf.git
 [submodule "libs/mac"]
-	path = libs/mac
-	url = https://github.com/NilFoundation/mac.git
+    path = libs/mac
+    url = https://github.com/nilfoundation/mac.git
+[submodule "libs/modes"]
+    path = libs/modes
+    url = https://github.com/nilfoundation/modes.git
 [submodule "libs/stream"]
-	path = libs/stream
-	url = https://github.com/NilFoundation/stream.git
+    path = libs/stream
+    url = https://github.com/nilfoundation/stream.git
