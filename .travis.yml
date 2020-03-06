@@ -191,8 +191,6 @@ install:
     - ./bootstrap.sh
 
 script:
-    - sudo ./b2 -j$proc install || true;
-    - cd $TRAVIS_BUILD_DIR && mkdir cmake-build && cd cmake-build;
     - if [[ $TRAVIS_OS_NAME == linux ]]; then
         proc=$(($(nproc) + 1));
         elif [[ $TRAVIS_OS_NAME == osx ]]; then
