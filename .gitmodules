@@ -28,3 +28,9 @@
 [submodule "libs/stream"]
     path = libs/stream
     url = https://github.com/nilfoundation/stream.git
+[submodule "libs/passhash"]
+	path = libs/passhash
+	url = https://github.com/nilfoundation/passhash.git
+[submodule "libs/pbkdf"]
+	path = libs/pbkdf
+	url = https://github.com/nilfoundation/pbkdf.git
