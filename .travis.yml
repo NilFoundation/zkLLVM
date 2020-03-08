@@ -2,151 +2,520 @@ language: cpp
 python: "2.7"
 sudo: true
 
-matrix:
+jobs:
     include:
-        -   os: osx
-            env: TARGET_NAME_TESTS=block COMPILER_VERSION=current
-            compiler: clang
 
         -   os: osx
-            env: TARGET_NAME_TESTS=block COMPILER_VERSION=current
-            compiler: gcc
+            osx_image: xcode8.3
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
 
         -   os: osx
-            env: TARGET_NAME_TESTS=hash COMPILER_VERSION=current
-            compiler: clang
+            osx_image: xcode8.3
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
 
         -   os: osx
-            env: TARGET_NAME_TESTS=hash COMPILER_VERSION=current
-            compiler: gcc
+            osx_image: xcode9.1
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
 
         -   os: osx
-            env: TARGET_NAME_TESTS=codec COMPILER_VERSION=current
-            compiler: clang
+            osx_image: xcode9.1
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
 
         -   os: osx
-            env: TARGET_NAME_TESTS=codec COMPILER_VERSION=current
+            osx_image: xcode9.2
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+        -   os: osx
+            osx_image: xcode9.2
             compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+
+        -   os: osx
+            osx_image: xcode9.3
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+        -   os: osx
+            osx_image: xcode9.3
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+
+        -   os: osx
+            osx_image: xcode9.4
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+        -   os: osx
+            osx_image: xcode9.4
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+
+        -   os: osx
+            osx_image: xcode10
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+        -   os: osx
+            osx_image: xcode10
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+
+        -   os: osx
+            osx_image: xcode10.1
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+        -   os: osx
+            osx_image: xcode10.1
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+
+        -   os: osx
+            osx_image: xcode10.2
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+        -   os: osx
+            osx_image: xcode10.2
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+
+        -   os: osx
+            osx_image: xcode11
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+        -   os: osx
+            osx_image: xcode11
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++11
+
+
+
+        -   os: osx
+            osx_image: xcode8.3
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+        -   os: osx
+            osx_image: xcode8.3
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+
+        -   os: osx
+            osx_image: xcode9.1
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+        -   os: osx
+            osx_image: xcode9.1
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+
+        -   os: osx
+            osx_image: xcode9.2
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+        -   os: osx
+            osx_image: xcode9.2
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+
+        -   os: osx
+            osx_image: xcode9.3
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+        -   os: osx
+            osx_image: xcode9.3
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+
+        -   os: osx
+            osx_image: xcode9.4
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+        -   os: osx
+            osx_image: xcode9.4
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+
+        -   os: osx
+            osx_image: xcode10
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+        -   os: osx
+            osx_image: xcode10
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+
+        -   os: osx
+            osx_image: xcode10.1
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+        -   os: osx
+            osx_image: xcode10.1
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+
+        -   os: osx
+            osx_image: xcode10.2
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+        -   os: osx
+            osx_image: xcode10.2
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+
+        -   os: osx
+            osx_image: xcode11
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+        -   os: osx
+            osx_image: xcode11
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++14
+
+
+
+        -   os: osx
+            osx_image: xcode8.3
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+        -   os: osx
+            osx_image: xcode8.3
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+
+        -   os: osx
+            osx_image: xcode9.1
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+        -   os: osx
+            osx_image: xcode9.1
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+
+        -   os: osx
+            osx_image: xcode9.2
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+        -   os: osx
+            osx_image: xcode9.2
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+
+        -   os: osx
+            osx_image: xcode9.3
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+        -   os: osx
+            osx_image: xcode9.3
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+
+        -   os: osx
+            osx_image: xcode9.4
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+        -   os: osx
+            osx_image: xcode9.4
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+
+        -   os: osx
+            osx_image: xcode10
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+        -   os: osx
+            osx_image: xcode10
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+
+        -   os: osx
+            osx_image: xcode10.1
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+        -   os: osx
+            osx_image: xcode10.1
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+
+        -   os: osx
+            osx_image: xcode10.2
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+        -   os: osx
+            osx_image: xcode10.2
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+
+        -   os: osx
+            osx_image: xcode11
+            compiler: clang
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
+        -   os: osx
+            osx_image: xcode11
+            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec CXXSTD=c++17
+
+
 
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=block COMPILER_VERSION=5.0
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=5 CXXSTD=c++11
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=6 CXXSTD=c++11
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=7 CXXSTD=c++11
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=8 CXXSTD=c++11
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=9 CXXSTD=c++11
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=5 CXXSTD=c++14
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=6 CXXSTD=c++14
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=7 CXXSTD=c++14
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=8 CXXSTD=c++14
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=9 CXXSTD=c++14
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=7 CXXSTD=c++17
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=8 CXXSTD=c++17
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=9 CXXSTD=c++17
+            compiler: gcc
+
+
+        -   os: linux
+            dist: xenial
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=5.0 CXXSTD=c++11
             compiler: clang
 
+
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=block COMPILER_VERSION=6.0
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=6.0 CXXSTD=c++11
             compiler: clang
 
+
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=block COMPILER_VERSION=7
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=7 CXXSTD=c++11
             compiler: clang
 
+
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=block COMPILER_VERSION=8
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=8 CXXSTD=c++11
             compiler: clang
 
-        -   os: linux
-            dist: xenial
-            env: TARGET_NAME_TESTS=block COMPILER_VERSION=5
-            compiler: gcc
 
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=block COMPILER_VERSION=6
-            compiler: gcc
-
-        -   os: linux
-            dist: xenial
-            env: TARGET_NAME_TESTS=block COMPILER_VERSION=7
-            compiler: gcc
-
-        -   os: linux
-            dist: xenial
-            env: TARGET_NAME_TESTS=block COMPILER_VERSION=8
-            compiler: gcc
-
-        -   os: linux
-            dist: xenial
-            env: TARGET_NAME_TESTS=hash COMPILER_VERSION=5.0
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=9 CXXSTD=c++11
             compiler: clang
 
+
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=hash COMPILER_VERSION=6.0
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=5.0 CXXSTD=c++14
             compiler: clang
 
+
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=hash COMPILER_VERSION=7
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=6.0 CXXSTD=c++14
             compiler: clang
 
+
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=hash COMPILER_VERSION=8
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=7 CXXSTD=c++14
             compiler: clang
 
-        -   os: linux
-            dist: xenial
-            env: TARGET_NAME_TESTS=hash COMPILER_VERSION=5
-            compiler: gcc
 
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_LIBRARY=hash TARGET_NAME_TESTS=hash COMPILER_VERSION=6
-            compiler: gcc
-
-        -   os: linux
-            dist: xenial
-            env: TARGET_NAME_TESTS=hash COMPILER_VERSION=7
-            compiler: gcc
-
-        -   os: linux
-            dist: xenial
-            env: TARGET_NAME_TESTS=hash COMPILER_VERSION=8
-            compiler: gcc
-
-        -   os: linux
-            dist: xenial
-            env: TARGET_NAME_TESTS=codec COMPILER_VERSION=5.0
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=8 CXXSTD=c++14
             compiler: clang
 
+
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=codec COMPILER_VERSION=6.0
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=9 CXXSTD=c++14
             compiler: clang
 
+
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=codec COMPILER_VERSION=7
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=6.0 CXXSTD=c++17
             compiler: clang
 
+
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=codec COMPILER_VERSION=8
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=7 CXXSTD=c++17
             compiler: clang
 
-        -   os: linux
-            dist: xenial
-            env: TARGET_NAME_TESTS=codec COMPILER_VERSION=5
-            compiler: gcc
 
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=codec COMPILER_VERSION=6
-            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=8 CXXSTD=c++17
+            compiler: clang
+
 
         -   os: linux
             dist: xenial
-            env: TARGET_NAME_TESTS=codec COMPILER_VERSION=7
-            compiler: gcc
-
-        -   os: linux
-            dist: xenial
-            env: TARGET_NAME_TESTS=codec COMPILER_VERSION=8
-            compiler: gcc
+            env: TARGET_NAME_TESTS=block:hash:codec COMPILER_VERSION=9 CXXSTD=c++17
+            compiler: clang
 
 before_install:
     - if [[ $TRAVIS_OS_NAME == linux && $TRAVIS_COMPILER == clang ]]; then
@@ -162,11 +531,6 @@ before_install:
         sudo apt-get install gcc-${COMPILER_VERSION} g++-${COMPILER_VERSION};
         export CC=/usr/bin/gcc-${COMPILER_VERSION};
         export CXX=/usr/bin/g++-${COMPILER_VERSION};
-        fi
-    - if [[ $TRAVIS_OS_NAME == linux ]]; then
-        sudo apt-get update;
-        sudo apt-get install bzip2 zlib1g-dev;
-        sudo apt-get install gcc-6-base;
         fi
     - if [[ $TRAVIS_OS_NAME == osx ]]; then
         brew update;
@@ -198,7 +562,4 @@ script:
         fi;
     - sudo ./b2 -j$proc install || true;
     - cd $TRAVIS_BUILD_DIR && mkdir cmake-build && cd cmake-build;
-    - echo $CXXSTD
-    - cmake -DBUILD_SHARED_LIBS=TRUE -DBUILD_TESTS=TRUE -DCMAKE_CXX_STANDARD=$(echo $CXXSTD | sed 's/[^0-9z]*//g') ..;
-    - make -j$proc tests-$TARGET_NAME_TESTS;
-    - ctest .
+    - ctest --build-and-test .. . --build-generator "Unix Makefiles" -j$proc --build-options -DBUILD_SHARED_LIBS=TRUE -DBUILD_TESTS=TRUE -DCMAKE_CXX_STANDARD=$(echo $CXXSTD | sed 's/[^0-9z]*//g')
