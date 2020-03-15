@@ -558,15 +558,13 @@ footer .footer-below {
     margin-bottom: 0px;
 }
 
-
 .breadcrumb > li {
     margin: 0px;
     padding: 15px;
     padding-left: 0px;
 }
 
-
-.breadcrumb > .first {
+.breadcrumb > li:first-child {
     margin: 0px;
     padding: 15px;
 }
