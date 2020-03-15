@@ -543,5 +543,8 @@ span.SRScope {
 
 table.markdownTable tr.markdownTableHead th.markdownTableHeadNone {
     background-color: #725C70;
+}
+
+table.markdownTable tr, th {
     border-color: #725C70;
 }
