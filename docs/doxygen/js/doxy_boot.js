@@ -203,7 +203,7 @@ $(document).ready(function () {
     $('#MSearchResults').load(function () {
         $('#MSearchResults').contents().find('link[href="search.css"]').attr('href', '../doxygen.css');
         $('#MSearchResults').contents().find('head').append(
-            '<link href="../customdoxygen.css" rel="stylesheet" type="text/css">');
+            '<link href="../custom.doxygen.css" rel="stylesheet" type="text/css">');
 
         update_search_results_window();
 

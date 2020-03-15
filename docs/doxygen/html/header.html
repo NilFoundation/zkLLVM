@@ -20,7 +20,6 @@
     $search
     $mathjax
     <link href="$relpath^$stylesheet" rel="stylesheet" type="text/css"/>
-    $extrastylesheet
     <link href='https://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css'/>
     <link rel="stylesheet" href="$relpath^bootstrap.min.css"/>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
@@ -31,12 +30,34 @@
     <script type="text/javascript" src="$relpath^jquery.smartmenus.bootstrap.js"></script>
     <!-- highlight.js Syntax Highlighter -->
     <link rel="stylesheet" href="$relpath^darkula.css"/>
+    $extrastylesheet
 </head>
 <body>
 <nav class="navbar navbar-default" role="navigation">
     <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand">$projectname $projectnumber</a>
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <ol class="navbar-brand breadcrumb">
+                <li class="first">
+                    <a href="https://nil.foundation"><span style="font-family:Menlo, Courier, monospace">=nil;</span>
+                        Foundation</a>
+                </li>
+                <li>
+                    <a href="https://crypto3.nil.foundation"><span style="font-family:Menlo, Courier,
+                    monospace">=nil;</span> Crypto3</a>
+                </li>
+                <li>
+                    <a href="#page-top"><span style="font-family:Menlo, Courier, monospace">=nil;</span> $projectname
+                        $projectnumber</a>
+                </li>
+            </ol>
         </div>
     </div>
 </nav>

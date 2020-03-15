@@ -538,3 +538,10 @@ span.SRScope {
         display: inline;
     }
 }
+
+/* Markdown Table */
+
+table.markdownTable tr.markdownTableHead th.markdownTableHeadNone {
+    background-color: #725C70;
+    border-color: #725C70;
+}
