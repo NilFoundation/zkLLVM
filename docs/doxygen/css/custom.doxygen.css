@@ -455,8 +455,6 @@ span.SRScope {
 
 .table > tbody > tr > td.memSeparator {
     line-height: 0;
-. table-hover;
-
 }
 
 .memtitle {
@@ -497,7 +495,7 @@ span.SRScope {
 }
 
 .label-info {
-    background-color: #232125;
+    background-color: #725C70;
 }
 
 .page-header .label {
@@ -550,4 +548,10 @@ table.markdownTable > tr.markdownTableHead, th.markdownTableHeadNone {
 
 table.markdownTable > tr, th {
     border-color: #725C70;
+}
+
+/* Function & Template Parameters */
+
+td.paramname {
+    color: #F5F2F1;
 }
