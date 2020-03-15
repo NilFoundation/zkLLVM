@@ -118,7 +118,7 @@ h1, .h1, h2, .h2, h3, .h3 {
 }
 
 table {
-    white-space: pre-wrap !important;
+    white-space: pre-line !important;
 }
 
 /*
@@ -212,12 +212,12 @@ a.qindex {
 a.qindexHL {
     font-weight: bold;
     background-color: #9CAFD4;
-    color: #ffffff;
+    color: #F5F2F1;
     border: 1px double #869DCA;
 }
 
 .contents a.qindexHL:visited {
-    color: #ffffff;
+    color: #F5F2F1;
 }
 
 a.code, a.code:visited, a.line, a.line:visited {
@@ -460,8 +460,7 @@ span.SRScope {
 }
 
 .memtitle {
-    border: 0px solid #222;
-    font-size: 1.5em;
+    display: none;
 }
 
 .memItemLeft, .memTemplItemLeft {
@@ -470,7 +469,7 @@ span.SRScope {
 
 /* enumerations */
 .panel-body thead > tr {
-    background-color: #e0e0e0;
+    background-color: #725C70;
 }
 
 /* todo lists */
@@ -495,6 +494,10 @@ span.SRScope {
 .page-header .pull-right {
     margin-top: 0.3em;
     margin-left: 0.5em;
+}
+
+.label-info {
+    background-color: #232125;
 }
 
 .page-header .label {
@@ -541,10 +544,10 @@ span.SRScope {
 
 /* Markdown Table */
 
-table.markdownTable tr.markdownTableHead th.markdownTableHeadNone {
+table.markdownTable > tr.markdownTableHead, th.markdownTableHeadNone {
     background-color: #725C70;
 }
 
-table.markdownTable tr, th {
+table.markdownTable > tr, th {
     border-color: #725C70;
 }
