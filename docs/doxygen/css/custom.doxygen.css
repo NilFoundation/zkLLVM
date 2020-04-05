@@ -248,9 +248,14 @@ pre.fragment {
 }
 
 div.fragment {
+    border: 0px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    background-color: #151515;
     padding: 4px 6px;
     margin: 4px 8px 4px 2px;
-    border: 1px solid #C4CFE5;
 }
 
 div.line {
@@ -279,16 +284,6 @@ div.line {
     transition-property: background-color, box-shadow;
     transition-duration: 0.5s;
 }
-
-div.line:hover {
-    background-color: #FBFF00;
-}
-
-div.line.glow {
-    background-color: cyan;
-    box-shadow: 0 0 10px cyan;
-}
-
 
 span.lineno {
     padding-right: 4px;
@@ -382,11 +377,17 @@ blockquote {
 }
 
 #search-box .close {
+    color: #222;
     display: none;
     position: absolute;
     right: 0px;
     padding: 6px 12px;
     z-index: 5;
+}
+
+#search-box .form-control {
+    color: #222;
+    background-color: #F5F2F1;
 }
 
 /*---------------- Search results window */
@@ -554,4 +555,14 @@ table.markdownTable > tr, th {
 
 td.paramname {
     color: #F5F2F1;
+}
+
+/* Markdown Pages */
+
+.PageDoc p {
+    font-size: 14px;
+}
+
+.PageDoc p > a {
+    color: #725C70;
 }

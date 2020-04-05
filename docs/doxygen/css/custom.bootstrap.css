@@ -16,7 +16,7 @@ a:focus,
 a:active,
 a.active {
     outline: 0;
-    color: #222;
+    color: #222222;
 }
 
 a.list-group-item {
@@ -449,6 +449,10 @@ footer .footer-below {
     line-height: 45px;
 }
 
+.btn {
+    padding: 10px 12px;
+}
+
 .btn:focus,
 .btn:active,
 .btn.active {
@@ -576,4 +580,9 @@ footer .footer-below {
 .breadcrumb > li > a, a:hover, a:focus, a:active, a.active {
     outline: 0;
     color: #F5F2F1;
+}
+
+.input-group-btn {
+    padding-top: 0px;
+    padding-bottom: 0px;
 }
