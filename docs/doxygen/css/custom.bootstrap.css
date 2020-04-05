@@ -156,6 +156,12 @@ header .intro-text .skills {
 
 .navbar .navbar-nav {
     letter-spacing: 1px;
+    margin-right: 0px;
+}
+
+.navbar .navbar-nav li {
+    margin-top: 5px;
+    margin-bottom: 10px;
 }
 
 .navbar .navbar-nav li a:focus {
