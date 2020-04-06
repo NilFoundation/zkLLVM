@@ -200,6 +200,9 @@ $(document).ready(function () {
         for (i = 0; i < targets.length; i++) {
             observer.observe(targets[i], config);
         }
+
+        $('#MSearchResults').contents().find('.SRResults').addClass('list-group');
+        $('#MSearchResults').contents().find('.SRResult').addClass('list-group-item');
     });
 
     /* enumerations */
