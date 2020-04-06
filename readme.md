@@ -27,16 +27,6 @@ Every library is emplaced in ```libs/%library_name%``` as submodule. Depends on 
 Handled by branches ```master```, ```develop``` and ```#issue-name``` branches (uses git-flow) along with semantic versioning-tagged ```master``` branch commits (e.g. ```1.2.34```).
 
 Uses CMake build system.
-
-### In-Boost (https://boost.org) usage.
-
-Useful for usage with tight Boost library suite integration, represents a Boost-ified version of a library.
-     
-This case gets covered by header-only library with Boost-community approved libraries set. 
-
-Handled by branches ```boost-master```, ```boost-develop``` and ```#issues-boost``` branches.
-
-Uses CMake and Bjam build systems. 
      
 ### Custom libraries set usage. 
 
@@ -86,19 +76,6 @@ Monolithic version is a header-only library, which contains all of the modules a
 * Multiprecision (https://github.com/nilfoundation/multiprecision.git)
 * Stream Ciphers (https://github.com/nilfoundation/stream.git)
 * Verifiable Delay Functions (https://github.com/nilfoundation/vdf.git)
-
-### Boost-ified Version
-
-Boost-ified version is a header-only library with bjam-based build system (along with traditional CMake-based one), which contains following modules merged together and emplaced in ```include``` directory:
-
-* Block Ciphers (https://github.com/nilfoundation/block.git)
-* Codecs (https://github.com/nilfoundation/codec.git)
-* Hashes (https://github.com/nilfoundation/hash.git)
-* Key Derivation Functions (https://github.com/nilfoundation/kdf.git)
-* Message Authentication Codes (https://github.com/nilfoundation/mac.git)
-* Cipher Modes (https://github.com/nilfoundation/modes.git)
-* Stream Ciphers (https://github.com/nilfoundation/stream.git)
-
 
 ## Contributing
 
