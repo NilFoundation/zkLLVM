@@ -25,7 +25,7 @@ Cryptography suite comes in several modifications:
 4. Usage via other language bindings.
 
 ### Generic Usage 
-Generic usage-intended cryptography suite is split to modules available at [GitHub](https://github.com/nilfoundation). 
+Generic usage-intended cryptography suite is split to modules available at [GitHub =nil; Crypto3 Team Repositoties](https://github.com/orgs/NilFoundation/teams/nil-crypto3/repositories). 
 Some of them are not for standalone usage, some of them are. So there is a suite superproject repository available at
  [Crypto3 GitHub](https://github.com/nilfoundation/crypto3.git). Superproject includes all the modules
 available as submodules emplaced in `libs` directory.
@@ -53,16 +53,16 @@ In-Boost usage supposes the library to contain only
 proven and secure state-of-art modules packed into
 one repository with no submodules at all. 
 
+Boost-ified version is handled by separate repository [Boost Crypto3](https://github.com/nilfoundation/boost-crypto3.git) 
+
 For now this gets accomplished by several branches:
-* `boost-master` - contains tagged release version of Boost-ified library with modules only approved by
+* `master` - contains tagged release version of Boost-ified library with modules only approved by
  Boost community to be included in library. 
-* `boost-develop` - contains in-development library state.
+* `develop` - contains in-development library state.
 
 All the actual development is processed in library's 
 generic-purpose modification, so this means 
 Boost-related branches are merge-only.
-
-Later these branches will be factored out to separate Boost-related repository. 
 
 ### Particular Module Usage
 

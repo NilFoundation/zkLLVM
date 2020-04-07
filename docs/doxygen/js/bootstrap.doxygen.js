@@ -105,7 +105,7 @@ $(document).ready(function () {
     <div id="search-box" class="input-group">\
       <div class="input-group-btn">\
         <button aria-expanded="false" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">\
-          <span class="glyphicon glyphicon-search"></span> <span class="caret"></span>\
+          <span class="glyphicon glyphicon-search" aria-hidden="true"></span>\
         </button>\
         <ul class="dropdown-menu">\
         </ul>\
@@ -184,9 +184,10 @@ $(document).ready(function () {
     }
 
     $('#MSearchResults').load(function () {
-        $('#MSearchResults').contents().find('link[href="search.css"]').attr('href', 'doxygen.css');
         $('#MSearchResults').contents().find('head').append(
-            '<link href="custom.doxygen.css" rel="stylesheet" type="text/css">');
+            '<link href="doxygen.css" rel="stylesheet" type="text/css"/> \
+             <link href="custom.doxygen.css" rel="stylesheet" type="text/css"/> \
+             <link href="bootstrap.min.css" rel="stylesheet" type="text/css"/>');
 
         update_search_results_window();
 
@@ -201,8 +202,13 @@ $(document).ready(function () {
             observer.observe(targets[i], config);
         }
 
-        $('#MSearchResults').contents().find('.SRResults').addClass('list-group');
-        $('#MSearchResults').contents().find('.SRResult').addClass('list-group-item');
+        $('#MSearchResults').contents().find('#SRResults').addClass('list-group');
+
+        var results = $('#MSearchResults').contents().find('.SRResult');
+        var res = $('#MSearchResults').contents().find('#SRResults');
+        for (i = 0; i < results.length; i++) {
+            res.append($('<a href="#" class="list-group-item"></a>').append(results[i].detach()));
+        }
     });
 
     /* enumerations */

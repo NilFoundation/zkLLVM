@@ -1224,6 +1224,11 @@ HTML_EXTRA_STYLESHEET  = @PROJECT_SOURCE_DIR@/docs/doxygen/css/custom.doxygen.cs
 
 HTML_EXTRA_FILES       = @PROJECT_SOURCE_DIR@/docs/doxygen/js/bootstrap.doxygen.js \
  @PROJECT_SOURCE_DIR@/docs/doxygen/js/jquery.smartmenus.js \
+ @PROJECT_SOURCE_DIR@/docs/doxygen/fonts/glyphicons-halflings-regular.eot \
+ @PROJECT_SOURCE_DIR@/docs/doxygen/fonts/glyphicons-halflings-regular.woff \
+ @PROJECT_SOURCE_DIR@/docs/doxygen/fonts/glyphicons-halflings-regular.woff2 \
+ @PROJECT_SOURCE_DIR@/docs/doxygen/fonts/glyphicons-halflings-regular.svg \
+ @PROJECT_SOURCE_DIR@/docs/doxygen/fonts/glyphicons-halflings-regular.ttf \
  @PROJECT_SOURCE_DIR@/docs/doxygen/css/bootstrap.min.css \
  @PROJECT_SOURCE_DIR@/docs/doxygen/css/darkula.css \
  @PROJECT_SOURCE_DIR@/docs/doxygen/addons/bootstrap/jquery.smartmenus.bootstrap.js \

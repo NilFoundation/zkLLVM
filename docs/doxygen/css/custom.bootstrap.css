@@ -592,3 +592,70 @@ footer .footer-below {
     padding-top: 0px;
     padding-bottom: 0px;
 }
+
+/* Glyphicons Font Definitions */
+
+@font-face {
+    font-family: 'Glyphicons Halflings';
+
+    src: url('glyphicons-halflings-regular.eot');
+    src: url('glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('glyphicons-halflings-regular.woff2') format('woff2'), url('glyphicons-halflings-regular.woff') format('woff'), url('glyphicons-halflings-regular.ttf') format('truetype'), url('glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+}
+
+.glyphicon {
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.glyphicon-asterisk:before {
+    content: "\002a";
+}
+
+.glyphicon-plus:before {
+    content: "\002b";
+}
+
+.glyphicon-euro:before,
+.glyphicon-eur:before {
+    content: "\20ac";
+}
+
+.glyphicon-minus:before {
+    content: "\2212";
+}
+
+.glyphicon-cloud:before {
+    content: "\2601";
+}
+
+.glyphicon-envelope:before {
+    content: "\2709";
+}
+
+.glyphicon-pencil:before {
+    content: "\270f";
+}
+
+.glyphicon-glass:before {
+    content: "\e001";
+}
+
+.glyphicon-music:before {
+    content: "\e002";
+}
+
+.glyphicon-search:before {
+    content: "\e003";
+}
+
+.glyphicon-heart:before {
+    content: "\e005";
+}
