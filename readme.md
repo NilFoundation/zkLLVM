@@ -66,6 +66,23 @@ Modularized version contains all of the modules available emplaced in ```libs```
 * Stream Ciphers (https://github.com/nilfoundation/stream.git)
 * Verifiable Delay Functions (https://github.com/nilfoundation/vdf.git)
 
+<<<<<<< HEAD
+=======
+### Monolithic Version
+
+Monolithic version is a header-only library, which contains all of the modules available merged together an emplaced in ```include``` directory.
+
+* Block Ciphers (https://github.com/nilfoundation/block.git)
+* Codecs (https://github.com/nilfoundation/codec.git)
+* Hashes (https://github.com/nilfoundation/hash.git)
+* Key Derivation Functions (https://github.com/nilfoundation/kdf.git)
+* Message Authentication Codes (https://github.com/nilfoundation/mac.git)
+* Cipher Modes (https://github.com/nilfoundation/modes.git)
+* Multiprecision (https://github.com/nilfoundation/multiprecision.git)
+* Stream Ciphers (https://github.com/nilfoundation/stream.git)
+* Verifiable Delay Functions (https://github.com/nilfoundation/vdf.git)
+
+>>>>>>> d3a70c7988b48a704126e45999e4fcf8bf2e261f
 ## Contributing
 
 ### Issues
