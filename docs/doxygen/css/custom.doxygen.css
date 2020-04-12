@@ -260,7 +260,7 @@ div.fragment {
 
 div.line {
     font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-    font-size: 12px;
+    font-size: 14px;
     min-height: 13px;
     line-height: 1.0;
     text-wrap: unrestricted;
@@ -301,11 +301,6 @@ span.lineno a {
     cursor: pointer;
 }
 
-span.lineno a:hover {
-    background-color: #EFE200;
-    color: #1e1e1e;
-}
-
 div.groupHeader {
     margin-left: 16px;
     margin-top: 12px;
@@ -317,7 +312,7 @@ div.groupText {
     font-style: italic;
 }
 
-/* @group Code Colorization */
+/* Code Colorization */
 
 span.keyword {
     color: #008000
@@ -370,7 +365,7 @@ blockquote {
     padding: 0 12px 0 16px;
 }
 
-/*---------------- Search Box */
+/* Search Box */
 
 #search-box {
     margin: 10px 0px;
@@ -390,7 +385,7 @@ blockquote {
     background-color: #F5F2F1;
 }
 
-/*---------------- Search results window */
+/* Search results window */
 
 #search-results-window {
     display: none;
@@ -427,7 +422,7 @@ span.SRScope {
     display: none;
 }
 
-/* class and file list */
+/* Class & File List */
 .directory .icona,
 .directory .arrow {
     height: auto;
