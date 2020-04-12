@@ -434,7 +434,7 @@ DOCSET_PUBLISHER_ID    = foundation.nil.crypto3.documentation
 # The default value is: Publisher.
 # This tag requires that the tag GENERATE_DOCSET is set to YES.
 
-DOCSET_PUBLISHER_NAME  = NilFoundation
+DOCSET_PUBLISHER_NAME  = =nil;Foundation
 
 #---------------------------------------------------------------------------
 # Build related configuration options
@@ -716,7 +716,7 @@ FILE_VERSION_FILTER    =
 # DoxygenLayout.xml, doxygen will parse it automatically even if the LAYOUT_FILE
 # tag is left empty.
 
-LAYOUT_FILE            =
+LAYOUT_FILE            = @PROJECT_SOURCE_DIR@/docs/doxygen/xml/DoxygenLayout.xml
 
 # The CITE_BIB_FILES tag can be used to specify one or more bib files containing
 # the reference definitions. This must be a list of .bib files. The .bib

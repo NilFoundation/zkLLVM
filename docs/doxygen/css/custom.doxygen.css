@@ -234,9 +234,13 @@ dl.el {
     margin-left: -1cm;
 }
 
-pre.fragment {
-    border: 1px solid #C4CFE5;
-    background-color: #FBFCFD;
+p.fragment {
+    border: 0px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    background-color: #151515;
     padding: 4px 6px;
     margin: 4px 8px 4px 2px;
     overflow: auto;
@@ -256,6 +260,12 @@ div.fragment {
     background-color: #151515;
     padding: 4px 6px;
     margin: 4px 8px 4px 2px;
+    overflow: auto;
+    word-wrap: break-word;
+    font-size: 9pt;
+    line-height: 125%;
+    font-family: monospace, fixed;
+    font-size: 105%;
 }
 
 div.line {
