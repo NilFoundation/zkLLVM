@@ -565,11 +565,11 @@ td.paramname {
 
 /* Markdown Pages */
 
-.PageDoc p {
+.PageDoc .contents p {
     font-size: 14px;
 }
 
-.PageDoc p > a {
+.PageDoc .contents a {
     color: #725C70;
 }
 
