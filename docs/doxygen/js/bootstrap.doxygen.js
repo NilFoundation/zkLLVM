@@ -275,4 +275,13 @@ $(document).ready(function () {
             $(this).addClass('img-responsive');
         }
     });
+
+    /* table of contents */
+    var title = $('div.toc > h3').addClass('panel-title').detach();
+    $('div.toc').addClass('panel panel-primary').append(
+        '<div class="panel-heading"></div><div class="panel-body list-group"></div>');
+    $('div.toc > div.panel-heading').append(title);
+    $('div.toc > div.panel-body').append($('div.toc > ul').find('li > a').addClass('list-group-item'));
+    $('div.toc > ul').remove();
+    $('div.toc').addClass('contents-table').removeClass('toc');
 });

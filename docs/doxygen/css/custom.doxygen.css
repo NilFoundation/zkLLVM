@@ -578,3 +578,13 @@ td.paramname {
 div.directory > div.levels span {
     color: #F5F2F1;
 }
+
+/* Table of Contents */
+
+div.contents-table {
+    float: right;
+}
+
+div.contents-table a {
+    color: #F5F2F1;
+}
