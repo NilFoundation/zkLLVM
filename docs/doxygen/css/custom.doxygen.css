@@ -585,6 +585,6 @@ div.contents-table {
     float: right;
 }
 
-div.contents-table a {
+div.contents-table div.panel-body a {
     color: #F5F2F1;
 }
