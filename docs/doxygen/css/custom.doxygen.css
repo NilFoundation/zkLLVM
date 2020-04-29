@@ -235,7 +235,7 @@ dl.el {
 }
 
 p.fragment {
-    border: 0px;
+    border: 1px solid #030303;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
     border-top-left-radius: 6px;
@@ -245,14 +245,13 @@ p.fragment {
     margin: 4px 8px 4px 2px;
     overflow: auto;
     word-wrap: break-word;
-    font-size: 9pt;
+    font-size: 10pt;
     line-height: 125%;
     font-family: monospace, fixed;
-    font-size: 105%;
 }
 
 div.fragment {
-    border: 0px;
+    border: 1px solid #030303;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
     border-top-left-radius: 6px;
@@ -262,10 +261,9 @@ div.fragment {
     margin: 4px 8px 4px 2px;
     overflow: auto;
     word-wrap: break-word;
-    font-size: 9pt;
+    font-size: 10pt;
     line-height: 125%;
     font-family: monospace, fixed;
-    font-size: 105%;
 }
 
 div.line {
@@ -293,6 +291,14 @@ div.line {
     -o-transition-duration: 0.5s;
     transition-property: background-color, box-shadow;
     transition-duration: 0.5s;
+}
+
+div.fragment.well div.line:first {
+    margin-top: 2px;
+}
+
+div.fragment.well div.line:last {
+    margin-bottom: 2px;
 }
 
 span.lineno {
@@ -583,6 +589,7 @@ div.directory > div.levels span {
 
 div.contents-table {
     float: right;
+    margin: 10px;
 }
 
 div.contents-table div.panel-body a {
