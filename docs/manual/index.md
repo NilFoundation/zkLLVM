@@ -1,5 +1,7 @@
 # <span style='font-family: monospace'>=nil;</span> Crypto3 Cryptography Suite (libcrypto3) {#mainpage}
 
+@tableofcontents
+
 Crypto3 cryptography suite intention is:
 1. To provide a secure, fast and architecturally clean C++ generic cryptography schemes implementation.
 2. To provide a developer-friendly, modular suite, usable for novel schemes implementation and further
