@@ -34,3 +34,6 @@
 [submodule "libs/pbkdf"]
 	path = libs/pbkdf
 	url = https://github.com/nilfoundation/pbkdf.git
+[submodule "libs/integer"]
+	path = libs/integer
+	url = git@github.com:nilfoundation/integer.git
