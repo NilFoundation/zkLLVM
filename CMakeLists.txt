@@ -31,20 +31,6 @@ endmacro()
 
 cm_setup_version(VERSION 0.3.0 PREFIX ${CMAKE_WORKSPACE_NAME})
 
-cm_find_package(Git)
-if(GIT_FOUND)
-    execute_process(COMMAND "${GIT_EXECUTABLE}" log -1 --format=%at HEAD
-                    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-                    ERROR_VARIABLE stderr
-                    RESULT_VARIABLE error_code
-                    OUTPUT_VARIABLE CRYPTO3_VERSION_DATESTAMP
-                    OUTPUT_STRIP_TRAILING_WHITESPACE
-                    )
-
-else()
-    set(CRYPTO3_VERSION_DATESTAMP 1479333131)
-endif()
-
 option(BUILD_SHARED_LIBS "Build shared library" TRUE)
 option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
 option(BUILD_TESTS "Build unit tests" TRUE)
