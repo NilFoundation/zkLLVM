@@ -37,3 +37,6 @@
 [submodule "libs/integer"]
 	path = libs/integer
 	url = https://github.com/nilfoundation/integer.git
+[submodule "libs/predef"]
+	path = libs/predef
+	url = git@github.com:nilfoundation/predef.git
