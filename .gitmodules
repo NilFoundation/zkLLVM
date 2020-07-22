@@ -40,3 +40,6 @@
 [submodule "libs/predef"]
 	path = libs/predef
 	url = git@github.com:nilfoundation/predef.git
+[submodule "libs/algebra"]
+	path = libs/algebra
+	url = git@github.com:nilfoundation/algebra.git
