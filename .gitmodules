@@ -46,3 +46,6 @@
 [submodule "libs/config"]
 	path = libs/config
 	url = git@github.com:nilfoundation/config.git
+[submodule "libs/math"]
+	path = libs/math
+	url = git@github.com:nilfoundation/math
