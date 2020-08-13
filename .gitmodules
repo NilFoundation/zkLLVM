@@ -49,3 +49,6 @@
 [submodule "libs/math"]
 	path = libs/math
 	url = git@github.com:nilfoundation/math
+[submodule "libs/pkpad"]
+	path = libs/pkpad
+	url = git@github.com:nilfoundation/pkpad.git
