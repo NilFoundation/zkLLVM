@@ -799,7 +799,9 @@ WARN_AS_ERROR          = NO
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @PROJECT_SOURCE_DIR@/libs/block/include \
+INPUT                  = @PROJECT_SOURCE_DIR@/libs/algebra/include \
+                         @PROJECT_SOURCE_DIR@/libs/algebra/docs \
+                         @PROJECT_SOURCE_DIR@/libs/block/include \
                          @PROJECT_SOURCE_DIR@/libs/block/docs \
                          @PROJECT_SOURCE_DIR@/libs/codec/include \
                          @PROJECT_SOURCE_DIR@/libs/codec/docs \
