@@ -52,3 +52,6 @@
 [submodule "libs/pkpad"]
 	path = libs/pkpad
 	url = git@github.com:nilfoundation/pkpad.git
+[submodule "libs/pubkey"]
+	path = libs/pubkey
+	url = git@github.com:nilfoundation/pubkey.git
