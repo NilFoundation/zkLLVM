@@ -55,3 +55,6 @@
 [submodule "libs/pubkey"]
 	path = libs/pubkey
 	url = git@github.com:nilfoundation/pubkey.git
+[submodule "libs/threshold"]
+	path = libs/threshold
+	url = git@github.com:nilfoundation/threshold.git
