@@ -61,3 +61,9 @@
 [submodule "libs/pkmodes"]
 	path = libs/pkmodes
 	url = git@github.com:nilfoundation/pkmodes.git
+[submodule "libs/zk"]
+	path = libs/zk
+	url = git@github.com:nilfoundation/zk.git
+[submodule "libs/fft"]
+	path = libs/fft
+	url = git@github.com:nilfoundation/fft.git
