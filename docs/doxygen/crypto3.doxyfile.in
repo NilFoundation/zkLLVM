@@ -805,6 +805,8 @@ INPUT                  = @PROJECT_SOURCE_DIR@/libs/algebra/include \
                          @PROJECT_SOURCE_DIR@/libs/block/docs \
                          @PROJECT_SOURCE_DIR@/libs/codec/include \
                          @PROJECT_SOURCE_DIR@/libs/codec/docs \
+                         @PROJECT_SOURCE_DIR@/libs/fft/include \
+                         @PROJECT_SOURCE_DIR@/libs/fft/docs \
                          @PROJECT_SOURCE_DIR@/libs/hash/include \
                          @PROJECT_SOURCE_DIR@/libs/hash/docs \
                          @PROJECT_SOURCE_DIR@/libs/stream/include \
@@ -817,6 +819,8 @@ INPUT                  = @PROJECT_SOURCE_DIR@/libs/algebra/include \
                          @PROJECT_SOURCE_DIR@/libs/modes/docs \
                          @PROJECT_SOURCE_DIR@/libs/vdf/include \
                          @PROJECT_SOURCE_DIR@/libs/vdf/docs \
+                         @PROJECT_SOURCE_DIR@/libs/zk/include \
+                         @PROJECT_SOURCE_DIR@/libs/zk/docs \
                          @PROJECT_SOURCE_DIR@/docs/manual
 
 # This tag can be used to specify the character encoding of the source files
