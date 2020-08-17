@@ -809,14 +809,24 @@ INPUT                  = @PROJECT_SOURCE_DIR@/libs/algebra/include \
                          @PROJECT_SOURCE_DIR@/libs/fft/docs \
                          @PROJECT_SOURCE_DIR@/libs/hash/include \
                          @PROJECT_SOURCE_DIR@/libs/hash/docs \
-                         @PROJECT_SOURCE_DIR@/libs/stream/include \
-                         @PROJECT_SOURCE_DIR@/libs/stream/docs \
                          @PROJECT_SOURCE_DIR@/libs/kdf/include \
                          @PROJECT_SOURCE_DIR@/libs/kdf/docs \
                          @PROJECT_SOURCE_DIR@/libs/mac/include \
                          @PROJECT_SOURCE_DIR@/libs/mac/docs \
                          @PROJECT_SOURCE_DIR@/libs/modes/include \
                          @PROJECT_SOURCE_DIR@/libs/modes/docs \
+                         @PROJECT_SOURCE_DIR@/libs/passhash/include \
+                         @PROJECT_SOURCE_DIR@/libs/passhash/docs \
+                         @PROJECT_SOURCE_DIR@/libs/pbkdf/include \
+                         @PROJECT_SOURCE_DIR@/libs/pbkdf/docs \
+                         @PROJECT_SOURCE_DIR@/libs/pkpad/include \
+                         @PROJECT_SOURCE_DIR@/libs/pkpad/docs \
+                         @PROJECT_SOURCE_DIR@/libs/pkmodes/include \
+                         @PROJECT_SOURCE_DIR@/libs/pkmodes/docs \
+                         @PROJECT_SOURCE_DIR@/libs/pubkey/include \
+                         @PROJECT_SOURCE_DIR@/libs/pubkey/docs \
+                         @PROJECT_SOURCE_DIR@/libs/stream/include \
+                         @PROJECT_SOURCE_DIR@/libs/stream/docs \
                          @PROJECT_SOURCE_DIR@/libs/vdf/include \
                          @PROJECT_SOURCE_DIR@/libs/vdf/docs \
                          @PROJECT_SOURCE_DIR@/libs/zk/include \
