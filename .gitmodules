@@ -67,3 +67,6 @@
 [submodule "libs/fft"]
 	path = libs/fft
 	url = git@github.com:nilfoundation/fft.git
+[submodule "libs/random"]
+	path = libs/random
+	url = git@github.com:nilfoundation/random.git
