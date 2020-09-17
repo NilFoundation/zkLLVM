@@ -63,10 +63,10 @@
 	url = git@github.com:nilfoundation/pkmodes.git
 [submodule "libs/zk"]
 	path = libs/zk
-	url = git@github.com:nilfoundation/zk.git
+	url = git@github.com:nilfoundation/crypto3-zk.git
 [submodule "libs/fft"]
 	path = libs/fft
-	url = git@github.com:nilfoundation/fft.git
+	url = git@github.com:nilfoundation/crypto3-fft.git
 [submodule "libs/random"]
 	path = libs/random
 	url = git@github.com:nilfoundation/random.git
