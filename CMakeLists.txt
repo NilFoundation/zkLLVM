@@ -56,7 +56,7 @@ else()
     target_architecture(CMAKE_TARGET_ARCHITECTURE)
 endif()
 
-if(BUILD_UNIT_TESTS)
+if(BUILD_TESTS)
     cm_find_package(Boost COMPONENTS REQUIRED unit_test_framework)
 endif()
 
