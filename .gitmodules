@@ -10,9 +10,6 @@
 [submodule "libs/hash"]
     path = libs/hash
     url = https://github.com/nilfoundation/hash.git
-[submodule "libs/multiprecision"]
-    path = libs/multiprecision
-    url = https://github.com/nilfoundation/multiprecision.git
 [submodule "libs/vdf"]
     path = libs/vdf
     url = https://github.com/NilFoundation/vdf.git
@@ -70,3 +67,6 @@
 [submodule "libs/random"]
 	path = libs/random
 	url = git@github.com:nilfoundation/random.git
+[submodule "libs/multiprecision"]
+	path = libs/multiprecision
+	url = https://github.com/NilFoundation/crypto3-multiprecision.git
