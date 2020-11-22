@@ -67,3 +67,6 @@
 [submodule "libs/random"]
 	path = libs/random
 	url = git@github.com:nilfoundation/random.git
+[submodule "libs/multiprecision"]
+	path = libs/multiprecision
+	url = git@github.com:nilfoundation/crypto3-multiprecision.git
