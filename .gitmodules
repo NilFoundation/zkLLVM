@@ -72,4 +72,4 @@
 	url = git@github.com:nilfoundation/crypto3-multiprecision.git
 [submodule "libs/blueprint"]
 	path = libs/blueprint
-	url = https://github.com/NilFoundation/crypto3-blueprint.git
+	url = git@github.com:nilfoundation/crypto3-blueprint.git
