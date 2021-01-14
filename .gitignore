@@ -630,3 +630,6 @@ callgrind.*
 /*.gpg
 /*.pub
 /*.crt
+
+.ycm_extra_config.py
+.color_coded
