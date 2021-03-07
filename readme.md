@@ -84,19 +84,22 @@ Pull request submission is something more complicated because of the suite is hi
 
 Depending on what you want to change, proceed your pull request to following repositories:
 
-* Algebra (every finite field operation) (https://github.com/nilfoundation/crypto3-algebra.git)
+* Algebra (curves and finite fields operations) (https://github.com/nilfoundation/crypto3-algebra.git)
 * Block Ciphers (encrypt/decrypt with ```block``` namespace member policy) (https://github.com/nilfoundation
 /crypto3-block.git)
 * Codecs (encoding/decoding) (https://github.com/nilfoundation/crypto3-codec.git)
-* Hashes (https://github.com/nilfoundation/hash.git)
+* Hashes (https://github.com/nilfoundation/crypto3-hash.git)
 * Key Derivation Functions (https://github.com/nilfoundation/crypto3-kdf.git)
 * Message Authentication Codes (https://github.com/nilfoundation/crypto3-mac.git)
 * Cipher Modes (encrypt/decrypt either with ```block``` or with ```stream``` namespace member policies) (https://github.com/nilfoundation/crypto3-modes.git)
 * Multiprecision (https://github.com/nilfoundation/crypto3-multiprecision.git)
 * Passhash (https://github.com/nilfoundation/crypto3-passhash.git)
+* Public Key Schemes (https://github.com/nilfoundation/crypto3-pubkey.git)
+* Public Key Schemes Modes (threshold enhancements to public key schemes)(https://github.com/nilfoundation/crypto3-pubkey.git)
 * Stream Ciphers (https://github.com/nilfoundation/crypto3-stream.git)
 * Random (https://github.com/nilfoundation/crypto3-random.git)
 * Verifiable Delay Functions (https://github.com/nilfoundation/crypto3-vdf.git)
+* Zero-Knowledge Proofs (https://github.com/nilfoundation/crypto3-zk.git)
 
 In case you are not sure which repository to proceed to, create an issue in this repository and ask.
 
