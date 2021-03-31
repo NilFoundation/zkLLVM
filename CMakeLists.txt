@@ -35,7 +35,7 @@ option(BUILD_SHARED_LIBS "Build shared library" TRUE)
 option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
 option(BUILD_TESTS "Build unit tests" TRUE)
 option(BUILD_FUZZING_TESTS "Build with fuzzing" FALSE)
-option(BUILD_DOXYGEN_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
+option(BUILD_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
 
 set(BUILD_WITH_TARGET_ARCHITECTURE "" CACHE STRING "Target build architecture")
 set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_LIST_DIR}/docs" CACHE STRING "Specify doxygen output directory")
@@ -70,4 +70,4 @@ if(BUILD_FUZZING_TESTS)
 endif()
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/docs/doxygen/crypto3.doxyfile.in
-               ${CMAKE_BINARY_DIR}/crypto3.doxyfile @ONLY)
+    ${CMAKE_CURRENT_BINARY_DIR}/crypto3.doxyfile @ONLY)
