@@ -57,7 +57,7 @@
 	url = git@github.com:nilfoundation/threshold.git
 [submodule "libs/pkmodes"]
 	path = libs/pkmodes
-	url = git@github.com:nilfoundation/pkmodes.git
+	url = git@github.com:nilfoundation/crypto3-pkmodes.git
 [submodule "libs/zk"]
 	path = libs/zk
 	url = git@github.com:nilfoundation/crypto3-zk.git
