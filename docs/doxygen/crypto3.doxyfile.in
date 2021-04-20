@@ -821,8 +821,8 @@ INPUT                  = @PROJECT_SOURCE_DIR@/libs/algebra/include \
                          @PROJECT_SOURCE_DIR@/libs/pbkdf/docs \
                          @PROJECT_SOURCE_DIR@/libs/pkpad/include \
                          @PROJECT_SOURCE_DIR@/libs/pkpad/docs \
-                         @PROJECT_SOURCE_DIR@/libs/pkmodes/include \
-                         @PROJECT_SOURCE_DIR@/libs/pkmodes/docs \
+#                         @PROJECT_SOURCE_DIR@/libs/pkmodes/include \
+#                         @PROJECT_SOURCE_DIR@/libs/pkmodes/docs \
                          @PROJECT_SOURCE_DIR@/libs/pubkey/include \
                          @PROJECT_SOURCE_DIR@/libs/pubkey/docs \
                          @PROJECT_SOURCE_DIR@/libs/stream/include \
