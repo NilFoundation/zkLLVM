@@ -803,6 +803,8 @@ INPUT                  = @PROJECT_SOURCE_DIR@/libs/algebra/include \
                          @PROJECT_SOURCE_DIR@/libs/algebra/docs \
                          @PROJECT_SOURCE_DIR@/libs/block/include \
                          @PROJECT_SOURCE_DIR@/libs/block/docs \
+                         @PROJECT_SOURCE_DIR@/libs/blueprint/include \
+                         @PROJECT_SOURCE_DIR@/libs/blueprint/docs \
                          @PROJECT_SOURCE_DIR@/libs/codec/include \
                          @PROJECT_SOURCE_DIR@/libs/codec/docs \
                          @PROJECT_SOURCE_DIR@/libs/fft/include \
