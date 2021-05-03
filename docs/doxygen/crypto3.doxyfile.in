@@ -823,8 +823,6 @@ INPUT                  = @PROJECT_SOURCE_DIR@/libs/algebra/include \
                          @PROJECT_SOURCE_DIR@/libs/pbkdf/docs \
                          @PROJECT_SOURCE_DIR@/libs/pkpad/include \
                          @PROJECT_SOURCE_DIR@/libs/pkpad/docs \
-#                         @PROJECT_SOURCE_DIR@/libs/pkmodes/include \
-#                         @PROJECT_SOURCE_DIR@/libs/pkmodes/docs \
                          @PROJECT_SOURCE_DIR@/libs/pubkey/include \
                          @PROJECT_SOURCE_DIR@/libs/pubkey/docs \
                          @PROJECT_SOURCE_DIR@/libs/stream/include \
@@ -1134,14 +1132,6 @@ VERBATIM_HEADERS       = YES
 # The default value is: YES.
 
 ALPHABETICAL_INDEX     = YES
-
-# The COLS_IN_ALPHA_INDEX tag can be used to specify the number of columns in
-# which the alphabetical index list will be split.
-# Minimum value: 1, maximum value: 20, default value: 5.
-# This tag requires that the tag ALPHABETICAL_INDEX is set to YES.
-
-# COLS_IN_ALPHA_INDEX    = 5
-COLS_IN_ALPHA_INDEX    = 2
 
 # In case all classes in a project start with a common prefix, all classes will
 # be put under the same header in the alphabetical index. The IGNORE_PREFIX tag
