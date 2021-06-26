@@ -572,7 +572,19 @@ td.paramname {
 /* Markdown Pages */
 
 .PageDoc .contents p {
-    font-size: 14px;
+    font-size: 1rem;
+}
+
+.PageDoc .contents h1 {
+    font-size: 3rem;
+}
+
+.PageDoc .contents h2 {
+    font-size: 2rem;
+}
+
+.PageDoc .contents h3 {
+    font-size: 1rem;
 }
 
 .PageDoc .contents a {

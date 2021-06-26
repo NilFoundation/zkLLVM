@@ -2,13 +2,13 @@
 
 @tableofcontents
 
-Crypto3 cryptography suite intention is:
+Crypto3 cryptography suite purpose is:
 1. To provide a secure, fast and architecturally clean C++ generic cryptography schemes implementation.
 2. To provide a developer-friendly, modular suite, usable for novel schemes implementation and further
  extension.
 3. To provide a Standard Template Library-alike C++ interface and concept-based architecture implementation.
 
-## Contents
+### Contents
 
 Cryptography suite contains multiple modules from
 encoding (e.g. base64) to complex public-key
@@ -17,7 +17,7 @@ protocols (e.g. threshold schemes, zero-knowledge protocol or verifiable delay f
 Detailed list of modules available is accessible at
 [Modules page](modules.html).
 
-## Usage
+### Usage
 
 Cryptography suite comes in several modifications:
 
@@ -26,7 +26,7 @@ Cryptography suite comes in several modifications:
 3. Particular module usage.
 4. Usage via other language bindings.
 
-### Generic Usage 
+#### Generic Usage
 Generic usage-intended cryptography suite is split to modules available at [GitHub =nil; Crypto3 Team Repositoties](https://github.com/orgs/NilFoundation/teams/nil-crypto3/repositories). 
 Some of them are not for standalone usage, some of them are. So there is a suite superproject repository available at
  [Crypto3 GitHub](https://github.com/nilfoundation/crypto3.git). Superproject includes all the modules
@@ -49,7 +49,7 @@ Generic-purposed suite uses CMake as build system with
 [cmake-modules](https://github.com/BoostCMake/cmake-modules.git) CMake library used for easier
 in-project targets management. 
   
-### In-Boost Usage
+#### In-Boost Usage
 
 In-Boost usage supposes the library to contain only
 proven and secure state-of-art modules packed into
@@ -66,7 +66,7 @@ All the actual development is processed in library's
 generic-purpose modification, so this means 
 Boost-related branches are merge-only.
 
-### Particular Module Usage
+### Particular Module Usage ###
 
 Usage of particular modules is supposed to be useful for minimization of resulting project sources amount
 and reducing the dependencies tree height.
