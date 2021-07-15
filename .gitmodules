@@ -73,6 +73,3 @@
 [submodule "libs/blueprint"]
 	path = libs/blueprint
 	url = git@github.com:nilfoundation/crypto3-blueprint.git
-[submodule "libs/marshalling"]
-	path = libs/marshalling
-	url = git@github.com:NilFoundation/crypto3-marshalling.git
