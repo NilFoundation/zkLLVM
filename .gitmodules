@@ -45,25 +45,19 @@
 	url = git@github.com:nilfoundation/config.git
 [submodule "libs/math"]
 	path = libs/math
-	url = git@github.com:nilfoundation/math
+	url = git@github.com:nilfoundation/crypto3-math.git
 [submodule "libs/pkpad"]
 	path = libs/pkpad
 	url = git@github.com:nilfoundation/pkpad.git
 [submodule "libs/pubkey"]
 	path = libs/pubkey
 	url = git@github.com:nilfoundation/pubkey.git
-[submodule "libs/threshold"]
-	path = libs/threshold
-	url = git@github.com:nilfoundation/threshold.git
 [submodule "libs/pkmodes"]
 	path = libs/pkmodes
 	url = git@github.com:nilfoundation/crypto3-pkmodes.git
 [submodule "libs/zk"]
 	path = libs/zk
 	url = git@github.com:nilfoundation/crypto3-zk.git
-[submodule "libs/fft"]
-	path = libs/fft
-	url = git@github.com:nilfoundation/crypto3-fft.git
 [submodule "libs/random"]
 	path = libs/random
 	url = git@github.com:nilfoundation/random.git
