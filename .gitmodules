@@ -70,3 +70,12 @@
 [submodule "libs/marshalling/core"]
 	path = libs/marshalling/core
 	url = git@github.com:NilFoundation/marshalling.git
+[submodule "libs/marshalling/multiprecision"]
+	path = libs/marshalling/multiprecision
+	url = git@github.com:NilFoundation/crypto3-multiprecision-marshalling.git
+[submodule "libs/marshalling/algebra"]
+	path = libs/marshalling/algebra
+	url = git@github.com:NilFoundation/crypto3-algebra-marshalling.git
+[submodule "libs/marshalling/zk"]
+	path = libs/marshalling/zk
+	url = git@github.com:NilFoundation/crypto3-zk-marshalling.git
