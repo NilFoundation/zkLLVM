@@ -31,18 +31,9 @@
 [submodule "libs/pbkdf"]
 	path = libs/pbkdf
 	url = https://github.com/nilfoundation/pbkdf.git
-[submodule "libs/integer"]
-	path = libs/integer
-	url = https://github.com/nilfoundation/integer.git
-[submodule "libs/predef"]
-	path = libs/predef
-	url = git@github.com:nilfoundation/predef.git
 [submodule "libs/algebra"]
 	path = libs/algebra
 	url = git@github.com:nilfoundation/algebra.git
-[submodule "libs/config"]
-	path = libs/config
-	url = git@github.com:nilfoundation/config.git
 [submodule "libs/math"]
 	path = libs/math
 	url = git@github.com:nilfoundation/crypto3-math.git
@@ -67,9 +58,15 @@
 [submodule "libs/blueprint"]
 	path = libs/blueprint
 	url = git@github.com:nilfoundation/crypto3-blueprint.git
-[submodule "libs/marshalling/crypto3"]
-	path = libs/marshalling/crypto3
-	url = git@github.com:NilFoundation/crypto3-marshalling.git
 [submodule "libs/marshalling/core"]
 	path = libs/marshalling/core
 	url = git@github.com:NilFoundation/marshalling.git
+[submodule "libs/marshalling/multiprecision"]
+	path = libs/marshalling/multiprecision
+	url = git@github.com:NilFoundation/crypto3-multiprecision-marshalling.git
+[submodule "libs/marshalling/algebra"]
+	path = libs/marshalling/algebra
+	url = git@github.com:NilFoundation/crypto3-algebra-marshalling.git
+[submodule "libs/marshalling/zk"]
+	path = libs/marshalling/zk
+	url = git@github.com:NilFoundation/crypto3-zk-marshalling.git
