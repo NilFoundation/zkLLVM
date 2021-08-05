@@ -79,10 +79,12 @@ jobs:
           ./bootstrap.sh --with-python=/opt/hostedtoolcache/Python/3.9.6/x64/bin/python${{ env.python_version }} --with-python-version=${{ env.python_version }} --prefix=${{ env.root_workspace }}/boost &&
           ./b2 -j ${{ env.nproc }} &&  sudo ./b2 install -j ${{ env.nproc }}
 
-      - name: cmake and build
+      - name: Cmake and build
         run: |
           mkdir build
           cd build
           cmake .. -DBOOST_ROOT=${{ env.root_workspace }}/boost
           cmake --build . -t ${{ env.targets }} -- -j ${{ env.nproc }}
+
+      - name: Ctest
           ctest
