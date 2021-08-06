@@ -87,4 +87,5 @@ jobs:
           cmake --build . -t ${{ env.targets }} -- -j ${{ env.nproc }}
 
       - name: Ctest
+        run: |
           ctest
