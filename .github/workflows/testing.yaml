@@ -89,4 +89,9 @@ jobs:
       - name: Ctest
         continue-on-error: true
         run: |
-          ctest
+          cd build/libs/${{ matrix.target }}/test/
+          for target in ${{ env.targets }}
+          do
+            echo $target
+            ./$target
+          done
