@@ -1,4 +1,4 @@
-name: Test zk and algebra
+name: Build all
 
 on: [push, pull_request]
 
