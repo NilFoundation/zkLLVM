@@ -807,8 +807,8 @@ INPUT                  = @PROJECT_SOURCE_DIR@/libs/algebra/include \
                          @PROJECT_SOURCE_DIR@/libs/blueprint/docs \
                          @PROJECT_SOURCE_DIR@/libs/codec/include \
                          @PROJECT_SOURCE_DIR@/libs/codec/docs \
-                         @PROJECT_SOURCE_DIR@/libs/fft/include \
-                         @PROJECT_SOURCE_DIR@/libs/fft/docs \
+                         @PROJECT_SOURCE_DIR@/libs/math/include \
+                         @PROJECT_SOURCE_DIR@/libs/math/docs \
                          @PROJECT_SOURCE_DIR@/libs/hash/include \
                          @PROJECT_SOURCE_DIR@/libs/hash/docs \
                          @PROJECT_SOURCE_DIR@/libs/kdf/include \
