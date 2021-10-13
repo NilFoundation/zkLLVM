@@ -71,5 +71,5 @@ if(BUILD_FUZZING_TESTS)
     add_subdirectory(fuzzer)
 endif()
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/docs/doxygen/crypto3.doxyfile.in
-    ${CMAKE_CURRENT_BINARY_DIR}/crypto3.doxyfile @ONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/docs/doxygen/${CMAKE_WORKSPACE_NAME}.doxyfile.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_WORKSPACE_NAME}.doxyfile @ONLY)
