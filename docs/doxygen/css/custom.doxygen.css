@@ -414,7 +414,9 @@ iframe#MSearchResults {
 
 .SRChildren {
     padding-left: 3ex;
-    padding-bottom: .5em
+    padding-bottom: .5em;
+    color: #F5F2F1;
+    font-size: 1em;
 }
 
 .SRPage .SRChildren {

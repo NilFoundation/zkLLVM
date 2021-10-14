@@ -2,6 +2,8 @@ $(document).ready(function () {
     $("div.headertitle").addClass("page-header");
     $("div.title").addClass("h1");
 
+    $("div.contents").addClass("jumbotron");
+
     $('li > a[href="index.html"] > span').before("<i class='fa fa-cog'></i> ");
     $('li > a[href="modules.html"] > span').before("<i class='fa fa-square'></i> ");
     $('li > a[href="namespaces.html"] > span').before("<i class='fa fa-bars'></i> ");

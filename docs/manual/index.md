@@ -1,4 +1,4 @@
-# <span style='font-family: monospace'>=nil;</span> Crypto3 Cryptography Suite (libcrypto3) {#mainpage}
+# <span style='font-family: monospace'>=nil;</span> Crypto3 C++ Cryptography Suite {#mainpage}
 
 @tableofcontents
 
