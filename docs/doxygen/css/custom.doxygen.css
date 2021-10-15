@@ -423,6 +423,13 @@ iframe#MSearchResults {
     display: none;
 }
 
+.SRPage .SRStatus {
+    color: #F5F2F1;
+    font-size: 0.5em;
+    font-style: none;
+    font-family: Helvetica Nueue, sans-serif;
+}
+
 a.SRScope {
     display: block;
 }
@@ -502,6 +509,7 @@ span.SRScope {
 
 .page-header .title {
     display: inline-block;
+    margin-top: 10px;
 }
 
 .page-header .pull-right {
@@ -509,12 +517,12 @@ span.SRScope {
     margin-left: 0.5em;
 }
 
-.label-info {
-    background-color: #725C70;
-}
-
 .page-header .label {
     font-size: 50%;
+}
+
+.label-info {
+    background-color: #725C70;
 }
 
 @media print {
@@ -574,27 +582,42 @@ td.paramname {
 /* Markdown Pages */
 
 .PageDoc .contents {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
 }
 
 .PageDoc .contents p {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
 }
 
 .PageDoc .contents ol {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
 }
 
 .PageDoc .contents h1 {
-    font-size: 8rem;
+    font-size: 6rem;
 }
 
 .PageDoc .contents h2 {
-    font-size: 4rem;
+    font-size: 4.5rem;
 }
 
 .PageDoc .contents h3 {
-    font-size: 2rem;
+    font-size: 3rem;
+}
+
+.PageDoc .contents .textblock h1 {
+    margin-top: 60px;
+    margin-bottom: 20px;
+}
+
+.PageDoc .contents .textblock h2 {
+    margin-top: 60px;
+    margin-bottom: 20px;
+}
+
+.PageDoc .contents .textblock h3 {
+    margin-top: 60px;
+    margin-bottom: 20px;
 }
 
 .PageDoc .contents a {
