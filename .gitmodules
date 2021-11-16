@@ -72,4 +72,4 @@
 	url = git@github.com:NilFoundation/crypto3-zk-marshalling.git
 [submodule "libs/containers"]
 	path = libs/containers
-	url = git@github.com:NilFoundation/crypto3-containers.git
+	url = git@github.com:nilfoundation/crypto3-containers.git
