@@ -8,14 +8,12 @@ Crypto3 cryptography suite purpose is:
  extension.
 3. To provide a Standard Template Library-alike C++ interface and concept-based architecture implementation.
 
-### Contents
+### Available Modules 
 
-Cryptography suite contains multiple modules from
-encoding (e.g. base64) to complex public-key
-protocols (e.g. threshold schemes, zero-knowledge protocol or verifiable delay functions).
+Cryptography suite contains multiple modules from trivial encoding (e.g. base64), encryption, hashing 
+to complex protocols (e.g. threshold schemes, zero-knowledge protocol or verifiable delay functions).
 
-Detailed list of modules available is accessible at
-[Modules page](modules.html).
+Detailed list of modules with tutorials is available at [Modules page](modules.html).
 
 ### Usage
 

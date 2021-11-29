@@ -1220,7 +1220,8 @@ HTML_STYLESHEET        =
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
 HTML_EXTRA_STYLESHEET  = @PROJECT_SOURCE_DIR@/docs/doxygen/css/custom.doxygen.css \
- @PROJECT_SOURCE_DIR@/docs/doxygen/css/custom.bootstrap.css
+ @PROJECT_SOURCE_DIR@/docs/doxygen/css/custom.bootstrap.css \
+ @PROJECT_SOURCE_DIR@/docs/doxygen/css/syntax.css
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
 # other source files which should be copied to the HTML output directory. Note
@@ -1238,7 +1239,7 @@ HTML_EXTRA_FILES       = @PROJECT_SOURCE_DIR@/docs/doxygen/js/bootstrap.doxygen.
  @PROJECT_SOURCE_DIR@/docs/doxygen/fonts/glyphicons-halflings-regular.svg \
  @PROJECT_SOURCE_DIR@/docs/doxygen/fonts/glyphicons-halflings-regular.ttf \
  @PROJECT_SOURCE_DIR@/docs/doxygen/css/bootstrap.min.css \
- @PROJECT_SOURCE_DIR@/docs/doxygen/css/darkula.css \
+ @PROJECT_SOURCE_DIR@/docs/doxygen/css/syntax.css \
  @PROJECT_SOURCE_DIR@/docs/doxygen/addons/bootstrap/jquery.smartmenus.bootstrap.js \
  @PROJECT_SOURCE_DIR@/docs/doxygen/addons/bootstrap/jquery.smartmenus.bootstrap.css
 
