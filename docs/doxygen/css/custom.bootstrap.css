@@ -525,3 +525,7 @@ div#nav-path .breadcrumb {
     background-color: #151515;
     border-radius: 6px;
 }
+
+.jumbotron {
+    color: #888;
+}
