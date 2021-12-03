@@ -579,6 +579,16 @@ td.paramname {
     color: #F5F2F1;
 }
 
+.memTemplParams {
+    color: #f5f2f1;
+    font-size: 1em;
+}
+
+.memtemplate {
+    color: #f5f2f1;
+    font-size: 1em;
+}
+
 /* Markdown Pages */
 
 .PageDoc .contents {
