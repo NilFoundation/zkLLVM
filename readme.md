@@ -113,3 +113,4 @@ This cryptography suite is authored by [=nil; Crypto3](https://crypto3.nil.found
  * Telegram Group. Join our Telegram group [@nilcrypto3](https://t.me/nilcrypto3) and ask any question in there.
  * Issue. Issue which does not belong to any particular module (or you just don't know where to put it) can be
   created in this repository. The team will answer that.
+ * Discussion Topic (proposal, tutorial request, suggestion, etc). Would be happy to discuss that in the repository's GitHub Discussions: https://github.com/NilFoundation/crypto3/discussions
