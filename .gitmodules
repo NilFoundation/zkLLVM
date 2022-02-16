@@ -26,50 +26,50 @@
     path = libs/stream
     url = https://github.com/nilfoundation/stream.git
 [submodule "libs/passhash"]
-	path = libs/passhash
-	url = https://github.com/nilfoundation/passhash.git
+    path = libs/passhash
+    url = https://github.com/nilfoundation/passhash.git
 [submodule "libs/pbkdf"]
-	path = libs/pbkdf
-	url = https://github.com/nilfoundation/pbkdf.git
+    path = libs/pbkdf
+    url = https://github.com/nilfoundation/pbkdf.git
 [submodule "libs/algebra"]
-	path = libs/algebra
-	url = git@github.com:nilfoundation/algebra.git
+    path = libs/algebra
+    url = https://github.com/nilfoundation/algebra.git
 [submodule "libs/math"]
-	path = libs/math
-	url = git@github.com:nilfoundation/crypto3-math.git
+    path = libs/math
+    url = https://github.com/nilfoundation/crypto3-math.git
 [submodule "libs/pkpad"]
-	path = libs/pkpad
-	url = git@github.com:nilfoundation/pkpad.git
+    path = libs/pkpad
+    url = https://github.com/nilfoundation/pkpad.git
 [submodule "libs/pubkey"]
-	path = libs/pubkey
-	url = git@github.com:nilfoundation/pubkey.git
+    path = libs/pubkey
+    url = https://github.com/nilfoundation/pubkey.git
 [submodule "libs/pkmodes"]
-	path = libs/pkmodes
-	url = git@github.com:nilfoundation/crypto3-pkmodes.git
+    path = libs/pkmodes
+    url = https://github.com/nilfoundation/crypto3-pkmodes.git
 [submodule "libs/zk"]
-	path = libs/zk
-	url = git@github.com:nilfoundation/crypto3-zk.git
+    path = libs/zk
+    url = https://github.com/nilfoundation/crypto3-zk.git
 [submodule "libs/random"]
-	path = libs/random
-	url = git@github.com:nilfoundation/random.git
+    path = libs/random
+    url = https://github.com/nilfoundation/random.git
 [submodule "libs/multiprecision"]
-	path = libs/multiprecision
-	url = git@github.com:nilfoundation/crypto3-multiprecision.git
+    path = libs/multiprecision
+    url = https://github.com/nilfoundation/crypto3-multiprecision.git
 [submodule "libs/blueprint"]
-	path = libs/blueprint
-	url = git@github.com:nilfoundation/crypto3-blueprint.git
+    path = libs/blueprint
+    url = https://github.com/nilfoundation/crypto3-blueprint.git
 [submodule "libs/marshalling/core"]
-	path = libs/marshalling/core
-	url = git@github.com:NilFoundation/marshalling.git
+    path = libs/marshalling/core
+    url = https://github.com/NilFoundation/marshalling.git
 [submodule "libs/marshalling/multiprecision"]
-	path = libs/marshalling/multiprecision
-	url = git@github.com:NilFoundation/crypto3-multiprecision-marshalling.git
+    path = libs/marshalling/multiprecision
+    url = https://github.com/NilFoundation/crypto3-multiprecision-marshalling.git
 [submodule "libs/marshalling/algebra"]
-	path = libs/marshalling/algebra
-	url = git@github.com:NilFoundation/crypto3-algebra-marshalling.git
+    path = libs/marshalling/algebra
+    url = https://github.com/NilFoundation/crypto3-algebra-marshalling.git
 [submodule "libs/marshalling/zk"]
-	path = libs/marshalling/zk
-	url = git@github.com:NilFoundation/crypto3-zk-marshalling.git
+    path = libs/marshalling/zk
+    url = https://github.com/NilFoundation/crypto3-zk-marshalling.git
 [submodule "libs/containers"]
-	path = libs/containers
-	url = git@github.com:nilfoundation/crypto3-containers.git
+    path = libs/containers
+    url = https://github.com/nilfoundation/crypto3-containers.git
