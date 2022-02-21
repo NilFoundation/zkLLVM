@@ -1,116 +1,126 @@
-pre {
-    background: rgba(0, 0, 0, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 10px;
-    font-size: 16px;
-    color: #b5e853;
-    border-radius: 2px;
-    word-wrap: normal;
-    overflow: auto;
-    overflow-y: hidden;
+/*!
+  Theme: GitHub Dark
+  Description: Dark theme as seen on github.com
+  Author: github.com
+  Maintainer: @Hirse
+  Updated: 2021-05-15
+
+  Outdated base version: https://github.com/primer/github-syntax-dark
+  Current colors taken from GitHub's CSS
+*/
+
+.hljs {
+    color: #c9d1d9;
+    background: #0d1117;
+    white-space: pre;
 }
 
-code {
-    background: rgba(0,0,0,0.9);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 0px 3px;
-    margin: 0px -3px;
-    color: #aa759f;
-    border-radius: 2px;
+.hljs-doctag,
+.hljs-keyword,
+.hljs-meta .hljs-keyword,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-type,
+.hljs-variable.language_ {
+    /* prettylights-syntax-keyword */
+    color: #ff7b72;
 }
 
-table {
-    width: 100%;
-    margin: 0 0 20px 0;
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.class_.inherited__,
+.hljs-title.function_ {
+    /* prettylights-syntax-entity */
+    color: #d2a8ff;
 }
 
-th {
-    text-align: left;
-    border-bottom: 1px dashed;
-    padding: 5px 10px;
+.hljs-attr,
+.hljs-attribute,
+.hljs-literal,
+.hljs-meta,
+.hljs-number,
+.hljs-operator,
+.hljs-variable,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id {
+    /* prettylights-syntax-constant */
+    color: #79c0ff;
 }
 
-td {
-    padding: 5px 10px;
+.hljs-regexp,
+.hljs-string,
+.hljs-meta .hljs-string {
+    /* prettylights-syntax-string */
+    color: #a5d6ff;
 }
 
-img{
-    max-width: 100%;
+.hljs-built_in,
+.hljs-symbol {
+    /* prettylights-syntax-variable */
+    color: #ffa657;
 }
 
-.highlight table td { padding: 5px; }
-.highlight table pre { margin: 0; }
-.highlight, .highlight .w {
-    color: #d0d0d0;
+.hljs-comment,
+.hljs-code,
+.hljs-formula {
+    /* prettylights-syntax-comment */
+    color: #8b949e;
 }
-.highlight .err {
-    color: #151515;
-    background-color: #ac4142;
+
+.hljs-name,
+.hljs-quote,
+.hljs-selector-tag,
+.hljs-selector-pseudo {
+    /* prettylights-syntax-entity-tag */
+    color: #7ee787;
 }
-.highlight .c, .highlight .cd, .highlight .cm, .highlight .c1, .highlight .cs {
-    color: #888;
+
+.hljs-subst {
+    /* prettylights-syntax-storage-modifier-import */
+    color: #c9d1d9;
 }
-.highlight .cp {
-    color: #f4bf75;
-}
-.highlight .nt {
-    color: #f4bf75;
-}
-.highlight .o, .highlight .ow {
-    color: #d0d0d0;
-}
-.highlight .p, .highlight .pi {
-    color: #d0d0d0;
-}
-.highlight .gi {
-    color: #90a959;
-}
-.highlight .gd {
-    color: #ac4142;
-}
-.highlight .gh {
-    color: #6a9fb5;
+
+.hljs-section {
+    /* prettylights-syntax-markup-heading */
+    color: #1f6feb;
     font-weight: bold;
 }
-.highlight .k, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .kv {
-    color: #aa759f;
+
+.hljs-bullet {
+    /* prettylights-syntax-markup-list */
+    color: #f2cc60;
 }
-.highlight .kc {
-    color: #d28445;
+
+.hljs-emphasis {
+    /* prettylights-syntax-markup-italic */
+    color: #c9d1d9;
+    font-style: italic;
 }
-.highlight .kt {
-    color: #d28445;
+
+.hljs-strong {
+    /* prettylights-syntax-markup-bold */
+    color: #c9d1d9;
+    font-weight: bold;
 }
-.highlight .kd {
-    color: #d28445;
+
+.hljs-addition {
+    /* prettylights-syntax-markup-inserted */
+    color: #aff5b4;
+    background-color: #033a16;
 }
-.highlight .s, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .s2, .highlight .sh, .highlight .sx, .highlight .s1 {
-    color: #90a959;
+
+.hljs-deletion {
+    /* prettylights-syntax-markup-deleted */
+    color: #ffdcd7;
+    background-color: #67060c;
 }
-.highlight .sr {
-    color: #75b5aa;
-}
-.highlight .si {
-    color: #8f5536;
-}
-.highlight .se {
-    color: #8f5536;
-}
-.highlight .nn {
-    color: #f4bf75;
-}
-.highlight .nc {
-    color: #f4bf75;
-}
-.highlight .no {
-    color: #f4bf75;
-}
-.highlight .na {
-    color: #6a9fb5;
-}
-.highlight .m, .highlight .mf, .highlight .mh, .highlight .mi, .highlight .il, .highlight .mo, .highlight .mb, .highlight .mx {
-    color: #90a959;
-}
-.highlight .ss {
-    color: #90a959;
+
+.hljs-char.escape_,
+.hljs-link,
+.hljs-params,
+.hljs-property,
+.hljs-punctuation,
+.hljs-tag {
+    /* purposely ignored */
 }

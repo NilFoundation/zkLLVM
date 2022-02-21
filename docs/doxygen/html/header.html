@@ -27,8 +27,18 @@
     <script type="text/javascript" src="$relpath^jquery.smartmenus.js"></script>
     <!-- SmartMenus jQuery Bootstrap Addon -->
     <script type="text/javascript" src="$relpath^jquery.smartmenus.bootstrap.js"></script>
-    <!-- highlight.js Syntax Highlighter -->
+    <!--highlight.js INSTALL BEGIN-->
     <link rel="stylesheet" href="$relpath^syntax.css"/>
+    <script src="$relpath^highlight.min.js"></script>
+    <script>
+        $(function() {
+            $(".fragment").each(function(i,node) {
+                $(node).removeClass("fragment");
+                hljs.highlightBlock(node);
+            });
+        });
+    </script>
+    <!--highlight.js INSTALL END-->
     $extrastylesheet
 </head>
 <body>

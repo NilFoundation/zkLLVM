@@ -1,3 +1,11 @@
+#---------------------------------------------------------------------------#
+# Copyright (c) 2018-2020 Mikhail Komarov <nemo@nil.foundation>
+#
+# Distributed under the Boost Software License, Version 1.0
+# See accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt
+#---------------------------------------------------------------------------#
+#
 # Check if SSE instructions are available on the machine where
 # the project is compiled.
 
@@ -54,7 +62,7 @@ macro(check_sse)
         exec_program("/usr/sbin/sysctl -n machdep.cpu.features" OUTPUT_VARIABLE
                      CPUINFO)
 
-        string(REGEX REPLACE "^.*[^S](SSE2).*$" "\\1" SSE_THERE ${CPUINFO})
+        string(REGEX REPLACE "^.*[^S](SSE2).*$" "\\1" SSE_THERE "${CPUINFO}")
         string(COMPARE EQUAL "SSE2" "${SSE_THERE}" SSE2_TRUE)
         if(SSE2_TRUE)
             set(SSE2_FOUND true CACHE BOOL "SSE2 available on host")
@@ -62,7 +70,7 @@ macro(check_sse)
             set(SSE2_FOUND false CACHE BOOL "SSE2 available on host")
         endif(SSE2_TRUE)
 
-        string(REGEX REPLACE "^.*[^S](SSE3).*$" "\\1" SSE_THERE ${CPUINFO})
+        string(REGEX REPLACE "^.*[^S](SSE3).*$" "\\1" SSE_THERE "${CPUINFO}")
         string(COMPARE EQUAL "SSE3" "${SSE_THERE}" SSE3_TRUE)
         if(SSE3_TRUE)
             set(SSE3_FOUND true CACHE BOOL "SSE3 available on host")
@@ -70,7 +78,7 @@ macro(check_sse)
             set(SSE3_FOUND false CACHE BOOL "SSE3 available on host")
         endif(SSE3_TRUE)
 
-        string(REGEX REPLACE "^.*(SSSE3).*$" "\\1" SSE_THERE ${CPUINFO})
+        string(REGEX REPLACE "^.*(SSSE3).*$" "\\1" SSE_THERE "${CPUINFO}")
         string(COMPARE EQUAL "SSSE3" "${SSE_THERE}" SSSE3_TRUE)
         if(SSSE3_TRUE)
             set(SSSE3_FOUND true CACHE BOOL "SSSE3 available on host")
@@ -78,7 +86,7 @@ macro(check_sse)
             set(SSSE3_FOUND false CACHE BOOL "SSSE3 available on host")
         endif(SSSE3_TRUE)
 
-        string(REGEX REPLACE "^.*(SSE4.1).*$" "\\1" SSE_THERE ${CPUINFO})
+        string(REGEX REPLACE "^.*(SSE4.1).*$" "\\1" SSE_THERE "${CPUINFO}")
         string(COMPARE EQUAL "SSE4.1" "${SSE_THERE}" SSE41_TRUE)
         if(SSE41_TRUE)
             set(SSE4_1_FOUND true CACHE BOOL "SSE4.1 available on host")
@@ -86,7 +94,7 @@ macro(check_sse)
             set(SSE4_1_FOUND false CACHE BOOL "SSE4.1 available on host")
         endif(SSE41_TRUE)
 
-        string(REGEX REPLACE "^.*(SSE4.2).*$" "\\1" SSE_THERE ${CPUINFO})
+        string(REGEX REPLACE "^.*(SSE4.2).*$" "\\1" SSE_THERE "${CPUINFO}")
         string(COMPARE EQUAL "SSE4.2" "${SSE_THERE}" SSE42_TRUE)
         if(SSE42_TRUE)
             set(SSE4_2_FOUND true CACHE BOOL "SSE4.2 available on host")
