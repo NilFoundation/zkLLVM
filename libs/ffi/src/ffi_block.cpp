@@ -1,6 +1,8 @@
 #include <nil/crypto3/ffi/ffi.h>
 #include <nil/crypto3/ffi/ffi_util.h>
 
+#include <boost/current_function.hpp>
+
 extern "C" {
 
 using namespace nil::crypto3::ffi;
@@ -8,7 +10,7 @@ using namespace nil::crypto3::ffi;
 // CRYPTO3_FFI_DECLARE_STRUCT(nil_crypto_block_cipher_struct, nil::crypto3::BlockCipher, 0x64C29716);
 
 int nil_crypto_block_cipher_init(nil_crypto_block_cipher_t *bc, const char *bc_name) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         if (bc == NULL || bc_name == NULL || *bc_name == 0) {
             return CRYPTO3_FFI_ERROR_NULL_POINTER;
         }

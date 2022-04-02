@@ -46,11 +46,7 @@ how to provide the cleanest API for such users would be most welcome.
 * - Better error reporting
 * - User callback for exception logging?
 * - Doxygen comments for all functions/params
-* - X.509 certs and pkix path validation goo
-* - tls
 */
-
-#include <nil/crypto3/build.hpp>
 
 #include <stdint.h>
 #include <stddef.h>
@@ -1041,136 +1037,7 @@ int nil_crypto_mceies_encrypt(nil_crypto_pubkey_t mce_key, nil_crypto_rng_t rng,
 int nil_crypto_mceies_decrypt(nil_crypto_privkey_t mce_key, const char *aead, const uint8_t ct[], size_t ct_len,
                               const uint8_t ad[], size_t ad_len, uint8_t pt[], size_t *pt_len);
 
-typedef struct nil_crypto_x509_cert_struct *nil_crypto_x509_cert_t;
 
-int nil_crypto_x509_cert_load(nil_crypto_x509_cert_t *cert_obj, const uint8_t cert[], size_t cert_len);
-
-int nil_crypto_x509_cert_load_file(nil_crypto_x509_cert_t *cert_obj, const char *filename);
-
-int nil_crypto_x509_cert_destroy(nil_crypto_x509_cert_t cert);
-
-int nil_crypto_x509_cert_gen_selfsigned(nil_crypto_x509_cert_t *cert, nil_crypto_privkey_t key, nil_crypto_rng_t rng,
-                                        const char *common_name, const char *org_name);
-
-// TODO: return nil_crypto_time_struct instead
-
-int nil_crypto_x509_cert_get_time_starts(nil_crypto_x509_cert_t cert, char out[], size_t *out_len);
-
-int nil_crypto_x509_cert_get_time_expires(nil_crypto_x509_cert_t cert, char out[], size_t *out_len);
-
-int nil_crypto_x509_cert_get_fingerprint(nil_crypto_x509_cert_t cert, const char *hash, uint8_t out[], size_t *out_len);
-
-int nil_crypto_x509_cert_get_serial_number(nil_crypto_x509_cert_t cert, uint8_t out[], size_t *out_len);
-
-int nil_crypto_x509_cert_get_authority_key_id(nil_crypto_x509_cert_t cert, uint8_t out[], size_t *out_len);
-
-int nil_crypto_x509_cert_get_subject_key_id(nil_crypto_x509_cert_t cert, uint8_t out[], size_t *out_len);
-
-int nil_crypto_x509_cert_get_public_key_bits(nil_crypto_x509_cert_t cert, uint8_t out[], size_t *out_len);
-
-int nil_crypto_x509_cert_get_public_key(nil_crypto_x509_cert_t cert, nil_crypto_pubkey_t *key);
-
-int nil_crypto_x509_cert_get_issuer_dn(nil_crypto_x509_cert_t cert, const char *key, size_t index, uint8_t out[],
-                                       size_t *out_len);
-
-int nil_crypto_x509_cert_get_subject_dn(nil_crypto_x509_cert_t cert, const char *key, size_t index, uint8_t out[],
-                                        size_t *out_len);
-
-int nil_crypto_x509_cert_to_string(nil_crypto_x509_cert_t cert, char out[], size_t *out_len);
-
-// Must match values of key_constraints in key_constraints.h
-enum nil_crypto_x509_cert_key_constraints {
-    NO_CONSTRAINTS = 0,
-    DIGITAL_SIGNATURE = 32768,
-    NON_REPUDIATION = 16384,
-    KEY_ENCIPHERMENT = 8192,
-    DATA_ENCIPHERMENT = 4096,
-    KEY_AGREEMENT = 2048,
-    KEY_CERT_SIGN = 1024,
-    CRL_SIGN = 512,
-    ENCIPHER_ONLY = 256,
-    DECIPHER_ONLY = 128
-};
-
-int nil_crypto_x509_cert_allowed_usage(nil_crypto_x509_cert_t cert, unsigned int key_usage);
-
-/**
- * Check if the certificate matches the specified hostname via alternative name or CN match.
- * RFC 5280 wildcards also supported.
- */
-
-int nil_crypto_x509_cert_hostname_match(nil_crypto_x509_cert_t cert, const char *hostname);
-
-/**
- * Key wrapping as per RFC 3394
- */
-
-int nil_crypto_key_wrap3394(const uint8_t key[], size_t key_len, const uint8_t kek[], size_t kek_len,
-                            uint8_t wrapped_key[], size_t *wrapped_key_len);
-
-int nil_crypto_key_unwrap3394(const uint8_t wrapped_key[], size_t wrapped_key_len, const uint8_t kek[], size_t kek_len,
-                              uint8_t key[], size_t *key_len);
-
-/*
- * tls (WIP)
- */
-#if defined(CRYPTO3_HAS_TLS) && 0
-
-typedef struct nil_crypto_tls_session_struct *nil_crypto_tls_session_t;
-
-CRYPTO3_TEST_API int nil_crypto_tls_session_decrypt(nil_crypto_tls_session_t *session, const uint8_t key[],
-                                                    size_t key_len, const uint8_t blob[], size_t blob_len);
-
-CRYPTO3_TEST_API int nil_crypto_tls_session_get_version(nil_crypto_tls_session_t session, uint16_t *tls_version);
-CRYPTO3_TEST_API int nil_crypto_tls_session_get_ciphersuite(nil_crypto_tls_session_t session, uint16_t *ciphersuite);
-CRYPTO3_TEST_API int nil_crypto_tls_session_encrypt(nil_crypto_tls_session_t session, nil_crypto_rng_t random,
-                                                    uint8_t key[], size_t *key_len);
-
-CRYPTO3_TEST_API int nil_crypto_tls_session_get_peer_certs(nil_crypto_tls_session_t session,
-                                                           nil_crypto_x509_cert_t certs[], size_t *cert_len);
-
-// TODO: peer certs, validation, ...
-
-typedef struct nil_crypto_tls_channel_struct *nil_crypto_tls_channel_t;
-
-typedef void (*nil_crypto_tls_channel_output_fn)(void *application_data, const uint8_t *data, size_t data_len);
-
-typedef void (*nil_crypto_tls_channel_data_cb)(void *application_data, const uint8_t *data, size_t data_len);
-
-typedef void (*nil_crypto_tls_channel_alert_cb)(void *application_data, uint16_t alert_code);
-
-typedef void (*nil_crypto_tls_channel_session_established)(void *application_data,
-                                                           nil_crypto_tls_channel_t channel,
-                                                           nil_crypto_tls_session_t session);
-
-CRYPTO3_TEST_API int nil_crypto_tls_channel_init_client(nil_crypto_tls_channel_t *channel,
-                                                        nil_crypto_tls_channel_output_fn output_fn,
-                                                        nil_crypto_tls_channel_data_cb data_cb,
-                                                        nil_crypto_tls_channel_alert_cb alert_cb,
-                                                        nil_crypto_tls_channel_session_established session_cb,
-                                                        const char *server_name);
-
-CRYPTO3_TEST_API int nil_crypto_tls_channel_init_server(nil_crypto_tls_channel_t *channel,
-                                                        nil_crypto_tls_channel_output_fn output_fn,
-                                                        nil_crypto_tls_channel_data_cb data_cb,
-                                                        nil_crypto_tls_channel_alert_cb alert_cb,
-                                                        nil_crypto_tls_channel_session_established session_cb);
-
-CRYPTO3_TEST_API int nil_crypto_tls_channel_received_data(nil_crypto_tls_channel_t chan, const uint8_t input[],
-                                                          size_t len);
-
-/**
- * Returns 0 for client, 1 for server, negative for error
- */
-CRYPTO3_TEST_API int nil_crypto_tls_channel_type(nil_crypto_tls_channel_t chan);
-
-CRYPTO3_TEST_API int nil_crypto_tls_channel_send(nil_crypto_tls_channel_t chan, const uint8_t input[], size_t len);
-
-CRYPTO3_TEST_API int nil_crypto_tls_channel_close(nil_crypto_tls_channel_t chan);
-
-CRYPTO3_TEST_API int nil_crypto_tls_channel_destroy(nil_crypto_tls_channel_t chan);
-
-#endif
 #ifdef __cplusplus
 }
 #endif

@@ -1,7 +1,7 @@
 #include <nil/crypto3/ffi/ffi.h>
 #include <nil/crypto3/ffi/ffi_util.h>
 
-#include <iostream>
+#include <boost/current_function.hpp>
 
 #include <nil/crypto3/block/detail/utilities/memory_operations.hpp>
 
@@ -95,7 +95,7 @@ const char *nil_crypto_error_description(int err) {
 }
 
 int nil_crypto_hex_encode(const uint8_t *in, size_t len, char *out, uint32_t flags) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         const bool uppercase = (flags & CRYPTO3_FFI_HEX_LOWER_CASE) == 0;
         if (uppercase) {
             encode<codec::hex<codec::mode::upper>>(in, in + len, out);
@@ -107,21 +107,21 @@ int nil_crypto_hex_encode(const uint8_t *in, size_t len, char *out, uint32_t fla
 }
 
 int nil_crypto_hex_decode(const char *hex_str, size_t in_len, uint8_t *out, size_t *out_len) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         const std::vector<uint8_t> bin = decode<codec::hex<>>(hex_str, hex_str + in_len);
         return ffi::write_vec_output(out, out_len, bin);
     });
 }
 
 int nil_crypto_base64_encode(const uint8_t *in, size_t len, char *out, size_t *out_len) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         const std::string base64 = encode<codec::base<64>>(in, in + len);
         return ffi::write_str_output(out, out_len, base64);
     });
 }
 
 int nil_crypto_base64_decode(const char *base64_str, size_t in_len, uint8_t *out, size_t *out_len) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
 //        if (*out_len < nil::crypto3::base64_decode_max_output(in_len)) {
 //            *out_len = nil::crypto3::base64_decode_max_output(in_len);
 //            return CRYPTO3_FFI_ERROR_INSUFFICIENT_BUFFER_SPACE;

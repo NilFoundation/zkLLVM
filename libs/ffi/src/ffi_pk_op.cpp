@@ -4,6 +4,7 @@
 #include <nil/crypto3/ffi/ffi_rng.h>
 
 #include <boost/assert.hpp>
+#include <boost/current_function.hpp>
 
 extern "C" {
 
@@ -17,7 +18,7 @@ using namespace nil::crypto3::ffi;
 
 int nil_crypto_pk_op_encrypt_create(nil_crypto_pk_op_encrypt_t *op, nil_crypto_pubkey_t key_obj, const char *padding,
                                     uint32_t flags) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         BOOST_ASSERT(op != NULL);
 
         *op = NULL;
@@ -49,7 +50,7 @@ int nil_crypto_pk_op_encrypt(nil_crypto_pk_op_encrypt_t op, nil_crypto_rng_t rng
  */
 int nil_crypto_pk_op_decrypt_create(nil_crypto_pk_op_decrypt_t *op, nil_crypto_privkey_t key_obj, const char *padding,
                                     uint32_t flags) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         BOOST_ASSERT(op != NULL);
 
         *op = NULL;
@@ -80,7 +81,7 @@ int nil_crypto_pk_op_decrypt(nil_crypto_pk_op_decrypt_t op, uint8_t out[], size_
  */
 int nil_crypto_pk_op_sign_create(nil_crypto_pk_op_sign_t *op, nil_crypto_privkey_t key_obj, const char *hash,
                                  uint32_t flags) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         BOOST_ASSERT(op != NULL);
 
         *op = NULL;
@@ -111,7 +112,7 @@ int nil_crypto_pk_op_sign_finish(nil_crypto_pk_op_sign_t op, nil_crypto_rng_t rn
 
 int nil_crypto_pk_op_verify_create(nil_crypto_pk_op_verify_t *op, nil_crypto_pubkey_t key_obj, const char *hash,
                                    uint32_t flags) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         BOOST_ASSERT(op != NULL);
 
         if (flags != 0) {
@@ -145,7 +146,7 @@ int nil_crypto_pk_op_verify_finish(nil_crypto_pk_op_verify_t op, const uint8_t s
 
 int nil_crypto_pk_op_key_agreement_create(nil_crypto_pk_op_ka_t *op, nil_crypto_privkey_t key_obj, const char *kdf,
                                           uint32_t flags) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         BOOST_ASSERT(op != NULL);
 
         *op = NULL;

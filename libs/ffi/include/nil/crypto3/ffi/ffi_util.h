@@ -87,12 +87,12 @@ namespace nil {
                 return ffi_guard_thunk(func_name, [&]() { return func(*o->unsafe_get()); });
             }
 
-#define CRYPTO3_FFI_DO(T, obj, param, block)                       \
-    apply_fn(obj, CRYPTO3_CURRENT_FUNCTION, [=](T &param) -> int { \
-        do {                                                       \
-            block                                                  \
-        } while (0);                                               \
-        return CRYPTO3_FFI_SUCCESS;                                \
+#define CRYPTO3_FFI_DO(T, obj, param, block)                     \
+    apply_fn(obj, BOOST_CURRENT_FUNCTION, [=](T &param) -> int { \
+        do {                                                     \
+            block                                                \
+        } while (0);                                             \
+        return CRYPTO3_FFI_SUCCESS;                              \
     })
 
             template<typename T, uint32_t M>
@@ -115,7 +115,7 @@ namespace nil {
                 }
             }
 
-#define CRYPTO3_FFI_CHECKED_DELETE(o) ffi_delete_object(o, CRYPTO3_CURRENT_FUNCTION)
+#define CRYPTO3_FFI_CHECKED_DELETE(o) ffi_delete_object(o, BOOST_CURRENT_FUNCTION)
 
             inline int write_output(uint8_t out[], size_t *out_len, const uint8_t buf[], size_t buf_len);
 

@@ -1,6 +1,8 @@
 #include <nil/crypto3/ffi/ffi.h>
 #include <nil/crypto3/ffi/ffi_util.h>
 
+#include <boost/current_function.hpp>
+
 extern "C" {
 
 using namespace nil::crypto3::ffi;
@@ -13,7 +15,7 @@ using namespace nil::crypto3::ffi;
 //};
 
 int nil_crypto_cipher_init(nil_crypto_cipher_t *cipher, const char *cipher_name, uint32_t flags) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         const bool encrypt_p = ((flags & CRYPTO3_CIPHER_INIT_FLAG_MASK_DIRECTION) == CRYPTO3_CIPHER_INIT_FLAG_ENCRYPT);
 //        const nil::crypto3::Cipher_Dir dir = encrypt_p ? nil::crypto3::ENCRYPTION : nil::crypto3::DECRYPTION;
 //        std::unique_ptr<nil::crypto3::cipher_mode> mode(nil::crypto3::cipher_mode::create(cipher_name, dir));
@@ -46,7 +48,7 @@ int nil_crypto_cipher_set_key(nil_crypto_cipher_t cipher, const uint8_t *key, si
 }
 
 int nil_crypto_cipher_start(nil_crypto_cipher_t cipher_obj, const uint8_t *nonce, size_t nonce_len) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
 //        nil::crypto3::cipher_mode &cipher = safe_get(cipher_obj);
 //        cipher.start(nonce, nonce_len);
 //        cipher_obj->m_buf.reserve(cipher.update_granularity());
@@ -57,7 +59,7 @@ int nil_crypto_cipher_start(nil_crypto_cipher_t cipher_obj, const uint8_t *nonce
 int nil_crypto_cipher_update(nil_crypto_cipher_t cipher_obj, uint32_t flags, uint8_t output_ptr[],
                              size_t orig_output_size, size_t *output_written, const uint8_t input_ptr[],
                              size_t orig_input_size, size_t *input_consumed) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         size_t input_size = orig_input_size;
         size_t output_size = orig_output_size;
         const uint8_t *input = input_ptr;

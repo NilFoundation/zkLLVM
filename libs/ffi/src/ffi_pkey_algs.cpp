@@ -251,7 +251,7 @@ int nil_crypto_privkey_load_rsa(nil_crypto_privkey_t *key, nil_crypto_mp_t rsa_p
 #if defined(CRYPTO3_HAS_RSA)
     *key = NULL;
 
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         *key = new nil_crypto_privkey_struct(
             new nil::crypto3::rsa_private_key(safe_get(rsa_p), safe_get(rsa_q), safe_get(rsa_e)));
         return CRYPTO3_FFI_SUCCESS;
@@ -265,7 +265,7 @@ int nil_crypto_privkey_load_rsa(nil_crypto_privkey_t *key, nil_crypto_mp_t rsa_p
 int nil_crypto_pubkey_load_rsa(nil_crypto_pubkey_t *key, nil_crypto_mp_t n, nil_crypto_mp_t e) {
 #if defined(CRYPTO3_HAS_RSA)
     *key = NULL;
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         *key = new nil_crypto_pubkey_struct(new nil::crypto3::rsa_public_key(safe_get(n), safe_get(e)));
         return CRYPTO3_FFI_SUCCESS;
     });
@@ -314,7 +314,7 @@ int nil_crypto_privkey_create_dsa(nil_crypto_privkey_t *key, nil_crypto_rng_t rn
         return CRYPTO3_FFI_ERROR_BAD_PARAMETER;
     }
 
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         nil::crypto3::RandomNumberGenerator &rng = safe_get(rng_obj);
         nil::crypto3::DL_Group group(rng, nil::crypto3::DL_Group::Prime_Subgroup, pbits, qbits);
         *key = new nil_crypto_privkey_struct(new nil::crypto3::dsa_private_key_policy(rng, group));
@@ -331,7 +331,7 @@ int nil_crypto_privkey_load_dsa(nil_crypto_privkey_t *key, nil_crypto_mp_t p, ni
 #if defined(CRYPTO3_HAS_DSA)
     *key = NULL;
 
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         nil::crypto3::Null_RNG null_rng;
         nil::crypto3::DL_Group group(safe_get(p), safe_get(q), safe_get(g));
         *key = new nil_crypto_privkey_struct(new nil::crypto3::dsa_private_key_policy(null_rng, group, safe_get(x)));
@@ -348,7 +348,7 @@ int nil_crypto_pubkey_load_dsa(nil_crypto_pubkey_t *key, nil_crypto_mp_t p, nil_
 #if defined(CRYPTO3_HAS_DSA)
     *key = NULL;
 
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         nil::crypto3::DL_Group group(safe_get(p), safe_get(q), safe_get(g));
         *key = new nil_crypto_pubkey_struct(new nil::crypto3::dsa_public_key_policy(group, safe_get(y)));
         return CRYPTO3_FFI_SUCCESS;
@@ -388,7 +388,7 @@ int nil_crypto_privkey_create_ecdsa(nil_crypto_privkey_t *key_obj, nil_crypto_rn
 int nil_crypto_pubkey_load_ecdsa(nil_crypto_pubkey_t *key, const nil_crypto_mp_t public_x,
                                  const nil_crypto_mp_t public_y, const char *curve_name) {
 #if defined(CRYPTO3_HAS_ECDSA)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         std::unique_ptr<nil::crypto3::ecdsa_public_key> p_key;
 
         int rc = pubkey_load_ec(p_key, safe_get(public_x), safe_get(public_y), curve_name);
@@ -405,7 +405,7 @@ int nil_crypto_pubkey_load_ecdsa(nil_crypto_pubkey_t *key, const nil_crypto_mp_t
 
 int nil_crypto_privkey_load_ecdsa(nil_crypto_privkey_t *key, const nil_crypto_mp_t scalar, const char *curve_name) {
 #if defined(CRYPTO3_HAS_ECDSA)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         std::unique_ptr<nil::crypto3::ecdsa_private_key> p_key;
         int rc = privkey_load_ec(p_key, safe_get(scalar), curve_name);
         if (rc == CRYPTO3_FFI_SUCCESS)
@@ -432,7 +432,7 @@ int nil_crypto_privkey_create_elgamal(nil_crypto_privkey_t *key, nil_crypto_rng_
     nil::crypto3::DL_Group::PrimeType prime_type =
         ((pbits - 1) == qbits) ? nil::crypto3::DL_Group::Strong : nil::crypto3::DL_Group::Prime_Subgroup;
 
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         nil::crypto3::RandomNumberGenerator &rng = safe_get(rng_obj);
         nil::crypto3::DL_Group group(rng, prime_type, pbits, qbits);
         *key = new nil_crypto_privkey_struct(new nil::crypto3::el_gamal_private_key(rng, group));
@@ -447,7 +447,7 @@ int nil_crypto_privkey_create_elgamal(nil_crypto_privkey_t *key, nil_crypto_rng_
 int nil_crypto_pubkey_load_elgamal(nil_crypto_pubkey_t *key, nil_crypto_mp_t p, nil_crypto_mp_t g, nil_crypto_mp_t y) {
 #if defined(CRYPTO3_HAS_ELGAMAL)
     *key = NULL;
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         nil::crypto3::DL_Group group(safe_get(p), safe_get(g));
         *key = new nil_crypto_pubkey_struct(new nil::crypto3::el_gamal_public_key(group, safe_get(y)));
         return CRYPTO3_FFI_SUCCESS;
@@ -462,7 +462,7 @@ int nil_crypto_privkey_load_elgamal(nil_crypto_privkey_t *key, nil_crypto_mp_t p
                                     nil_crypto_mp_t x) {
 #if defined(CRYPTO3_HAS_ELGAMAL)
     *key = NULL;
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         nil::crypto3::Null_RNG null_rng;
         nil::crypto3::DL_Group group(safe_get(p), safe_get(g));
         *key = new nil_crypto_privkey_struct(new nil::crypto3::el_gamal_private_key(null_rng, group, safe_get(x)));
@@ -483,7 +483,7 @@ int nil_crypto_privkey_create_dh(nil_crypto_privkey_t *key_obj, nil_crypto_rng_t
 int nil_crypto_privkey_load_dh(nil_crypto_privkey_t *key, nil_crypto_mp_t p, nil_crypto_mp_t g, nil_crypto_mp_t x) {
 #if defined(CRYPTO3_HAS_DIFFIE_HELLMAN)
     *key = NULL;
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         nil::crypto3::Null_RNG null_rng;
         nil::crypto3::DL_Group group(safe_get(p), safe_get(g));
         *key = new nil_crypto_privkey_struct(new nil::crypto3::dh_private_key(null_rng, group, safe_get(x)));
@@ -498,7 +498,7 @@ int nil_crypto_privkey_load_dh(nil_crypto_privkey_t *key, nil_crypto_mp_t p, nil
 int nil_crypto_pubkey_load_dh(nil_crypto_pubkey_t *key, nil_crypto_mp_t p, nil_crypto_mp_t g, nil_crypto_mp_t y) {
 #if defined(CRYPTO3_HAS_DIFFIE_HELLMAN)
     *key = NULL;
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         nil::crypto3::DL_Group group(safe_get(p), safe_get(g));
         *key = new nil_crypto_pubkey_struct(new nil::crypto3::DH_PublicKey(group, safe_get(y)));
         return CRYPTO3_FFI_SUCCESS;
@@ -528,7 +528,7 @@ int nil_crypto_privkey_create_ecdh(nil_crypto_privkey_t *key_obj, nil_crypto_rng
 int nil_crypto_pubkey_load_ecdh(nil_crypto_pubkey_t *key, const nil_crypto_mp_t public_x,
                                 const nil_crypto_mp_t public_y, const char *curve_name) {
 #if defined(CRYPTO3_HAS_ECDH)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         std::unique_ptr<nil::crypto3::ECDH_PublicKey> p_key;
         int rc = pubkey_load_ec(p_key, safe_get(public_x), safe_get(public_y), curve_name);
 
@@ -544,7 +544,7 @@ int nil_crypto_pubkey_load_ecdh(nil_crypto_pubkey_t *key, const nil_crypto_mp_t 
 
 int nil_crypto_privkey_load_ecdh(nil_crypto_privkey_t *key, const nil_crypto_mp_t scalar, const char *curve_name) {
 #if defined(CRYPTO3_HAS_ECDH)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         std::unique_ptr<nil::crypto3::ecdh_private_key> p_key;
         int rc = privkey_load_ec(p_key, safe_get(scalar), curve_name);
         if (rc == CRYPTO3_FFI_SUCCESS)
@@ -569,7 +569,7 @@ int nil_crypto_pubkey_sm2_compute_za(uint8_t out[], size_t *out_len, const char 
     }
 
 #if defined(CRYPTO3_HAS_SM2)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         const nil::crypto3::Public_Key &pub_key = safe_get(key);
         const nil::crypto3::ec_public_key *ec_key = dynamic_cast<const nil::crypto3::ec_public_key *>(&pub_key);
 
@@ -595,7 +595,7 @@ int nil_crypto_pubkey_sm2_compute_za(uint8_t out[], size_t *out_len, const char 
 int nil_crypto_pubkey_load_sm2(nil_crypto_pubkey_t *key, const nil_crypto_mp_t public_x, const nil_crypto_mp_t public_y,
                                const char *curve_name) {
 #if defined(CRYPTO3_HAS_SM2)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         std::unique_ptr<nil::crypto3::sm2_signature_public_key> p_key;
         if (!pubkey_load_ec(p_key, safe_get(public_x), safe_get(public_y), curve_name)) {
             *key = new nil_crypto_pubkey_struct(p_key.release());
@@ -611,7 +611,7 @@ int nil_crypto_pubkey_load_sm2(nil_crypto_pubkey_t *key, const nil_crypto_mp_t p
 
 int nil_crypto_privkey_load_sm2(nil_crypto_privkey_t *key, const nil_crypto_mp_t scalar, const char *curve_name) {
 #if defined(CRYPTO3_HAS_SM2)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         std::unique_ptr<nil::crypto3::sm2_signature_private_key> p_key;
         int rc = privkey_load_ec(p_key, safe_get(scalar), curve_name);
 
@@ -628,7 +628,7 @@ int nil_crypto_privkey_load_sm2(nil_crypto_privkey_t *key, const nil_crypto_mp_t
 int nil_crypto_pubkey_load_sm2_enc(nil_crypto_pubkey_t *key, const nil_crypto_mp_t public_x,
                                    const nil_crypto_mp_t public_y, const char *curve_name) {
 #if defined(CRYPTO3_HAS_SM2)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         std::unique_ptr<nil::crypto3::sm2_encryption_public_key> p_key;
         if (!pubkey_load_ec(p_key, safe_get(public_x), safe_get(public_y), curve_name)) {
             *key = new nil_crypto_pubkey_struct(p_key.release());
@@ -644,7 +644,7 @@ int nil_crypto_pubkey_load_sm2_enc(nil_crypto_pubkey_t *key, const nil_crypto_mp
 
 int nil_crypto_privkey_load_sm2_enc(nil_crypto_privkey_t *key, const nil_crypto_mp_t scalar, const char *curve_name) {
 #if defined(CRYPTO3_HAS_SM2)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         std::unique_ptr<nil::crypto3::sm2_encryption_private_key> p_key;
         int rc = privkey_load_ec(p_key, safe_get(scalar), curve_name);
 
@@ -663,7 +663,7 @@ int nil_crypto_privkey_load_sm2_enc(nil_crypto_privkey_t *key, const nil_crypto_
 int nil_crypto_privkey_load_ed25519(nil_crypto_privkey_t *key, const uint8_t privkey[32]) {
 #if defined(CRYPTO3_HAS_ED25519)
     *key = NULL;
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         const nil::crypto3::secure_vector<uint8_t> privkey_vec(prkey, prkey + 32);
         *key = new nil_crypto_privkey_struct(new nil::crypto3::Ed25519_PrivateKey(privkey_vec));
         return CRYPTO3_FFI_SUCCESS;
@@ -677,7 +677,7 @@ int nil_crypto_privkey_load_ed25519(nil_crypto_privkey_t *key, const uint8_t pri
 int nil_crypto_pubkey_load_ed25519(nil_crypto_pubkey_t *key, const uint8_t pubkey[32]) {
 #if defined(CRYPTO3_HAS_ED25519)
     *key = NULL;
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         const std::vector<uint8_t> pubkey_vec(pubkey, pubkey + 32);
         *key = new nil_crypto_pubkey_struct(new nil::crypto3::Ed25519_PublicKey(pubkey_vec));
         return CRYPTO3_FFI_SUCCESS;
@@ -733,7 +733,7 @@ int nil_crypto_privkey_create_mceliece(nil_crypto_privkey_t *key_obj, nil_crypto
 
 int nil_crypto_mceies_decrypt(nil_crypto_privkey_t mce_key_obj, const char *aead, const uint8_t ct[], size_t ct_len,
                               const uint8_t ad[], size_t ad_len, uint8_t out[], size_t *out_len) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
 //        nil::crypto3::private_key &key = safe_get(mce_key_obj);
 
 #if defined(CRYPTO3_HAS_MCELIECE) && defined(CRYPTO3_HAS_MCEIES)
@@ -752,7 +752,7 @@ int nil_crypto_mceies_decrypt(nil_crypto_privkey_t mce_key_obj, const char *aead
 int nil_crypto_mceies_encrypt(nil_crypto_pubkey_t mce_key_obj, nil_crypto_rng_t rng_obj, const char *aead,
                               const uint8_t pt[], size_t pt_len, const uint8_t ad[], size_t ad_len, uint8_t out[],
                               size_t *out_len) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
 //        nil::crypto3::Public_Key &key = safe_get(mce_key_obj);
 //        nil::crypto3::RandomNumberGenerator &rng = safe_get(rng_obj);
 

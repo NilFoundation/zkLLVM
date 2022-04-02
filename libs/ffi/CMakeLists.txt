@@ -9,10 +9,7 @@ cm_find_package(CM)
 include(CMDeploy)
 include(CMSetupVersion)
 
-cm_find_package(${CMAKE_WORKSPACE_NAME}_pbkdf)
-cm_find_package(${CMAKE_WORKSPACE_NAME}_pubkey)
 cm_find_package(${CMAKE_WORKSPACE_NAME}_codec)
-cm_find_package(${CMAKE_WORKSPACE_NAME}_modes)
 
 list(APPEND ${CURRENT_PROJECT_NAME}_PUBLIC_HEADERS
      include/nil/crypto3/ffi/ffi.h
@@ -57,12 +54,16 @@ target_include_directories(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} PRIVA
                            "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
 
 target_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} PUBLIC
-                      ${CMAKE_WORKSPACE_NAME}::pbkdf
-                      ${CMAKE_WORKSPACE_NAME}::pubkey
+                      ${CMAKE_WORKSPACE_NAME}::algebra
+                      ${CMAKE_WORKSPACE_NAME}::block
                       ${CMAKE_WORKSPACE_NAME}::codec
-                      ${CMAKE_WORKSPACE_NAME}::modes)
+                      ${CMAKE_WORKSPACE_NAME}::hash
+                      ${CMAKE_WORKSPACE_NAME}::multiprecision
+                      ${CMAKE_WORKSPACE_NAME}::pubkey)
 
-cm_deploy(TARGETS ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} INCLUDE include/public include/private NAMESPACE ${CMAKE_WORKSPACE_NAME}::)
+cm_deploy(TARGETS ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
+          INCLUDE include
+          NAMESPACE ${CMAKE_WORKSPACE_NAME}::)
 
 if(APPLE OR NOT ${CMAKE_TARGET_ARCHITECTURE} STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
     set_target_properties(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} PROPERTIES

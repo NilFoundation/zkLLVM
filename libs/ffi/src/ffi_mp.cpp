@@ -8,7 +8,7 @@ extern "C" {
 using namespace nil::crypto3::ffi;
 
 int nil_crypto_mp_init(nil_crypto_mp_t *mp_out) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         if (mp_out == NULL) {
             return CRYPTO3_FFI_ERROR_NULL_POINTER;
         }

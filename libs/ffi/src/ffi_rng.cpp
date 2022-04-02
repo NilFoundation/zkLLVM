@@ -2,12 +2,14 @@
 #include <nil/crypto3/ffi/ffi_util.h>
 #include <nil/crypto3/ffi/ffi_rng.h>
 
+#include <boost/current_function.hpp>
+
 extern "C" {
 
 using namespace nil::crypto3::ffi;
 
 int nil_crypto_rng_init(nil_crypto_rng_t *rng_out, const char *rng_type) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         if (rng_out == NULL) {
             return CRYPTO3_FFI_ERROR_NULL_POINTER;
         }

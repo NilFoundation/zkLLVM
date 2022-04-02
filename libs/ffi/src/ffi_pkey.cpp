@@ -3,6 +3,8 @@
 #include <nil/crypto3/ffi/ffi_pkey.h>
 #include <nil/crypto3/ffi/ffi_rng.h>
 
+#include <boost/current_function.hpp>
+
 #if defined(CRYPTO3_HAS_HASH_ID)
 #include <nil/crypto3/pkpad/hash_id/hash_id.hpp>
 #endif
@@ -13,7 +15,7 @@ using namespace nil::crypto3::ffi;
 
 int nil_crypto_privkey_create(nil_crypto_privkey_t *key_obj, const char *algo_name, const char *algo_params,
                               nil_crypto_rng_t rng_obj) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         if (key_obj == NULL) {
             return CRYPTO3_FFI_ERROR_NULL_POINTER;
         }
@@ -41,7 +43,7 @@ int nil_crypto_privkey_load(nil_crypto_privkey_t *key, nil_crypto_rng_t rng_obj,
                             const char *password) {
     *key = NULL;
 
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         //        nil::crypto3::DataSource_Memory src(bits, len);
 
         //        std::unique_ptr<nil::crypto3::private_key> pkcs8;
@@ -67,7 +69,7 @@ int nil_crypto_privkey_destroy(nil_crypto_privkey_t key) {
 int nil_crypto_pubkey_load(nil_crypto_pubkey_t *key, const uint8_t bits[], size_t bits_len) {
     *key = NULL;
 
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         //        nil::crypto3::DataSource_Memory src(bits, bits_len);
         //        std::unique_ptr<nil::crypto3::Public_Key> pubkey(nil::crypto3::X509::load_key(src));
         //
@@ -85,7 +87,7 @@ int nil_crypto_pubkey_destroy(nil_crypto_pubkey_t key) {
 }
 
 int nil_crypto_privkey_export_pubkey(nil_crypto_pubkey_t *pubout, nil_crypto_privkey_t key_obj) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         //        std::unique_ptr<nil::crypto3::Public_Key> pubkey(
         //            nil::crypto3::X509::load_key(nil::crypto3::X509::ber_encode(safe_get(key_obj))));
         //
@@ -207,7 +209,7 @@ int nil_crypto_pubkey_fingerprint(nil_crypto_pubkey_t key, const char *hash_fn, 
 
 int nil_crypto_pkcs_hash_id(const char *hash_name, uint8_t pkcs_id[], size_t *pkcs_id_len) {
 #if defined(CRYPTO3_HAS_HASH_ID)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         const std::vector<uint8_t> hash_id = nil::crypto3::pkcs_hash_id(hash_name);
         return write_output(pkcs_id, pkcs_id_len, hash_id.data(), hash_id.size());
     });

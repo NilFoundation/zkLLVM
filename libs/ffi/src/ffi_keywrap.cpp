@@ -12,7 +12,7 @@ using namespace nil::crypto3::ffi;
 int nil_crypto_key_wrap3394(const uint8_t key[], size_t key_len, const uint8_t kek[], size_t kek_len,
                             uint8_t wrapped_key[], size_t *wrapped_key_len) {
 #if defined(CRYPTO3_HAS_RFC3394_KEYWRAP)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         const nil::crypto3::symmetric_key kek_sym(kek, kek_len);
         const nil::crypto3::secure_vector<uint8_t> key_pt(key, key + key_len);
         const nil::crypto3::secure_vector<uint8_t> key_ct = nil::crypto3::rfc3394_keywrap(key_pt, kek_sym);
@@ -26,7 +26,7 @@ int nil_crypto_key_wrap3394(const uint8_t key[], size_t key_len, const uint8_t k
 int nil_crypto_key_unwrap3394(const uint8_t wrapped_key[], size_t wrapped_key_len, const uint8_t kek[], size_t kek_len,
                               uint8_t key[], size_t *key_len) {
 #if defined(CRYPTO3_HAS_RFC3394_KEYWRAP)
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         const nil::crypto3::symmetric_key kek_sym(kek, kek_len);
         const nil::crypto3::secure_vector<uint8_t> key_ct(wrapped_key, wrapped_key + wrapped_key_len);
         const nil::crypto3::secure_vector<uint8_t> key_pt = nil::crypto3::rfc3394_keyunwrap(key_ct, kek_sym);

@@ -1,6 +1,8 @@
 #include <nil/crypto3/ffi/ffi.h>
 #include <nil/crypto3/ffi/ffi_util.h>
 
+#include <boost/current_function.hpp>
+
 extern "C" {
 
 using namespace nil::crypto3::ffi;
@@ -8,7 +10,7 @@ using namespace nil::crypto3::ffi;
 // CRYPTO3_FFI_DECLARE_STRUCT(nil_crypto_mac_struct, nil::crypto3::MessageAuthenticationCode, 0xA06E8FC1);
 
 int nil_crypto_mac_init(nil_crypto_mac_t *mac, const char *mac_name, uint32_t flags) {
-    return ffi_guard_thunk(CRYPTO3_CURRENT_FUNCTION, [=]() -> int {
+    return ffi_guard_thunk(BOOST_CURRENT_FUNCTION, [=]() -> int {
         if (!mac || !mac_name || flags != 0) {
             return CRYPTO3_FFI_ERROR_NULL_POINTER;
         }
