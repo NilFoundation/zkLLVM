@@ -12,9 +12,16 @@ Developed by [=nil; Crypto3](https://crypto3.nil.foundation) and supported by [=
 
 All the communication is being processed via [several methods](#contacts).
 
-This repository is a master-repository for the whole suite. Particular-purposed libraries repositories (e.g. [block
+This repository is an umbrella-repository for the whole suite. Particular-purposed libraries repositories (e.g. [block
 ](https://github.com/nilfoundation/block) or [hash](https://github.com/nilfoundation/hash)) are not supposed to be
  used outside the suite or properly constructed CMake project and should be handled with great care.
+
+## Contents
+1. [Repository Structure](#repository-structure)
+2. [Repository Contents](#repository-contents)
+3. [Building](#building)
+4. [Contributing](#contributing)
+5. [Community](#community)
 
 ## Repository Structure
 
@@ -75,6 +82,24 @@ Modularized version contains all of the modules available emplaced in ```libs```
 * Verifiable Delay Functions (https://github.com/nilfoundation/crypto3-vdf.git). Wesolowski VDF, Pietrzak VDF, Chia VDF.
 * Zero-Knowledge Proofs (https://github.com/nilfoundation/crypto3-zk.git). Pedersen/Schnorr/Fiat-Shamir schemes, zk-SNARKs, zk-STARKs, Bulletproofs, etc.
 
+## Building
+### Dependencies
+
+Clang (>= 11.0)/GCC (>= 10.0)/MSVC (>= 14.20)
+
+[CMake](https://cmake.org) (>= 3.6)
+
+[Boost](https://boost.org) (>= 1.76)
+
+### Clone & Build
+
+```
+git clone --recurse-submodules https://github.com/nilfoundation/crypto3.git 
+cd crypto3 && mkdir build && cd build
+cmake ..
+make tests
+```
+
 ## Contributing
 
 ### Issues
@@ -105,7 +130,7 @@ Depending on what you want to change, proceed your pull request to following rep
 
 In case you are not sure which repository to proceed to, create an issue in this repository and ask.
 
-## Contacts
+## Community
 
 This cryptography suite is authored by [=nil; Crypto3](https://crypto3.nil.foundation) team, so you can contact it
  several ways:
