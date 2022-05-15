@@ -86,8 +86,10 @@ Modularized version contains all of the modules available emplaced in ```libs```
 ### Dependencies
 
 Clang (>= 11.0)/GCC (>= 10.0)/MSVC (>= 14.20)
-CMake (>= 3.6)
-Boost (>= 1.76)
+
+[CMake](https://cmake.org) (>= 3.6)
+
+[Boost](https://boost.org) (>= 1.76)
 
 ### Clone & Build
 
