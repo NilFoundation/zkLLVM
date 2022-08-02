@@ -10,7 +10,7 @@ jobs:
 
     env:
       DOXYFILE_NAME: "crypto3.doxyfile"
-      BUILD_DIR: "doxygen_build"
+      DDOXYGEN_OUTPUT_DIR: "doxygen_build"
 
     steps:
       - name: Cleanup # TODO - move to scripts on runner
@@ -18,21 +18,18 @@ jobs:
           rm -rf ./* || true
           rm -rf ./.??* || true
 
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.10.0
-        with:
-          access_token: ${{ github.token }}
-
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          repository: ${{ env.SUITE_REPO }}
           submodules: recursive
 
       - name: Cmake and build
         env:
-          CMAKE_ARGS: "-DBUILD_SHARED_LIBS=TRUE -DBUILD_TESTS=TRUE -DDOXYGEN_OUTPUT_DIR=${{ env.BUILD_DIR }}"
-        run: cmake ${{env.CMAKE_ARGS}} ..
+          CMAKE_ARGS: "-DBUILD_SHARED_LIBS=TRUE -DBUILD_TESTS=TRUE -DDOXYGEN_OUTPUT_DIR=${{ env.DDOXYGEN_OUTPUT_DIR }}"
+        run: |
+          mkdir build
+          cd build
+          cmake ${{env.CMAKE_ARGS}} ..
 
       - name: Build doxygen
         working-directory: ./build
@@ -46,9 +43,10 @@ jobs:
           if_key_exists: ignore
 
       - name: Deploy on remote host
+        working-directory: ./build
         env:
           HOST: ${{ secrets.DOCS_STAGING_HOST }}
           USER: ${{ secrets.DOCS_STAGING_USER }}
           TARGET_DIR: '/home/docs/build'
           OPTIONS: '-avz --progress --delete'
-        run: rsync ${{ env.OPTIONS }} ${{ env.BUILD_DIR }}/ ${{ env.USER }}@${{ env.HOST }}:${{ env.TARGET_DIR }}
+        run: rsync ${{ env.OPTIONS }} ./${{ env.DDOXYGEN_OUTPUT_DIR }}/ ${{ env.USER }}@${{ env.HOST }}:${{ env.TARGET_DIR }}
