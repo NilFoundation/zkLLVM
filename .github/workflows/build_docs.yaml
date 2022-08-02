@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  run_tests:
+  build:
     runs-on: [self-hosted]
 
     env:
