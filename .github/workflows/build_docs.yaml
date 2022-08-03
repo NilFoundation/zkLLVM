@@ -1,0 +1,52 @@
+name: Build docs
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [self-hosted]
+
+    env:
+      DOXYFILE_NAME: "crypto3.doxyfile"
+      DDOXYGEN_OUTPUT_DIR: "doxygen_build"
+
+    steps:
+      - name: Cleanup # TODO - move to scripts on runner
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Cmake and build
+        env:
+          CMAKE_ARGS: "-DBUILD_SHARED_LIBS=TRUE -DBUILD_TESTS=TRUE -DDOXYGEN_OUTPUT_DIR=${{ env.DDOXYGEN_OUTPUT_DIR }}"
+        run: |
+          mkdir build
+          cd build
+          cmake ${{env.CMAKE_ARGS}} ..
+
+      - name: Build doxygen
+        working-directory: ./build
+        run: doxygen ${{ env.DOXYFILE_NAME }}
+
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.DOCS_STAGING_SSH_KEY }}
+          known_hosts: ${{secrets.DOCS_STAGING_KNOWN_HOSTS}}
+          if_key_exists: ignore
+
+      - name: Deploy on remote host
+        working-directory: ./build
+        env:
+          HOST: ${{ secrets.DOCS_STAGING_HOST }}
+          USER: ${{ secrets.DOCS_STAGING_USER }}
+          TARGET_DIR: '/home/docs/build'
+          OPTIONS: '-avz --progress --delete'
+        run: rsync ${{ env.OPTIONS }} ./${{ env.DDOXYGEN_OUTPUT_DIR }}/ ${{ env.USER }}@${{ env.HOST }}:${{ env.TARGET_DIR }}
