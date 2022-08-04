@@ -15,6 +15,8 @@ jobs:
     env:
       DOXYFILE_NAME: "crypto3.doxyfile"
       DDOXYGEN_OUTPUT_DIR: "doxygen_build"
+      BUILD_NAME: build_docs-${{ github.sha }}
+      BUILD_ARCHIVE_NAME: build_docs-${{ github.sha }}.tar.gz
 
     steps:
       - name: Cleanup # TODO - move to scripts on runner
@@ -40,7 +42,11 @@ jobs:
         run: doxygen ${{ env.DOXYFILE_NAME }}
 
       - name: Archive build results
+        working-directory: ./build
+        run: tar -czf ${{ env.BUILD_ARCHIVE_NAME }} -C ${{ env.DDOXYGEN_OUTPUT_DIR }} .
+
+      - name: Upload build results
         uses: actions/upload-artifact@v3
         with:
-          name: build_docs-${{ github.sha }}
-          path: ./build/${{ env.DDOXYGEN_OUTPUT_DIR }}
+          name: ${{ env.BUILD_NAME }}
+          path: ./build/${{ env.BUILD_ARCHIVE_NAME }}
