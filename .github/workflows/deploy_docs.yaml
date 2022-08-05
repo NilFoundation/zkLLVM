@@ -1,0 +1,103 @@
+name: Deploy docs
+
+on:
+  # Allows you to run this workflow manually from Actions tab
+  workflow_dispatch:
+    inputs:
+      sha-commit:
+        type: string
+        description: Sha-commit. Leave empty to use latest commit from selected branch
+        required: false
+      target:
+        type: choice
+        description: Target
+        required: true
+        options: 
+        - staging
+        - production
+        default: staging
+
+env:
+  SHA_COMMIT: ${{ github.event.inputs.sha-commit || github.sha }}
+  BUILD_DOCS_WORKFLOW: build_docs.yaml
+  BUILD_NAME: build_docs-${{ github.event.inputs.sha-commit || github.sha }}
+
+jobs:
+  deploy-staging:
+    if: github.event.inputs.target == 'staging'
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: ${{ env.BUILD_DOCS_WORKFLOW }}
+          workflow_conclusion: completed
+          search_artifacts: true
+          name: ${{ env.BUILD_NAME }}
+
+      - name: Extract artifacts
+        run: |
+          tar -xf ${{ env.BUILD_NAME }}.tar.gz
+          rm ${{ env.BUILD_NAME }}.tar.gz
+
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.DOCS_STAGING_SSH_KEY }}
+          known_hosts: ${{secrets.DOCS_STAGING_KNOWN_HOSTS}}
+          if_key_exists: ignore
+
+      - name: Deploy on staging host
+        env:
+          HOST: ${{ secrets.DOCS_STAGING_HOST }}
+          USER: ${{ secrets.DOCS_STAGING_USER }}
+          TARGET_DIR: '/home/docs/build'
+          OPTIONS: '-az --progress --delete'
+        run: rsync ${{ env.OPTIONS }} . ${{ env.USER }}@${{ env.HOST }}:${{ env.TARGET_DIR }}
+
+
+  deploy-production:
+    if: github.event.inputs.target == 'production'
+    runs-on: [ubuntu-latest]
+    env:
+      SOURCE_REPO: "NilFoundation/crypto3"
+      PRODUCTION_REPO: "NilFoundation/crypto3.nil.foundation"
+      DOCS_PATH_IN_REPO: "projects/crypto3/"
+    steps:
+      - name: Checkout production repository
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.PRODUCTION_REPO }}
+          ref: master
+
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: ${{ env.BUILD_DOCS_WORKFLOW }}
+          workflow_conclusion: completed
+          search_artifacts: true
+          name: ${{ env.BUILD_NAME }}
+
+      - name: Extract artifacts
+        run: |
+          tar -xf ${{ env.BUILD_NAME }}.tar.gz -C ${{ env.DOCS_PATH_IN_REPO }}
+          rm ${{ env.BUILD_NAME }}.tar.gz
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "Build docs from commit ${{ env.SHA_COMMIT }} in ${{ env.SOURCE_REPO }}"
+
+      - name: Install SSH Key
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.DOCS_STAGING_DEPLOY_KEY }}
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          repository: ${{ env.PRODUCTION_REPO }}
+          ssh: true
+          branch: master
