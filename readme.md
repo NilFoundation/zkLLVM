@@ -1,6 +1,4 @@
 # =nil; Foundation's Cryptography Suite (libcrypto3)
-[![Build all](https://github.com/NilFoundation/crypto3/actions/workflows/build_all.yaml/badge.svg)](https://github.com/NilFoundation/crypto3/actions/workflows/build_all.yaml)
-[![Test zk and algebra](https://github.com/NilFoundation/crypto3/actions/workflows/testing.yaml/badge.svg)](https://github.com/NilFoundation/crypto3/actions/workflows/testing.yaml)
 
 Modern cryptography suite built in C++ with concept-based architecture.
 
