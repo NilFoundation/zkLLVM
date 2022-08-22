@@ -133,7 +133,7 @@ In case you are not sure which repository to proceed to, create an issue in this
 This cryptography suite is authored by [=nil; Crypto3](https://crypto3.nil.foundation) team, so you can contact it
  several ways:
  * E-Mail. Just drop a line to [nemo@nil.foundation](mailto:nemo@nil.foundation).
- * Telegram Group. Join our Telegram group [@nilcrypto3](https://t.me/nilcrypto3) and ask any question in there.
+ * Telegram Group. Join our Telegram group [@nilfoundation](https://t.me/nilfoundation) and ask any question in there.
  * Issue. Issue which does not belong to any particular module (or you just don't know where to put it) can be
   created in this repository. The team will answer that.
  * Discussion Topic (proposal, tutorial request, suggestion, etc). Would be happy to discuss that in the repository's GitHub Discussions: https://github.com/NilFoundation/crypto3/discussions
