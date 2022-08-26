@@ -3,46 +3,46 @@
     url = https://github.com/BoostCMake/cmake_modules.git
 [submodule "libs/codec"]
     path = libs/codec
-    url = https://github.com/nilfoundation/codec.git
+    url = https://github.com/NilFoundation/crypto3-codec.git
 [submodule "libs/block"]
     path = libs/block
-    url = https://github.com/nilfoundation/block.git
+    url = https://github.com/NilFoundation/crypto3-block.git
 [submodule "libs/hash"]
     path = libs/hash
-    url = https://github.com/nilfoundation/hash.git
+    url = https://github.com/NilFoundation/crypto3-hash.git
 [submodule "libs/vdf"]
     path = libs/vdf
-    url = https://github.com/NilFoundation/vdf.git
+    url = https://github.com/NilFoundation/crypto3-vdf.git
 [submodule "libs/kdf"]
     path = libs/kdf
-    url = https://github.com/nilfoundation/kdf.git
+    url = https://github.com/NilFoundation/crypto3-kdf.git
 [submodule "libs/mac"]
     path = libs/mac
-    url = https://github.com/nilfoundation/mac.git
+    url = https://github.com/NilFoundation/crypto3-mac.git
 [submodule "libs/modes"]
     path = libs/modes
-    url = https://github.com/nilfoundation/modes.git
+    url = https://github.com/NilFoundation/crypto3-modes.git
 [submodule "libs/stream"]
     path = libs/stream
-    url = https://github.com/nilfoundation/stream.git
+    url = https://github.com/NilFoundation/crypto3-stream.git
 [submodule "libs/passhash"]
     path = libs/passhash
-    url = https://github.com/nilfoundation/passhash.git
+    url = https://github.com/NilFoundation/crypto3-passhash.git
 [submodule "libs/pbkdf"]
     path = libs/pbkdf
-    url = https://github.com/nilfoundation/pbkdf.git
+    url = https://github.com/NilFoundation/crypto3-pbkdf.git
 [submodule "libs/algebra"]
     path = libs/algebra
-    url = https://github.com/nilfoundation/algebra.git
+    url = https://github.com/NilFoundation/crypto3-algebra.git
 [submodule "libs/math"]
     path = libs/math
     url = https://github.com/nilfoundation/crypto3-math.git
 [submodule "libs/pkpad"]
     path = libs/pkpad
-    url = https://github.com/nilfoundation/pkpad.git
+    url = https://github.com/NilFoundation/crypto3-pkpad.git
 [submodule "libs/pubkey"]
     path = libs/pubkey
-    url = https://github.com/nilfoundation/pubkey.git
+    url = https://github.com/NilFoundation/crypto3-pubkey.git
 [submodule "libs/pkmodes"]
     path = libs/pkmodes
     url = https://github.com/nilfoundation/crypto3-pkmodes.git
@@ -51,7 +51,7 @@
     url = https://github.com/nilfoundation/crypto3-zk.git
 [submodule "libs/random"]
     path = libs/random
-    url = https://github.com/nilfoundation/random.git
+    url = https://github.com/NilFoundation/crypto3-random.git
 [submodule "libs/multiprecision"]
     path = libs/multiprecision
     url = https://github.com/nilfoundation/crypto3-multiprecision.git
