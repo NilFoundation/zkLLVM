@@ -8,7 +8,7 @@ Crypto3 cryptography suite purpose is:
  extension.
 3. To provide a Standard Template Library-alike C++ interface and concept-based architecture implementation.
 
-### Available Modules 
+### Modules 
 
 Cryptography suite contains multiple modules from trivial encoding (e.g. base64), encryption, hashing 
 to complex protocols (e.g. threshold schemes, zero-knowledge protocol or verifiable delay functions).
@@ -17,54 +17,35 @@ Detailed list of modules with tutorials is available at [Modules page](modules.h
 
 ### Usage
 
-Cryptography suite comes in several modifications:
+Cryptography suite can be used as follows:
 
 1. Generic usage.
-2. In-Boost usage. 
-3. Particular module usage.
-4. Usage via other language bindings.
+2. Selective module usage.
+
+The suite is used as a header-only and is currently statically linked. Future versions will allow dynamic linking.
 
 #### Generic Usage
-Generic usage-intended cryptography suite is split to modules available at [GitHub =nil; Crypto3 Team Repositoties](https://github.com/orgs/NilFoundation/teams/nil-crypto3/repositories). 
-Some of them are not for standalone usage, some of them are. So there is a suite superproject repository available at
- [Crypto3 GitHub](https://github.com/nilfoundation/crypto3.git). Superproject includes all the modules
-available as submodules emplaced in `libs` directory.
-
-This case is handled by several branches of the same
-intention in all the module repositories as well as in
-superproject repository. These branches are partially compliant to GitFlow branching model:
-* `master` - contains tagged release versions.
-* `develop` - contains in-development library state, used for feature-branching.
-* `#version-branch` - contains changes related to particular version development. 
-* `#issue-branch` - contains changes related to particular issue.
-
-Such a case supposes all the actual development is
-processed in modules repositories, so there would 
-not be many of issue-related branches in superproject
-repository.
+Generic usage-intended cryptography suite comprises modules available at [GitHub =nil; Crypto3 Team Repositories](https://github.com/orgs/NilFoundation/teams/nil-crypto3/repositories). 
+Some of them are not for standalone usage, some of them are. So there is a suite super-project repository available at
+ [Crypto3 GitHub](https://github.com/nilfoundation/crypto3.git). Super-project includes all the modules
+available as submodules emplaced in `libs` directory. A developer can thus include the super-project as a submodule in their 
+project and would not need to resolve dependencies of each module. See [crypto3-scaffold](https://github.com/NilFoundation/crypto3-scaffold) as an example of usage. 
 
 Generic-purposed suite uses CMake as build system with
 [cmake-modules](https://github.com/BoostCMake/cmake-modules.git) CMake library used for easier
-in-project targets management. 
+in-project targets management.
   
-#### In-Boost Usage
+### Selective module usage
 
-In-Boost usage supposes the library to contain only
-proven and secure state-of-art modules packed into
-one repository with no submodules at all. 
+Developer can select to include a one or more modules to reduce the sources of resulting project and dependencies tree height. This however
+does require the developer to manually resolve all required dependencies.
 
-Boost-ified version is handled by separate repository [Boost Crypto3](https://github.com/nilfoundation/boost-crypto3.git) 
+### Branching/contributing 
 
-For now this gets accomplished by several branches:
-* `master` - contains tagged release version of Boost-ified library with modules only approved by
- Boost community to be included in library. 
-* `develop` - contains in-development library state.
+These branches are partially compliant to GitFlow branching model:
+* `master` - contains tagged release versions.
+* `develop` - contains in-development library state, used for feature-branching.
+* `#version-branch` - contains changes related to particular version development.
+* `#issue-branch` - contains changes related to particular issue.
 
-All the actual development is processed in library's 
-generic-purpose modification, so this means 
-Boost-related branches are merge-only.
-
-### Particular Module Usage ###
-
-Usage of particular modules is supposed to be useful for minimization of resulting project sources amount
-and reducing the dependencies tree height.
+The above nomenclature is followed for both super-repository and single module repositories as well.
