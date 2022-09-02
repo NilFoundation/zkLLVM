@@ -12,18 +12,14 @@ These branches are partially compliant to GitFlow branching model:
 
 The above nomenclature is followed for both mono repository and single module repositories.
 
-Developers are required to fork the repository in question and submit a pull request targeting the `develop` branch.
-
 ### Opening Issues
 
-Issues should be opened on the repository on github. Please await someone from the team to acknowledge it and add 
+Issues should be opened on the repository on GitHub. Please await someone from the team to acknowledge it and add 
 appropriate tag. See creating pull requests 
 
 ### Creating a discussion
-Coming soon!
+Discussions should be created on github for any proposed changes or suggestions to the library 
 
-### Guidelines
-Coming soon!
 
 ### Creating pull requests
-Coming soon!
+Developers are required to fork the repository in question and submit a pull request targeting the `develop` branch.
