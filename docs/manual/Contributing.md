@@ -10,7 +10,7 @@ These branches are partially compliant to GitFlow branching model:
 * `#version-branch` - contains changes related to particular version development.
 * `#issue-branch` - contains changes related to particular issue.
 
-The above nomenclature is followed for both super-repository and single module repositories.
+The above nomenclature is followed for both mono repository and single module repositories.
 
 Developers are required to fork the repository in question and submit a pull request targeting the `develop` branch.
 
