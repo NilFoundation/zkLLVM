@@ -1,4 +1,7 @@
+\page Contributing Contributing
+
 ### Contributing
+
 
 We welcome contribution, bug reports, fixes and suggestions from the community.
 

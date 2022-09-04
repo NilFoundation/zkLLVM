@@ -1,4 +1,7 @@
-## Quickstart
+\page Quickstart Quickstart
+
+Quickstart
+========================
 
 By the end of this guide ,you will have set up a development environment for crypto3 projects 
 and be able to run an example.This will enable you to test ideas quickly and further explore the 
@@ -32,14 +35,14 @@ cd crypto3-scaffold
 The project is an example of generic usage of the suite,adding the whole crypto3 suite as a submodule 
 dependency.
 
-<pre>
+```
 root
 ├── libs : submodule including the mono-repository for crypto3 suite
 ├── src  
 │   ├── bls 
 │   │  │──── src: source for bls signing example.
 
-</pre>
+```
 
 ## Installing and testing scaffold
 
