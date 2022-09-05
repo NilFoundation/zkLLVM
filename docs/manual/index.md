@@ -12,7 +12,8 @@ Libraries are designed to be state of the art, highly performant and providing a
 all cryptographic operations. They are supported on all operating systems (*nix, windows, macOS) 
 and architectures(x86/ARM).
 
-See contribution guidelines if you wish to contribute to the project.
+
+See [contribution](contributing.md) guidelines if you wish to contribute to the project.
 
 ## Modules
 Cryptography suite contains multiple modules from trivial encoding (e.g. base64), encryption, hashing
@@ -73,5 +74,5 @@ compatibilities across modules.
 
 
 ## Next steps
-
-Navigate to [quickstart]() to set up and configure the environment or [here](modules.html) for detailed explanations per module. 
+ <!--TODO Link generated via doxygen -->
+Navigate to quickstart guide to set up and configure the environment or [here](modules.html) for detailed explanations per module. 

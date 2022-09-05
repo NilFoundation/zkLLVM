@@ -13,7 +13,7 @@ These branches are partially compliant to GitFlow branching model:
 * `#version-branch` - contains changes related to particular version development.
 * `#issue-branch` - contains changes related to particular issue.
 
-The above nomenclature is followed for both mono repository and single module repositories.
+The above nomenclature is followed for both umbrella-repository and single module repositories.
 
 ### Opening Issues
 
