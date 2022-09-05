@@ -3,10 +3,6 @@
     <!-- Navigation index tabs for HTML output -->
     <navindex>
         <tab type="mainpage" visible="yes" title=""/>
-        <tab type="Guides" visible="yes" title="Guides" intro="">
-            <tab type="Quickstart" visible="yes" title="" intro=""/>
-            <tab type="Contributing" visible="yes" title="" intro=""/>
-        <tab/>
         <tab type="pages" visible="yes" title="Contents" intro=""/>
         <tab type="modules" visible="yes" title="Reference" intro=""/>
         <tab type="namespaces" visible="yes" title="">
