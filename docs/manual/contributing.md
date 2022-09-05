@@ -21,7 +21,7 @@ Issues should be opened on the repository on GitHub. Please await someone from t
 appropriate tag. See creating pull requests 
 
 ### Creating a discussion
-Discussions should be created on github for any proposed changes or suggestions to the library 
+Discussions should be created on GitHub for any proposed changes or suggestions to the library 
 
 
 ### Creating pull requests

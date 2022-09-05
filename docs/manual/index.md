@@ -21,33 +21,33 @@ to complex protocols (e.g. threshold schemes, zero-knowledge protocol or verifia
 Detailed list of modules with tutorials is available at [Modules page](modules.html).
 
 ## Project structure
-<pre>
+```
 root
-├── cmake: Cmake sub-module with helper functions/macros to build crypto3 library mono-repository
+├── cmake: cmake sub-module with helper functions/macros to build crypto3 library umbrella-repository
+├── docs: documentation , tutorials and guides
 ├── libs: all directories added as submodules which are independent projects.
-│   ├── algebra: algebraic constructions being used mostly for public-key schemes
+│   ├── algebra: algebraic operations and structures being used for elliptic-curve cryptography
 │   ├── block: block ciphers
-│   ├── blueprint: zk-circuit definitions 
+│   ├── blueprint: components and circuits for zk schemes
 │   ├── codec: encoding/decoding algorithms
-│   ├── containers: //TODO
-│   ├── ffi: //TODO
+│   ├── containers:containers and generic commitment schemes for accumulating data, includes Merkle Tree
 │   ├── hash: hashing algorithms
 │   ├── kdf: key derivation functions 
 │   ├── mac: message authentication codes
 │   ├── marshalling: marshalling libraries for types in crypto3 library
 │   ├── math: set of Fast Fourier Transforms evaluation algorithms and Polynomial Arithmetics
 │   ├── modes: cipher modes
-│   ├── multiprecision:provides integer, rational, floating-point, complex and interval number types. 
+│   ├── multiprecision: integer, rational, floating-point, complex and interval number types. 
 │   ├── passhash: password hashing operations 
 │   ├── pbkdf: password based key derivation functions
-│   ├── pkmodes: threshold, aggregation modes for schemes defined within pubkey library
-│   ├── pkpad: //TODO
+│   ├── pkmodes: threshold, aggregation modes for public key schemes
+│   ├── pkpad: padding module for public key schemes
 │   ├── pubkey: pubkey signing APIs
 │   ├── random: randomisation primitives 
 │   ├── stream: stream ciphers
 │   ├── vdf:verifiable delay functions 
 │   ├── zk: zk cryptography schemes
-</pre>
+```
 
 
 ## Usage
@@ -62,7 +62,7 @@ The suite is used as a header-only and is currently statically linked. Future ve
 #### Generic
 Generic usage of cryptography suite consists of all modules available at 
 [GitHub =nil; Crypto3 Team Repositories](https://github.com/orgs/NilFoundation/teams/nil-crypto3/repositories). 
-A mono repository of it is available at  [Crypto3 GitHub](https://github.com/nilfoundation/crypto3.git). Modules
+An umbrella-repository of it is available at  [Crypto3 GitHub](https://github.com/nilfoundation/crypto3.git). Modules
 are added as submodules emplaced in `libs` directory. A developer can thus add this  
 project as a submodule and would not need to resolve dependencies. See [crypto3-scaffold](https://github.com/NilFoundation/crypto3-scaffold) as an example of usage. 
 
