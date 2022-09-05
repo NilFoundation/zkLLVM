@@ -799,8 +799,39 @@ WARN_AS_ERROR          = NO
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @PROJECT_SOURCE_DIR@/libs/block/include \
-                         @PROJECT_SOURCE_DIR@/libs/block/docs
+INPUT                  = @PROJECT_SOURCE_DIR@/libs/algebra/include \
+                         @PROJECT_SOURCE_DIR@/libs/algebra/docs \
+                         @PROJECT_SOURCE_DIR@/libs/block/include \
+                         @PROJECT_SOURCE_DIR@/libs/block/docs \
+                         @PROJECT_SOURCE_DIR@/libs/blueprint/include \
+                         @PROJECT_SOURCE_DIR@/libs/blueprint/docs \
+                         @PROJECT_SOURCE_DIR@/libs/codec/include \
+                         @PROJECT_SOURCE_DIR@/libs/codec/docs \
+                         @PROJECT_SOURCE_DIR@/libs/math/include \
+                         @PROJECT_SOURCE_DIR@/libs/math/docs \
+                         @PROJECT_SOURCE_DIR@/libs/hash/include \
+                         @PROJECT_SOURCE_DIR@/libs/hash/docs \
+                         @PROJECT_SOURCE_DIR@/libs/kdf/include \
+                         @PROJECT_SOURCE_DIR@/libs/kdf/docs \
+                         @PROJECT_SOURCE_DIR@/libs/mac/include \
+                         @PROJECT_SOURCE_DIR@/libs/mac/docs \
+                         @PROJECT_SOURCE_DIR@/libs/modes/include \
+                         @PROJECT_SOURCE_DIR@/libs/modes/docs \
+                         @PROJECT_SOURCE_DIR@/libs/passhash/include \
+                         @PROJECT_SOURCE_DIR@/libs/passhash/docs \
+                         @PROJECT_SOURCE_DIR@/libs/pbkdf/include \
+                         @PROJECT_SOURCE_DIR@/libs/pbkdf/docs \
+                         @PROJECT_SOURCE_DIR@/libs/pkpad/include \
+                         @PROJECT_SOURCE_DIR@/libs/pkpad/docs \
+                         @PROJECT_SOURCE_DIR@/libs/pubkey/include \
+                         @PROJECT_SOURCE_DIR@/libs/pubkey/docs \
+                         @PROJECT_SOURCE_DIR@/libs/stream/include \
+                         @PROJECT_SOURCE_DIR@/libs/stream/docs \
+                         @PROJECT_SOURCE_DIR@/libs/vdf/include \
+                         @PROJECT_SOURCE_DIR@/libs/vdf/docs \
+                         @PROJECT_SOURCE_DIR@/libs/zk/include \
+                         @PROJECT_SOURCE_DIR@/libs/zk/docs \
+                         @PROJECT_SOURCE_DIR@/docs/manual
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
