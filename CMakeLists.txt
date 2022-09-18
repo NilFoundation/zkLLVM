@@ -33,7 +33,7 @@ cm_setup_version(VERSION 0.3.0 PREFIX ${CMAKE_WORKSPACE_NAME})
 
 option(BUILD_SHARED_LIBS "Build shared library" TRUE)
 option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
-option(BUILD_TESTS "Build unit tests" TRUE)
+option(BUILD_TESTS "Build unit tests" FALSE)
 option(BUILD_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
 
 set(BUILD_WITH_TARGET_ARCHITECTURE "" CACHE STRING "Target build architecture")
