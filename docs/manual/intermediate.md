@@ -4,8 +4,7 @@ BLS weighted threshold signature
 =============================
 
 In this tutorial we dive deeper into the cryptography constructs which crypto3 library implements.
-By the end of this tutorial , a user will be in a position to start combining different schemes
-and understand how major classes interact.
+By the end of this tutorial , a user will understand how to sign data and use different modes.
 
 
 Pre-requisites
@@ -18,19 +17,29 @@ Background
 ===============
 ECDSA signatures are fairly common in most protocols ex Bitcoin/Ethereum. BLS signatures use 
 different curve/computation which enables nicer properties such as signature aggregation. 
-Signature aggregation allows for multiple parties to compute a single signature. ECDSA multisigs 
-leak privacy as it is easy to identify a multisig public key and transactions leak data like the 
-signer or scheme ex: 3 of 5 signatures and needs to be done onchain for each signature. BLS signatures 
+Signature aggregation allows for multiple parties to compute a single signature. ECDSA multi-sigs 
+leak privacy as it is easy to identify a multi-sig public key and transactions leak data like the 
+signer or scheme e.g: 3 of 5 signatures and needs to be done onchain for each signature. BLS signatures 
 can be aggregated offline and 
 appear no different from a traditional public key. Thus preserving privacy and reducing compute resources 
-in verification. Threshold signatures take this aggregation a step further by assigning weights
-to each of the signatures and only considering a signature valid when a threshold is reached.
+in verification. Weighted threshold signatures take this concept a step further by assigning weights
+to each of the keys and only considering a signature valid when a threshold is reached.
 
-The example we will construct now is for a BLS weighted threshold scheme.
+The example we will construct is for a BLS weighted threshold scheme using the crypto3 library.
 
 
 Weighted BLS Threshold Signatures
 ==========
+
+The following pattern is used throughout the library.
+- Initialization : This phase involves creating the cryptographic object. Ex: Key-Pair.
+- Accumulation:  Accumulation is done (where needed) as a repeated set of operations involving the object on
+which an algorithm needs to be performed. 
+- Finalisation: This steps requires accumulated data to be finalised padded before running an algorithm.
+
+Algorithms in the crypto3 library will carry out the above steps for the user. Algorithms can do operations
+such as signing , aggregating , verifying.
+
 
 Starting point to use any public key operations in crypto3 library is to create a cryptographic scheme. 
 
@@ -46,13 +55,12 @@ using curve_type = nil::crypto3::algebra::curves::bls12_381;
 using base_scheme_type = bls<bls_default_public_params<>, bls_mps_ro_version, bls_basic_scheme, curve_type>;
 ```
 
-Schemes can operate in two modes. 
+Schemes can operate in two [modes](https://github.com/NilFoundation/crypto3-pkmodes/). 
 - Isomorphic : Single key 
 - Threshold : Multiple key operations
 
-Weighted threshold schemes can have one of the following secret sharing mechanisms (TODO understand these sharing schemes
-and where they are used)
-- `Weighted Shamir Secret Sharing` : TODO : what is this used for?
+Weighted threshold schemes can have one of the following secret sharing mechanisms.
+- `Weighted Shamir Secret Sharing` 
 - TODO Add others
 
 Once the scheme is selected, we can pull the types out for the public/private keys.  
@@ -65,13 +73,14 @@ using pubkey_type = public_key<scheme_type>;
 ```
 
 
-Next we setup some types which we will use throughout the example
+Next we set up some types which we will use throughout the example
 - `sss_public_key_group_type` : TODO : Describe them. Which one of these are accumulators?
 - `shares_dealing_processing_mode`
 - `signing_processing_mode_type`
 - `verification_processing_mode_type`
 - `aggregation_processing_mode_type`
 
+These types act as inputs to algorithms and are usually a parameter of the scheme/mode.
 
 ```c++
 using sss_public_key_group_type = typename pubkey_type::sss_public_key_group_type;
@@ -93,8 +102,7 @@ We now take a closer look at our main.
     std::size_t n = 20;
     std::size_t t = 10;
 ```
-
-Next , we assign weights to our threshold values using the weights_type type which is a pair of (TODO)
+Next , we assign weights to our threshold values using the `weights_type` type which is a pair of (TODO)
 
 ```c++
     auto i = 1;
@@ -106,7 +114,7 @@ Next , we assign weights to our threshold values using the weights_type type whi
     });
 ```
 
-The `dealer` next creates keys adhering to these parameters, TODO what does get_poly do?
+The `dealer` next creates keys adhering to these parameters.
 
 ```c++
     auto coeffs = sss_public_key_group_type::get_poly(t, n);
@@ -114,8 +122,9 @@ The `dealer` next creates keys adhering to these parameters, TODO what does get_
 ```
 
 
-Next we sign this data using all keys and verify it. 
-TODO : What does part_verify do , are all privKeys signing this?
+We now sign this data using **all** private keys we see two algorithms
+- `sign` : The algorithm takes the parameters of scheme type, the message and the signing processing mode.
+- `part_verify`. This is an intermediate step before signature aggregation to verify. (TODO check priv key)
 
 ```c++
     std::vector<typename privkey_type::part_signature_type> part_signatures;
@@ -127,7 +136,9 @@ TODO : What does part_verify do , are all privKeys signing this?
     }
 ```
 
-Next we aggregate and verify these signatures
+Next we run the following algorithms
+- `aggregate` : Algorithm aggregates all signatures into a single one. 
+- `verify` : The verification algorithm validates the signature against the message.
 
 ```c++
     typename pubkey_type::signature_type sig =
@@ -171,5 +182,4 @@ Same as previously , we aggregate and verify these subset of signatures
     BOOST_CHECK(static_cast<bool>(
                         nil::crypto3::verify<scheme_type, decltype(msg), verification_processing_mode_type>(msg, sig_t, PK)));
 ```
-
 
