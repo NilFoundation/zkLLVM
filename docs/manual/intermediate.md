@@ -1,6 +1,6 @@
 \page BLS BLS weighted threshold signature
 
-BLS weighted threshold signature
+BLS weighted threshold signature [WIP]
 =============================
 
 In this tutorial we dive deeper into the cryptography constructs which crypto3 library implements.
@@ -183,3 +183,4 @@ Same as previously , we aggregate and verify these subset of signatures
                         nil::crypto3::verify<scheme_type, decltype(msg), verification_processing_mode_type>(msg, sig_t, PK)));
 ```
 
+Complete source code for this example can be found [here](https://github.com/NilFoundation/crypto3-scaffold)
