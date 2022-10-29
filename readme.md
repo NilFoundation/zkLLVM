@@ -1,4 +1,4 @@
-# =nil; Foundation's Cryptography Suite (libcrypto3)
+# =nil; Foundation's Cryptography Suite
 
 Crypto3 cryptography suite's purpose is:
 1. To provide a secure, fast and architecturally clean C++ generic cryptography schemes implementation.
