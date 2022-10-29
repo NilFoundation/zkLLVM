@@ -34,7 +34,7 @@ root
 │   ├── block: block ciphers
 │   ├── blueprint: components and circuits for zk schemes
 │   ├── codec: encoding/decoding algorithms
-│   ├── containers:containers and generic commitment schemes for accumulating data, includes Merkle Tree
+│   ├── containers: containers and generic commitment schemes for accumulating data, includes Merkle Tree
 │   ├── hash: hashing algorithms
 │   ├── kdf: key derivation functions 
 │   ├── mac: message authentication codes
@@ -49,7 +49,7 @@ root
 │   ├── pubkey: pubkey signing APIs
 │   ├── random: randomisation primitives 
 │   ├── stream: stream ciphers
-│   ├── vdf:verifiable delay functions 
+│   ├── vdf: verifiable delay functions 
 │   ├── zk: zk cryptography schemes
 ```
 
