@@ -1,0 +1,7 @@
+{
+  "endian": "little",
+  "word_size": 32,
+  "aliases": [
+    "sh4"
+  ]
+}

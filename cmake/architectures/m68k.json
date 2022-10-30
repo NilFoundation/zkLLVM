@@ -1,0 +1,8 @@
+{
+  "word_size": 32,
+  "endian": "big",
+  "aliases": [
+    "680x0",
+    "68k"
+  ]
+}

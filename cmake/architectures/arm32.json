@@ -1,0 +1,16 @@
+{
+  "endian": "little",
+  "family": "arm",
+  "aliases": [
+    "arm",
+    "armeb",
+    "armel",
+    "armhf",
+    "evbarm",
+    "armv7",
+    "armv7l",
+    "armv7-a",
+    "armv8l"
+  ],
+  "isa_Extensions": "neon"
+}

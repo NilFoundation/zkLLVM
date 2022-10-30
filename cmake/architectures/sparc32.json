@@ -1,0 +1,8 @@
+{
+  "endian": "big",
+  "word_size": 32,
+  "family": "sparc",
+  "aliases": [
+    "sparc"
+  ]
+}

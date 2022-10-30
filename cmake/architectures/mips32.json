@@ -1,0 +1,10 @@
+{
+  "word_size": 32,
+  "endian": "little",
+  "aliases": [
+    "mips",
+    "mipsbe",
+    "mipsle",
+    "mipsel"
+  ]
+}

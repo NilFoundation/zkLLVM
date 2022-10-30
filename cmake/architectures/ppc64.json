@@ -1,0 +1,15 @@
+{
+  "endian": "big",
+  "word_size": 64,
+  "family": "ppc",
+  "aliases": [
+    "powerpc64",
+    "powerpc64le",
+    "ppc64le",
+    "ppc64el"
+  ],
+  "isa_extensions": [
+    "altivec",
+    "ppccrypto"
+  ]
+}
