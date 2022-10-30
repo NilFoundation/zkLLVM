@@ -23,12 +23,15 @@
 
 #include <nil/crypto3/zk/blueprint/plonk/assignment.hpp>
 #include <nil/crypto3/zk/blueprint/plonk/circuit.hpp>
-#include <nil/crypto3/zk/components/algebra/fields/plonk/multiplication.hpp>
 #include <nil/crypto3/zk/components/algebra/fields/plonk/addition.hpp>
-#include <nil/crypto3/zk/components/algebra/fields/plonk/division.hpp>
 #include <nil/crypto3/zk/components/algebra/fields/plonk/subtraction.hpp>
+#include <nil/crypto3/zk/components/algebra/fields/plonk/multiplication.hpp>
+#include <nil/crypto3/zk/components/algebra/fields/plonk/division.hpp>
 #include <nil/crypto3/zk/components/algebra/fields/plonk/multiplication_by_constant.hpp>
 #include <nil/crypto3/zk/components/algebra/fields/plonk/division_or_zero.hpp>
+#include <nil/crypto3/zk/components/hashes/poseidon/plonk/poseidon_15_wires.hpp>
+#include <nil/crypto3/zk/utils/table_profiling.hpp>
+#include <nil/crypto3/zk/utils/satisfiability_check.hpp>
 
 using namespace nil;
 using namespace nil::crypto3;
@@ -39,6 +42,7 @@ struct BlueprintInstr {
         FSUB,
         FMUL,
         FDIV,
+        POSEIDON
     } opcode;
     std::vector<std::string> arguments;
 };
@@ -51,11 +55,12 @@ struct parser {
     using var = zk::snark::plonk_variable<BlueprintFieldType>;
 
     blueprint::circuit<ArithmetizationType> bp;
-    blueprint::private_assignment<ArithmetizationType> private_assignment;
-    blueprint::public_assignment<ArithmetizationType> public_assignment;
-    std::size_t start_row = 0;
+    blueprint::assignment<ArithmetizationType> assignment;
 
     void parse_instruction(std::map<std::string, var> &variables, const BlueprintInstr& instruction){
+        
+        std::size_t start_row = assignment.allocated_rows();
+
         switch (instruction.opcode){
             case BlueprintInstr::opcode_type::FADD:
                 {
@@ -69,10 +74,10 @@ struct parser {
                     component_type component_instance({0, 1, 2},{},{});
 
                     blueprint::components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                        component_instance, bp, public_assignment, instance_input, start_row);
+                        component_instance, bp, assignment, instance_input, start_row);
                     typename component_type::result_type component_result =
                         blueprint::components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                            component_instance, private_assignment, public_assignment, instance_input, start_row);
+                            component_instance, assignment, instance_input, start_row);
 
                     variables[instruction.arguments[2]] = component_result.output;
 
@@ -90,10 +95,10 @@ struct parser {
                     component_type component_instance({0, 1, 2},{},{});
 
                     blueprint::components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                        component_instance, bp, public_assignment, instance_input, start_row);
+                        component_instance, bp, assignment, instance_input, start_row);
                     typename component_type::result_type component_result =
                         blueprint::components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                            component_instance, private_assignment, public_assignment, instance_input, start_row);
+                            component_instance, assignment, instance_input, start_row);
 
                     variables[instruction.arguments[2]] = component_result.output;
                     break;
@@ -110,10 +115,10 @@ struct parser {
                     component_type component_instance({0, 1, 2},{},{});
 
                     blueprint::components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                        component_instance, bp, public_assignment, instance_input, start_row);
+                        component_instance, bp, assignment, instance_input, start_row);
                     typename component_type::result_type component_result =
                         blueprint::components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                            component_instance, private_assignment, public_assignment, instance_input, start_row);
+                            component_instance, assignment, instance_input, start_row);
 
                     variables[instruction.arguments[2]] = component_result.output;
                     break;
@@ -130,12 +135,37 @@ struct parser {
                     component_type component_instance({0, 1, 2, 3},{},{});
 
                     blueprint::components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                        component_instance, bp, public_assignment, instance_input, start_row);
+                        component_instance, bp, assignment, instance_input, start_row);
                     typename component_type::result_type component_result =
                         blueprint::components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                            component_instance, private_assignment, public_assignment, instance_input, start_row);
+                            component_instance, assignment, instance_input, start_row);
 
                     variables[instruction.arguments[2]] = component_result.output;
+                    break;
+                }
+            case BlueprintInstr::opcode_type::POSEIDON:
+                {
+                    using component_type = blueprint::components::poseidon<ArithmetizationType, BlueprintFieldType, 15>;
+
+                    std::array<var, component_type::state_size> input_state_var;
+                    for (std::uint32_t i = 0; i < component_type::state_size; i++){
+                        input_state_var[i] = variables[instruction.arguments[i]];
+                    }
+
+                    typename component_type::input_type instance_input = {input_state_var};
+
+                    component_type component_instance({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},{},{});
+
+                    blueprint::components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
+                        component_instance, bp, assignment, instance_input, start_row);
+
+                    typename component_type::result_type component_result =
+                        blueprint::components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
+                            component_instance, assignment, instance_input, start_row);
+
+                    for (std::uint32_t i = 0; i < component_type::state_size; i++){
+                        variables[instruction.arguments[component_type::state_size + i]] = component_result.output_state[i];
+                    }
                     break;
                 }
             default:
@@ -145,16 +175,15 @@ struct parser {
 
     template <typename PublicInputContainerType>
     void evaluate (std::vector<BlueprintInstr> code, const PublicInputContainerType &public_input){
-        std::size_t start_row = 0;
 
         std::map<std::string, var> variables;
 
         for (std::size_t i = 0; i < public_input.size(); i++) {
-            public_assignment.public_input(0, start_row + i) = (public_input[i]);
-            variables[code[0].arguments[i]] = var(0, start_row + i, false, var::column_type::public_input);
+            assignment.public_input(0, i) = (public_input[i]);
+            variables[code[0].arguments[i]] = var(0, i, false, var::column_type::public_input);
         }
 
-        for (std::int32_t instruction_index = 1; instruction_index < code.size(); instruction_index++){
+        for (std::int32_t instruction_index = 0; instruction_index < code.size(); instruction_index++){
             parse_instruction(variables, code[instruction_index]);
         }
     }
@@ -163,17 +192,35 @@ struct parser {
 int main (){
     using curve_type = algebra::curves::pallas;
     using BlueprintFieldType = typename curve_type::base_field_type;
-    constexpr std::size_t WitnessColumns = 3;
-    constexpr std::size_t PublicInputColumns = 1;
-    constexpr std::size_t ConstantColumns = 0;
-    constexpr std::size_t SelectorColumns = 1;
+    constexpr std::size_t WitnessColumns = 15;
+    constexpr std::size_t PublicInputColumns = 5;
+    constexpr std::size_t ConstantColumns = 5;
+    constexpr std::size_t SelectorColumns = 20;
 
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
 
-    std::vector<BlueprintInstr> code = {{BlueprintInstr::FADD, {"v0", "v1", "v2"}}};
+    std::vector<BlueprintInstr> code = {
+        {BlueprintInstr::POSEIDON, {"v0", "v1", "v2", "v3", "v4", "v5"}},
+        {BlueprintInstr::FADD, {"v0", "v1", "v8"}},
+        {BlueprintInstr::FMUL, {"v0", "v1", "v3"}},
+        {BlueprintInstr::FMUL, {"v0", "v2", "v4"}},
+        {BlueprintInstr::FADD, {"v1", "v3", "v5"}},
+        {BlueprintInstr::FMUL, {"v4", "v5", "v6"}}
+    };
 
-    std::vector<typename BlueprintFieldType::value_type> public_input = {2, 12};
+    std::vector<typename BlueprintFieldType::value_type> public_input = {0, 1, 1};
     parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
+
     parser_instance.evaluate(code, public_input);
+
+    zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams> desc;
+    desc.usable_rows_amount = parser_instance.assignment.rows_amount();
+    desc.rows_amount = zk::snark::basic_padding(parser_instance.assignment);
+    std::cout << "Usable rows: " << desc.usable_rows_amount << std::endl;
+    std::cout << "Padded rows: " << desc.rows_amount << std::endl;
+
+    blueprint::profiling(parser_instance.assignment);
+
+    assert(blueprint::is_satisfied(parser_instance.bp, parser_instance.assignment) && "circuit satisfiability check failed");
 }
