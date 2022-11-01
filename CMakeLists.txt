@@ -62,8 +62,8 @@ endif()
 
 cm_find_package(Boost REQUIRED COMPONENTS container random system unit_test_framework)
 
-add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/crypto3"
+add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs"
                    SUBMODULE_DEFINITION_HEADER "cm_project\\(")
-add_subdirectories("${CMAKE_CURRENT_LIST_DIR}"
-                   SUBMODULE_DEFINITION_HEADER "cm_project\\(")
-add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/crypto3/marshalling")
+add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs/marshalling")
+
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/bin")

@@ -40,148 +40,136 @@ namespace nil {
     namespace blueprint {
 
         struct BlueprintInstr {
-            enum opcode_type {
-                FADD,
-                FSUB,
-                FMUL,
-                FDIV,
-                POSEIDON
-            } opcode;
+            enum opcode_type { FADD, FSUB, FMUL, FDIV, POSEIDON } opcode;
             std::vector<std::string> arguments;
         };
 
-        template<typename BlueprintFieldType,
-                 typename ArithmetizationParams>
+        template<typename BlueprintFieldType, typename ArithmetizationParams>
         struct parser {
-            
-            using ArithmetizationType = crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
+
+            using ArithmetizationType =
+                crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
             using var = crypto3::zk::snark::plonk_variable<BlueprintFieldType>;
 
             circuit<ArithmetizationType> bp;
             assignment<ArithmetizationType> assignment;
 
         private:
-            
-            void parse_instruction(std::map<std::string, var> &variables, const BlueprintInstr& instruction){
-                
+            void parse_instruction(std::map<std::string, var> &variables, const BlueprintInstr &instruction) {
+
                 std::size_t start_row = assignment.allocated_rows();
 
-                switch (instruction.opcode){
-                    case BlueprintInstr::opcode_type::FADD:
-                        {
-                            using component_type = components::addition<ArithmetizationType, 3>;
+                switch (instruction.opcode) {
+                    case BlueprintInstr::opcode_type::FADD: {
+                        using component_type = components::addition<ArithmetizationType, 3>;
 
-                            var x = variables[instruction.arguments[0]];
-                            var y = variables[instruction.arguments[1]];
+                        var x = variables[instruction.arguments[0]];
+                        var y = variables[instruction.arguments[1]];
 
-                            typename component_type::input_type instance_input = {x,y};
+                        typename component_type::input_type instance_input = {x, y};
 
-                            component_type component_instance({0, 1, 2},{},{});
+                        component_type component_instance({0, 1, 2}, {}, {});
 
-                            components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                                component_instance, bp, assignment, instance_input, start_row);
-                            typename component_type::result_type component_result =
-                                components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                                    component_instance, assignment, instance_input, start_row);
+                        components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
+                            component_instance, bp, assignment, instance_input, start_row);
+                        typename component_type::result_type component_result =
+                            components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
+                                component_instance, assignment, instance_input, start_row);
 
-                            variables[instruction.arguments[2]] = component_result.output;
+                        variables[instruction.arguments[2]] = component_result.output;
 
-                            break;
+                        break;
+                    }
+                    case BlueprintInstr::opcode_type::FSUB: {
+                        using component_type = components::subtraction<ArithmetizationType, 3>;
+
+                        var x = variables[instruction.arguments[0]];
+                        var y = variables[instruction.arguments[1]];
+
+                        typename component_type::input_type instance_input = {x, y};
+
+                        component_type component_instance({0, 1, 2}, {}, {});
+
+                        components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
+                            component_instance, bp, assignment, instance_input, start_row);
+                        typename component_type::result_type component_result =
+                            components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
+                                component_instance, assignment, instance_input, start_row);
+
+                        variables[instruction.arguments[2]] = component_result.output;
+                        break;
+                    }
+                    case BlueprintInstr::opcode_type::FMUL: {
+                        using component_type = components::multiplication<ArithmetizationType, 3>;
+
+                        var x = variables[instruction.arguments[0]];
+                        var y = variables[instruction.arguments[1]];
+
+                        typename component_type::input_type instance_input = {x, y};
+
+                        component_type component_instance({0, 1, 2}, {}, {});
+
+                        components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
+                            component_instance, bp, assignment, instance_input, start_row);
+                        typename component_type::result_type component_result =
+                            components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
+                                component_instance, assignment, instance_input, start_row);
+
+                        variables[instruction.arguments[2]] = component_result.output;
+                        break;
+                    }
+                    case BlueprintInstr::opcode_type::FDIV: {
+                        using component_type = components::division<ArithmetizationType, 4>;
+
+                        var x = variables[instruction.arguments[0]];
+                        var y = variables[instruction.arguments[1]];
+
+                        typename component_type::input_type instance_input = {x, y};
+
+                        component_type component_instance({0, 1, 2, 3}, {}, {});
+
+                        components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
+                            component_instance, bp, assignment, instance_input, start_row);
+                        typename component_type::result_type component_result =
+                            components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
+                                component_instance, assignment, instance_input, start_row);
+
+                        variables[instruction.arguments[2]] = component_result.output;
+                        break;
+                    }
+                    case BlueprintInstr::opcode_type::POSEIDON: {
+                        using component_type = components::poseidon<ArithmetizationType, BlueprintFieldType, 15>;
+
+                        std::array<var, component_type::state_size> input_state_var;
+                        for (std::uint32_t i = 0; i < component_type::state_size; i++) {
+                            input_state_var[i] = variables[instruction.arguments[i]];
                         }
-                    case BlueprintInstr::opcode_type::FSUB:
-                        {
-                            using component_type = components::subtraction<ArithmetizationType, 3>;
 
-                            var x = variables[instruction.arguments[0]];
-                            var y = variables[instruction.arguments[1]];
+                        typename component_type::input_type instance_input = {input_state_var};
 
-                            typename component_type::input_type instance_input = {x,y};
+                        component_type component_instance({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}, {}, {});
 
-                            component_type component_instance({0, 1, 2},{},{});
+                        components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
+                            component_instance, bp, assignment, instance_input, start_row);
 
-                            components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                                component_instance, bp, assignment, instance_input, start_row);
-                            typename component_type::result_type component_result =
-                                components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                                    component_instance, assignment, instance_input, start_row);
+                        typename component_type::result_type component_result =
+                            components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
+                                component_instance, assignment, instance_input, start_row);
 
-                            variables[instruction.arguments[2]] = component_result.output;
-                            break;
+                        for (std::uint32_t i = 0; i < component_type::state_size; i++) {
+                            variables[instruction.arguments[component_type::state_size + i]] =
+                                component_result.output_state[i];
                         }
-                    case BlueprintInstr::opcode_type::FMUL:
-                        {
-                            using component_type = components::multiplication<ArithmetizationType, 3>;
-
-                            var x = variables[instruction.arguments[0]];
-                            var y = variables[instruction.arguments[1]];
-
-                            typename component_type::input_type instance_input = {x,y};
-
-                            component_type component_instance({0, 1, 2},{},{});
-
-                            components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                                component_instance, bp, assignment, instance_input, start_row);
-                            typename component_type::result_type component_result =
-                                components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                                    component_instance, assignment, instance_input, start_row);
-
-                            variables[instruction.arguments[2]] = component_result.output;
-                            break;
-                        }
-                    case BlueprintInstr::opcode_type::FDIV:
-                        {
-                            using component_type = components::division<ArithmetizationType, 4>;
-
-                            var x = variables[instruction.arguments[0]];
-                            var y = variables[instruction.arguments[1]];
-
-                            typename component_type::input_type instance_input = {x,y};
-
-                            component_type component_instance({0, 1, 2, 3},{},{});
-
-                            components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                                component_instance, bp, assignment, instance_input, start_row);
-                            typename component_type::result_type component_result =
-                                components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                                    component_instance, assignment, instance_input, start_row);
-
-                            variables[instruction.arguments[2]] = component_result.output;
-                            break;
-                        }
-                    case BlueprintInstr::opcode_type::POSEIDON:
-                        {
-                            using component_type = components::poseidon<ArithmetizationType, BlueprintFieldType, 15>;
-
-                            std::array<var, component_type::state_size> input_state_var;
-                            for (std::uint32_t i = 0; i < component_type::state_size; i++){
-                                input_state_var[i] = variables[instruction.arguments[i]];
-                            }
-
-                            typename component_type::input_type instance_input = {input_state_var};
-
-                            component_type component_instance({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},{},{});
-
-                            components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                                component_instance, bp, assignment, instance_input, start_row);
-
-                            typename component_type::result_type component_result =
-                                components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                                    component_instance, assignment, instance_input, start_row);
-
-                            for (std::uint32_t i = 0; i < component_type::state_size; i++){
-                                variables[instruction.arguments[component_type::state_size + i]] = component_result.output_state[i];
-                            }
-                            break;
-                        }
+                        break;
+                    }
                     default:
                         assert(1 == 0 && "unsupported opcode type");
                 }
             }
 
         public:
-            
-            template <typename PublicInputContainerType>
-            void evaluate (std::vector<BlueprintInstr> code, const PublicInputContainerType &public_input){
+            template<typename PublicInputContainerType>
+            void evaluate(std::vector<BlueprintInstr> code, const PublicInputContainerType &public_input) {
 
                 std::map<std::string, var> variables;
 
@@ -190,13 +178,13 @@ namespace nil {
                     variables[code[0].arguments[i]] = var(0, i, false, var::column_type::public_input);
                 }
 
-                for (std::int32_t instruction_index = 0; instruction_index < code.size(); instruction_index++){
+                for (std::int32_t instruction_index = 0; instruction_index < code.size(); instruction_index++) {
                     parse_instruction(variables, code[instruction_index]);
                 }
             }
         };
 
-    }        // namespace blueprint
+    }    // namespace blueprint
 }    // namespace nil
 
 #endif    // CRYPTO3_BLUEPRINT_COMPONENT_INSTRUCTION_PARSER_HPP

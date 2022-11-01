@@ -28,7 +28,7 @@
 using namespace nil;
 using namespace nil::crypto3;
 
-int main (){
+int main(int argc, char *argv[]) {
     using curve_type = algebra::curves::pallas;
     using BlueprintFieldType = typename curve_type::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
@@ -45,8 +45,7 @@ int main (){
         {nil::blueprint::BlueprintInstr::FMUL, {"v0", "v1", "v3"}},
         {nil::blueprint::BlueprintInstr::FMUL, {"v0", "v2", "v4"}},
         {nil::blueprint::BlueprintInstr::FADD, {"v1", "v3", "v5"}},
-        {nil::blueprint::BlueprintInstr::FMUL, {"v4", "v5", "v6"}}
-    };
+        {nil::blueprint::BlueprintInstr::FMUL, {"v4", "v5", "v6"}}};
 
     std::vector<typename BlueprintFieldType::value_type> public_input = {0, 1, 1};
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
@@ -61,5 +60,5 @@ int main (){
 
     nil::blueprint::profiling(parser_instance.assignment);
 
-    assert(nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignment) && "circuit satisfiability check failed");
+    return !nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignment);
 }
