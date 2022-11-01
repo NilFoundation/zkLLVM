@@ -169,7 +169,7 @@ namespace nil {
 
         public:
             template<typename PublicInputContainerType>
-            void evaluate(std::vector<BlueprintInstr> code, const PublicInputContainerType &public_input) {
+            void evaluate(const std::vector<BlueprintInstr> &code, const PublicInputContainerType &public_input) {
 
                 std::map<std::string, var> variables;
 
