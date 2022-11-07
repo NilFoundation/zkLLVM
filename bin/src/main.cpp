@@ -24,11 +24,17 @@
 #include <nil/blueprint/parser.hpp>
 #include <nil/blueprint/utils/table_profiling.hpp>
 #include <nil/blueprint/utils/satisfiability_check.hpp>
+#include <nil/blueprint/ir_translator.hpp>
 
 using namespace nil;
 using namespace nil::crypto3;
 
 int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " ir_file" << std::endl;
+        return 1;
+    }
+
     using curve_type = algebra::curves::pallas;
     using BlueprintFieldType = typename curve_type::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
@@ -39,26 +45,29 @@ int main(int argc, char *argv[]) {
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
 
-    std::vector<nil::blueprint::BlueprintInstr> code = {
-        {nil::blueprint::BlueprintInstr::POSEIDON, {"v0", "v1", "v2", "v3", "v4", "v5"}},
-        {nil::blueprint::BlueprintInstr::FADD, {"v0", "v1", "v8"}},
-        {nil::blueprint::BlueprintInstr::FMUL, {"v0", "v1", "v3"}},
-        {nil::blueprint::BlueprintInstr::FMUL, {"v0", "v2", "v4"}},
-        {nil::blueprint::BlueprintInstr::FADD, {"v1", "v3", "v5"}},
-        {nil::blueprint::BlueprintInstr::FMUL, {"v4", "v5", "v6"}}};
+    std::string translation_error;
+    auto code = blueprint::ir_translator::translate_ir_file(argv[1], translation_error);
+    if (code == nullptr) {
+        std::cerr << translation_error << std::endl;
+        return 1;
+    }
 
-    std::vector<typename BlueprintFieldType::value_type> public_input = {0, 1, 1};
+    code->dump();
+
+    std::vector<typename BlueprintFieldType::value_type> public_input = {1, 11};
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
 
-    parser_instance.evaluate(code, public_input);
+    if (!parser_instance.evaluate(*code, public_input)) {
+        return 1;
+    }
 
     zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams> desc;
-    desc.usable_rows_amount = parser_instance.assignment.rows_amount();
-    desc.rows_amount = zk::snark::basic_padding(parser_instance.assignment);
+    desc.usable_rows_amount = parser_instance.assignmnt.rows_amount();
+    desc.rows_amount = zk::snark::basic_padding(parser_instance.assignmnt);
     std::cout << "Usable rows: " << desc.usable_rows_amount << std::endl;
     std::cout << "Padded rows: " << desc.rows_amount << std::endl;
 
-    nil::blueprint::profiling(parser_instance.assignment);
+    nil::blueprint::profiling(parser_instance.assignmnt);
 
-    return !nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignment);
+    return !nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignmnt);
 }

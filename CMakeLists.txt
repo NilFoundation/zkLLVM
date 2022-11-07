@@ -67,3 +67,4 @@ add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs"
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs/marshalling")
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/bin")
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/zkllvm/llvm")

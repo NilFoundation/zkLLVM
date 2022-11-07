@@ -42,6 +42,39 @@ namespace nil {
         struct BlueprintInstr {
             enum opcode_type { FADD, FSUB, FMUL, FDIV, POSEIDON } opcode;
             std::vector<std::string> arguments;
+
+            static const char *opcode_to_str(opcode_type opcode) {
+                switch (opcode) {
+#define OPCODE_CASE(Opcode) \
+    case Opcode:            \
+        return #Opcode
+
+                    OPCODE_CASE(FADD);
+                    OPCODE_CASE(FSUB);
+                    OPCODE_CASE(FMUL);
+                    OPCODE_CASE(FDIV);
+                    OPCODE_CASE(POSEIDON);
+#undef OPCODE_CASE
+                    default:
+                        std::cerr << "Unknown BlueprintInstr opcode";
+                        std::abort();
+                }
+            }
+        };
+
+        struct BlueprintCode {
+            int input_size;
+            std::vector<BlueprintInstr> instructions;
+
+            void dump() {
+                for (const auto &inst : instructions) {
+                    std::cout << BlueprintInstr::opcode_to_str(inst.opcode) << ' ';
+                    for (const auto &reg : inst.arguments) {
+                        std::cout << reg << ' ';
+                    }
+                    std::cout << std::endl;
+                }
+            }
         };
 
         template<typename BlueprintFieldType, typename ArithmetizationParams>
@@ -52,12 +85,12 @@ namespace nil {
             using var = crypto3::zk::snark::plonk_variable<BlueprintFieldType>;
 
             circuit<ArithmetizationType> bp;
-            assignment<ArithmetizationType> assignment;
+            assignment<ArithmetizationType> assignmnt;
 
         private:
             void parse_instruction(std::map<std::string, var> &variables, const BlueprintInstr &instruction) {
 
-                std::size_t start_row = assignment.allocated_rows();
+                std::size_t start_row = assignmnt.allocated_rows();
 
                 switch (instruction.opcode) {
                     case BlueprintInstr::opcode_type::FADD: {
@@ -71,10 +104,10 @@ namespace nil {
                         component_type component_instance({0, 1, 2}, {}, {});
 
                         components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                            component_instance, bp, assignment, instance_input, start_row);
+                            component_instance, bp, assignmnt, instance_input, start_row);
                         typename component_type::result_type component_result =
                             components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                                component_instance, assignment, instance_input, start_row);
+                                component_instance, assignmnt, instance_input, start_row);
 
                         variables[instruction.arguments[2]] = component_result.output;
 
@@ -91,10 +124,10 @@ namespace nil {
                         component_type component_instance({0, 1, 2}, {}, {});
 
                         components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                            component_instance, bp, assignment, instance_input, start_row);
+                            component_instance, bp, assignmnt, instance_input, start_row);
                         typename component_type::result_type component_result =
                             components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                                component_instance, assignment, instance_input, start_row);
+                                component_instance, assignmnt, instance_input, start_row);
 
                         variables[instruction.arguments[2]] = component_result.output;
                         break;
@@ -110,10 +143,10 @@ namespace nil {
                         component_type component_instance({0, 1, 2}, {}, {});
 
                         components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                            component_instance, bp, assignment, instance_input, start_row);
+                            component_instance, bp, assignmnt, instance_input, start_row);
                         typename component_type::result_type component_result =
                             components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                                component_instance, assignment, instance_input, start_row);
+                                component_instance, assignmnt, instance_input, start_row);
 
                         variables[instruction.arguments[2]] = component_result.output;
                         break;
@@ -129,10 +162,10 @@ namespace nil {
                         component_type component_instance({0, 1, 2, 3}, {}, {});
 
                         components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                            component_instance, bp, assignment, instance_input, start_row);
+                            component_instance, bp, assignmnt, instance_input, start_row);
                         typename component_type::result_type component_result =
                             components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                                component_instance, assignment, instance_input, start_row);
+                                component_instance, assignmnt, instance_input, start_row);
 
                         variables[instruction.arguments[2]] = component_result.output;
                         break;
@@ -150,11 +183,11 @@ namespace nil {
                         component_type component_instance({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}, {}, {});
 
                         components::generate_circuit<BlueprintFieldType, ArithmetizationParams>(
-                            component_instance, bp, assignment, instance_input, start_row);
+                            component_instance, bp, assignmnt, instance_input, start_row);
 
                         typename component_type::result_type component_result =
                             components::generate_assignments<BlueprintFieldType, ArithmetizationParams>(
-                                component_instance, assignment, instance_input, start_row);
+                                component_instance, assignmnt, instance_input, start_row);
 
                         for (std::uint32_t i = 0; i < component_type::state_size; i++) {
                             variables[instruction.arguments[component_type::state_size + i]] =
@@ -169,18 +202,23 @@ namespace nil {
 
         public:
             template<typename PublicInputContainerType>
-            void evaluate(const std::vector<BlueprintInstr> &code, const PublicInputContainerType &public_input) {
+            bool evaluate(const BlueprintCode &code, const PublicInputContainerType &public_input) {
 
                 std::map<std::string, var> variables;
+                if (code.input_size != public_input.size()) {
+                    std::cerr << "Public input must match the size of arguments" << std::endl;
+                    return false;
+                }
 
                 for (std::size_t i = 0; i < public_input.size(); i++) {
-                    assignment.public_input(0, i) = (public_input[i]);
-                    variables[code[0].arguments[i]] = var(0, i, false, var::column_type::public_input);
+                    assignmnt.public_input(0, i) = (public_input[i]);
+                    variables[code.instructions[0].arguments[i]] = var(0, i, false, var::column_type::public_input);
                 }
 
-                for (std::int32_t instruction_index = 0; instruction_index < code.size(); instruction_index++) {
-                    parse_instruction(variables, code[instruction_index]);
+                for (std::int32_t instruction_index = 0; instruction_index < code.instructions.size(); instruction_index++) {
+                    parse_instruction(variables, code.instructions[instruction_index]);
                 }
+                return true;
             }
         };
 

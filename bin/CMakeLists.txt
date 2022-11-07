@@ -55,7 +55,9 @@ set_target_properties(${CURRENT_PROJECT_NAME} PROPERTIES
                       CXX_STANDARD_REQUIRED TRUE)
 
 target_link_libraries(${CURRENT_PROJECT_NAME}
-
+                      LLVMIRReader
+                      LLVMCore
+                      LLVMSupport
                       crypto3::algebra
                       crypto3::block
                       crypto3::blueprint
@@ -77,6 +79,9 @@ target_link_libraries(${CURRENT_PROJECT_NAME}
 target_include_directories(${CURRENT_PROJECT_NAME} PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                           ${CMAKE_CURRENT_SOURCE_DIR}/../libs/zkllvm/llvm/include
+                           ${CMAKE_CURRENT_SOURCE_DIR}/../libs/zkllvm/utils/bazel/llvm-project-overlay/llvm/include
+                           ${CMAKE_BINARY_DIR}/libs/zkllvm/llvm/include
 
                            $<$<BOOL:${Boost_FOUND}>:${Boost_INCLUDE_DIRS}>)
 
