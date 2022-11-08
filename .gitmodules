@@ -64,3 +64,6 @@
 [submodule "libs/zkllvm"]
 	path = libs/zkllvm
 	url = git@github.com:NilFoundation/zkllvm.git
+[submodule "libs/assigner"]
+	path = libs/assigner
+	url = git@github.com:NilFoundation/blueprint-assigner.git
