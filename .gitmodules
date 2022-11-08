@@ -1,6 +1,7 @@
 [submodule "components"]
 	path = libs/components
-	url = git@github.com:NilFoundation/crypto3-blueprint.git
+    url = git@github.com:NilFoundation/crypto3-blueprint.git
+    branch = 56-debug-instruments
 [submodule "cmake/modules"]
 	path = cmake/modules
 	url = git@github.com:BoostCMake/cmake_modules.git
@@ -48,7 +49,8 @@
 	url = git@github.com:NilFoundation/crypto3-stream.git
 [submodule "crypto3/zk"]
 	path = libs/crypto3/zk
-	url = git@github.com:NilFoundation/crypto3-zk.git
+    url = git@github.com:NilFoundation/crypto3-zk.git
+    branch = 81-blueprint-arch-compatibility
 [submodule "crypto3/marshalling/core"]
 	path = libs/crypto3/marshalling/core
 	url = git@github.com:NilFoundation/marshalling.git
@@ -63,7 +65,8 @@
 	url = git@github.com:NilFoundation/crypto3-multiprecision-marshalling.git
 [submodule "libs/zkllvm"]
 	path = libs/zkllvm
-	url = git@github.com:NilFoundation/zkllvm.git
+    url = git@github.com:NilFoundation/zkllvm.git
+    branch = 2-crypto3-backend
 [submodule "libs/assigner"]
 	path = libs/assigner
 	url = git@github.com:NilFoundation/blueprint-assigner.git
