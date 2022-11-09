@@ -24,7 +24,6 @@
 #include <nil/blueprint/parser.hpp>
 #include <nil/blueprint/utils/table_profiling.hpp>
 #include <nil/blueprint/utils/satisfiability_check.hpp>
-#include <nil/blueprint/ir_translator.hpp>
 
 using namespace nil;
 using namespace nil::crypto3;
@@ -45,19 +44,16 @@ int main(int argc, char *argv[]) {
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
 
-    std::string translation_error;
-    auto code = blueprint::ir_translator::translate_ir_file(argv[1], translation_error);
-    if (code == nullptr) {
-        std::cerr << translation_error << std::endl;
-        return 1;
-    }
-
-    code->dump();
 
     std::vector<typename BlueprintFieldType::value_type> public_input = {1, 11};
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
 
-    if (!parser_instance.evaluate(*code, public_input)) {
+    std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(argv[1]);
+    if (module == nullptr) {
+        return 1;
+    }
+
+    if (!parser_instance.evaluate(*module, public_input)) {
         return 1;
     }
 

@@ -6,6 +6,6 @@ ninja -C ${ASSIGNER_BUILD:-build} clang assigner
 ```
 2. Running:
 ```bash
-${ASSIGNER_BUILD:-build}/libs/zkllvm/llvm/bin/clang samples/arithmetics.cpp -emit-llvm -с -O1 -o samples/arithmetics.ll
-${ASSIGNER_BUILD:-build}/bin/assigner samples/arithmetics.ll
+${ASSIGNER_BUILD:-build}/libs/zkllvm/llvm/bin/clang samples/arithmetics.cpp -emit-llvm -c -O1 -o samples/arithmetics.bc
+${ASSIGNER_BUILD:-build}/bin/assigner samples/arithmetics.bc
 ```
