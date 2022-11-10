@@ -1,5 +1,5 @@
 [submodule "components"]
-	path = libs/components
+	path = libs/blueprint
     url = git@github.com:NilFoundation/crypto3-blueprint.git
     branch = 56-debug-instruments
 [submodule "cmake/modules"]
@@ -64,7 +64,7 @@
 	path = libs/crypto3/marshalling/multiprecision
 	url = git@github.com:NilFoundation/crypto3-multiprecision-marshalling.git
 [submodule "libs/zkllvm"]
-	path = libs/zkllvm
+	path = libs/circifier
     url = git@github.com:NilFoundation/zkllvm.git
     branch = 2-crypto3-backend
 [submodule "libs/assigner"]
