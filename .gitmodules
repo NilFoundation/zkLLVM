@@ -1,8 +1,4 @@
-[submodule "components"]
-	path = libs/blueprint
-    url = git@github.com:NilFoundation/crypto3-blueprint.git
-    branch = 56-debug-instruments
-[submodule "cmake/modules"]
+[submodule "cmake-modules"]
 	path = cmake/modules
 	url = git@github.com:BoostCMake/cmake_modules.git
 [submodule "crypto3-algebra"]
@@ -63,10 +59,13 @@
 [submodule "crypto3-multiprecision-marshalling"]
 	path = libs/crypto3/marshalling/multiprecision
 	url = git@github.com:NilFoundation/crypto3-multiprecision-marshalling.git
-[submodule "zkllvm-circifier"]
-	path = libs/circifier
-    url = git@github.com:NilFoundation/zkllvm.git
-    branch = 2-crypto3-backend
 [submodule "zkllvm-assigner"]
 	path = libs/assigner
-	url = git@github.com:NilFoundation/blueprint-assigner.git
+	url = git@github.com:NilFoundation/zkllvm-assigner.git
+[submodule "zkllvm-circifier"]
+	path = libs/circifier
+	url = git@github.com:NilFoundation/zkllvm-circifier.git
+[submodule "zkllvm-blueprint"]
+	path = libs/blueprint
+	url = git@github.com:NilFoundation/zkllvm-blueprint.git
+	branch = 56-debug-instruments
