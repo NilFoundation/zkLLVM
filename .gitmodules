@@ -52,7 +52,8 @@
 	url = git@github.com:NilFoundation/marshalling.git
 [submodule "crypto3-zk-marshalling"]
 	path = libs/crypto3/marshalling/zk
-	url = git@github.com:NilFoundation/crypto3-zk-marshalling.git
+    url = git@github.com:NilFoundation/crypto3-zk-marshalling.git
+    branch = 27-update-input-types-marshalling
 [submodule "crypto3-algebra-marshalling"]
 	path = libs/crypto3/marshalling/algebra
 	url = git@github.com:NilFoundation/crypto3-algebra-marshalling.git
