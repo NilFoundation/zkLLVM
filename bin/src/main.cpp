@@ -23,6 +23,7 @@
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
 
+#include <ios>
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
@@ -81,7 +82,21 @@ int main(int argc, char *argv[]) {
     using ConstraintSystemType =
         zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
 
-    std::vector<typename BlueprintFieldType::value_type> public_input = {1, 11};
+    std::vector<typename BlueprintFieldType::value_type> public_input;
+    long long number;
+    std::ifstream input_file("input.txt");
+    if (!input_file.is_open()) {
+        std::cerr << "Could not open the file - '"
+             << "input.txt" << "'" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    while (input_file >> number) {
+        public_input.push_back(number);
+        std::cout << number << "; ";
+        char endll;
+        input_file >> endll;
+    }
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
 
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(argv[1]);
