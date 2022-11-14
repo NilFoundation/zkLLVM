@@ -16,6 +16,7 @@
 //---------------------------------------------------------------------------//
 
 #include <cstdint>
+#include <cstdio>
 #include <fstream>
 
 #include <nil/crypto3/algebra/curves/pallas.hpp>
@@ -65,9 +66,24 @@ void print_circuit(const ConstraintSystemType &circuit, std::string output_file)
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " ir_file" << std::endl;
+    if (argc != 2 && argc != 4) {
+        std::cerr << "Usage: " << argv[0] << "[-i input_file] ir_file" << std::endl;
         return 1;
+    }
+    const char *input_file_name = "input.txt";
+    const char *ir_file = argv[1];
+
+    if (argc == 4) {
+        if (argv[1] == std::string("-i")) {
+            input_file_name = argv[2];
+            ir_file = argv[3];
+        } else if (argv[2] == std::string("-i")) {
+            input_file_name = argv[3];
+            ir_file = argv[1];
+        } else {
+            std::cerr << "Usage: " << argv[0] << "[-i input_file] ir_file" << std::endl;
+            return 1;
+        }
     }
 
     using curve_type = algebra::curves::pallas;
@@ -84,22 +100,20 @@ int main(int argc, char *argv[]) {
 
     std::vector<typename BlueprintFieldType::value_type> public_input;
     long long number;
-    std::ifstream input_file("input.txt");
-    if (!input_file.is_open()) {
+    auto fptr = std::fopen(input_file_name, "r");
+    if (fptr == NULL) {
         std::cerr << "Could not open the file - '"
-             << "input.txt" << "'" << std::endl;
+             << input_file_name << "'" << std::endl;
         return EXIT_FAILURE;
     }
 
-    while (input_file >> number) {
+    while(!std::feof(fptr)) {
+        fscanf(fptr, "%lld\n", &number);
         public_input.push_back(number);
-        std::cout << number << "; ";
-        char endll;
-        input_file >> endll;
     }
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
 
-    std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(argv[1]);
+    std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(ir_file);
     if (module == nullptr) {
         return 1;
     }
