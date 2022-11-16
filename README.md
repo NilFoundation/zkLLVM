@@ -1,6 +1,7 @@
 # =nil; Foundation's zkLLVM Circuit Compiler
 
-Example of usage:
+## Usage:
+
 1. CMake configure:
 ```bash
 cmake -GNinja -B ${ASSIGNER_BUILD:-build} -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS=clang .
@@ -11,7 +12,7 @@ cmake -GNinja -B ${ASSIGNER_BUILD:-build} -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE
 ninja -C ${ASSIGNER_BUILD:-build} clang assigner -j$(nproc)
 ```
 
-2. Running:
+3. Run:
 ```bash
 ${ASSIGNER_BUILD:-build}/libs/circifier/llvm/bin/clang examples/sha512.cpp -emit-llvm -c -O1 -o examples/sha512.bc
 ${ASSIGNER_BUILD:-build}/bin/assigner examples/sha512.bc -i examples/sha512.inp
