@@ -25,6 +25,7 @@
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
 
 #include <ios>
+
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
@@ -53,8 +54,8 @@ template<typename Endianness, typename ConstraintSystemType>
 void print_circuit(const ConstraintSystemType &circuit, std::string output_file) {
 
     using TTypeBase = nil::marshalling::field_type<Endianness>;
-    auto filled_val = nil::crypto3::marshalling::types::fill_plonk_constraint_system<ConstraintSystemType, Endianness>(
-        circuit);
+    auto filled_val =
+        nil::crypto3::marshalling::types::fill_plonk_constraint_system<ConstraintSystemType, Endianness>(circuit);
 
     std::vector<std::uint8_t> cv;
     cv.resize(filled_val.length(), 0x00);
@@ -95,19 +96,17 @@ int main(int argc, char *argv[]) {
 
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
-    using ConstraintSystemType =
-        zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
+    using ConstraintSystemType = zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
 
     std::vector<typename BlueprintFieldType::value_type> public_input;
     long long number;
     auto fptr = std::fopen(input_file_name, "r");
     if (fptr == NULL) {
-        std::cerr << "Could not open the file - '"
-             << input_file_name << "'" << std::endl;
+        std::cerr << "Could not open the file - '" << input_file_name << "'" << std::endl;
         return EXIT_FAILURE;
     }
 
-    while(!std::feof(fptr)) {
+    while (!std::feof(fptr)) {
         fscanf(fptr, "%lld\n", &number);
         public_input.push_back(number);
     }
