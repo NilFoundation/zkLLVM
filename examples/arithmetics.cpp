@@ -8,12 +8,12 @@ namespace nil{
     }
 }
 
-using nil::crypto3;
+using namespace nil::crypto3;
 
-typename algebra::bls12381::value_type field_arithmetic(
+typename algebra::bls12381::value_type field_arithmetic_example(
 	typename algebra::bls12381::value_type a,
 	typename algebra::bls12381::value_type b) {
-	
+
     typename algebra::bls12381::value_type c = (a + b)*a + b*(a+b)*(a+b);
     return c*c*c/(b - a);
 }

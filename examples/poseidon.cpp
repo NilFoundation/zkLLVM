@@ -9,9 +9,7 @@ namespace nil{
         namespace hashes {
             typedef __attribute__((ext_vector_type(3))) typename algebra::bls12381::value_type poseidon_block_type;
 
-            poseidon_block_type poseidon(algebra::bls12381::value_type a,
-                                         algebra::bls12381::value_type b,
-                                         algebra::bls12381::value_type c);
+            poseidon_block_type poseidon(poseidon_block_type input_block);
         }
     }
 }
@@ -23,7 +21,9 @@ typename hashes::poseidon_block_type poseidon_example1(
     typename algebra::bls12381::value_type b,
     typename algebra::bls12381::value_type c) {
 
-    typename hashes::poseidon_block_type hash_result = hashes::poseidon(a + b, b + c, a * b + c);
+    typename hashes::poseidon_block_type input_block = {a + b, b+c, a*c};
+
+    typename hashes::poseidon_block_type hash_result = hashes::poseidon(input_block);
 
     return hash_result;
 }
