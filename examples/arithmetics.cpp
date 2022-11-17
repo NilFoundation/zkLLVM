@@ -10,7 +10,7 @@ namespace nil{
 
 using namespace nil::crypto3;
 
-typename algebra::bls12381::value_type field_arithmetic_example(
+[[circuit]] typename algebra::bls12381::value_type field_arithmetic_example(
 	typename algebra::bls12381::value_type a,
 	typename algebra::bls12381::value_type b) {
 

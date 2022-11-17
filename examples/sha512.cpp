@@ -18,7 +18,7 @@ namespace nil{
 
 using namespace nil::crypto3;
 
-typename hashes::sha512_state_type sha512_example(
+[[circuit]] typename hashes::sha512_state_type sha512_example(
     hashes::sha512_state_type input_state, hashes::sha512_input_words_type input_words) {
 
     typename hashes::sha512_state_type hash_result = hashes::sha512(input_state, input_words);

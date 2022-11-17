@@ -16,7 +16,7 @@ namespace nil{
 
 using namespace nil::crypto3;
 
-typename hashes::poseidon_block_type poseidon_example1(
+[[circuit]] typename hashes::poseidon_block_type poseidon_example1(
     typename algebra::bls12381::value_type a,
     typename algebra::bls12381::value_type b,
     typename algebra::bls12381::value_type c) {
