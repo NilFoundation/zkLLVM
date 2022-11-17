@@ -19,6 +19,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake"
 
 include(CMConfig)
 include(CMSetupVersion)
+include(CircuitCompile)
 
 cm_workspace(crypto3)
 
@@ -70,3 +71,4 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/blueprint")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/assigner")
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
+add_subdirectory(examples)
