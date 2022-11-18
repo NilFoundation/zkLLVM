@@ -126,9 +126,36 @@ void print_sol_files(ConstraintSystemType &constraint_system, ColumnsRotationsTy
     ProfilingType::process_split(constraint_system, columns_rotations, out_folder_path);
 }
 
+
+template <typename ColumnsRotationsType, typename ArithmetizationParams>
+void print_params(ColumnsRotationsType &columns_rotations, std::string output_folder){
+    std::ofstream out;
+    out.open(output_folder + "/circuit_params.json");
+    out << "{\"arithmetization_params\":["<< 
+        ArithmetizationParams::WitnessColumns << "," <<
+        ArithmetizationParams::PublicInputColumns << "," <<
+        ArithmetizationParams::ConstantColumns << "," <<
+        ArithmetizationParams::SelectorColumns  <<
+        "]," << std::endl <<"\"columns_rotations\":[" << std::endl;
+    for( size_t i = 0; i < columns_rotations.size(); i++){
+        if( i != 0 ) out << ","<< std::endl;
+        out << "[";
+        for( size_t j = 0; j < columns_rotations[i].size(); j++ ){
+            if( j != 0 ) out << ",";
+            out << columns_rotations[i][j];
+        }
+        out << "]";
+    }
+    out << "]}" << std::endl;
+    out.close();
+}
+
 int main(int argc, char *argv[]) {
     if(argc < 2){
-        std::cout << "First parameter is path to the file with plonk_constraint_system marshalling" << std::endl;
+        std::cout << "First parameter marshalled plonk_constraint_system file path" << std::endl <<
+        "Second parameter is path to folder for output." << std::endl <<
+        "It'd be better to create an empty folder" << std::endl <<
+        "Copy output folder to evm-placeholder-verification" << std::endl;
         return 1;
     }
     if(argc > 3){
@@ -175,8 +202,10 @@ int main(int argc, char *argv[]) {
 
     if(argc == 2 ){
         print_sol_files<ProfilingType, ConstraintSystemType, ColumnsRotationsType, ArithmetizationParams>(constraint_system, columns_rotations);
+        print_params<ColumnsRotationsType, ArithmetizationParams>(columns_rotations, "circuit_params.json");
     } else {
         print_sol_files<ProfilingType, ConstraintSystemType, ColumnsRotationsType, ArithmetizationParams>(constraint_system, columns_rotations, argv[2]);
+        print_params<ColumnsRotationsType, ArithmetizationParams>(columns_rotations, argv[2]);
     }
     std::cout << "Done" << std::endl;
     return 0;
