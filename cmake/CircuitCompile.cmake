@@ -42,6 +42,7 @@ function(add_circuit name)
     set(binary_name ${name}.ll)
     add_custom_command(OUTPUT ${binary_name}
                        COMMAND $<TARGET_FILE:clang> ${INCLUDE_DIRS_STRING} -emit-llvm -S -O1 -o ${binary_name} ${ARG_SOURCE}
+                       DEPENDS ${ARG_SOURCE}
                        COMMENT "Compiling ${name} circuit"
                        VERBATIM)
 
