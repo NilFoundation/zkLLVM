@@ -69,4 +69,3 @@
 [submodule "zkllvm-blueprint"]
 	path = libs/blueprint
 	url = git@github.com:NilFoundation/zkllvm-blueprint.git
-	branch = 56-debug-instruments
