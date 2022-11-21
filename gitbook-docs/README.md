@@ -19,11 +19,11 @@ zkLLVM tool chain adds extensions via:&#x20;
 
 Below we look at flow of how the zkLLVM tool chain is invoked:
 
-1. Users who wish to generate a provable circuit, will write their code in a compatible front end ex: C++. This code will be compiled with the modified version of the `clang` compiler , which will output byte-code representation of the circuit.  For the most performant circuit components  we recommend using crypto3 library , however this is not essential.
-2.  Users who wish to generate a proof for the circuit , will require to run the `assigner` along with the circuit generated above and pass the public inputs & witness (if necessary). This will output two files:
+1. Users who wish to **generate a provable circuit**, will write their code in a compatible front end ex: C++. This code will be compiled with the modified version of the `clang` compiler , which will output byte-code representation of the circuit.  For the most performant circuit components  we recommend using crypto3 library , however this is not essential.
+2.  Users who wish to **generate a proof for the circuit** , will require to run the `assigner` along with the circuit generated above and pass the public inputs & witness (if necessary). This will output two files:
 
     * Constraint : Binary file representing arithmetization of the circuit.
-    * Assignment Table: Binary file pre-processed  public inputs & witness.
+    * Assignment Table: Binary file pre-processed with public inputs & witness.
 
     The constraint and assignment table generated above should be passed as in input to proof generator binary. (TODO add more details). This will output a binary proof file.
-3. Proof verification is not part of the zkLLVM project. This involves a few more steps which requires serialization of the circuit to be setup on chain.
+3. Proof verification is not part of the zkLLVM toolchain. This involves a more steps which requires serialisation of the circuit and deployed on blockchain clusters. (TODO add example)
