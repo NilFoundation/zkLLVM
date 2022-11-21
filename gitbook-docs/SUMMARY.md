@@ -15,3 +15,9 @@
 ## Manual
 
 * [Examples](manual/examples.md)
+
+## Misc
+
+* [Contributing](misc/contributing.md)
+* [Code Of Conduct](misc/code-of-conduct.md)
+* [Contact](misc/contact.md)
