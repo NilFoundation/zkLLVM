@@ -15,7 +15,7 @@ zkLLVM tool chain adds extensions via:&#x20;
 1. `clang` : This compiles the program into intermediate representation byte-code.
 2. `assigner` : This creates the execution trace (assignment table).
 
-### Flow
+### Tool Chain
 
 Below we look at flow of how the zkLLVM tool chain is invoked:
 
