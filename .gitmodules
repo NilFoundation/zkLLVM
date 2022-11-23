@@ -46,14 +46,12 @@
 [submodule "crypto3-zk"]
 	path = libs/crypto3/zk
     url = git@github.com:NilFoundation/crypto3-zk.git
-    branch = 81-blueprint-arch-compatibility
 [submodule "marshalling"]
 	path = libs/crypto3/marshalling/core
 	url = git@github.com:NilFoundation/marshalling.git
 [submodule "crypto3-zk-marshalling"]
 	path = libs/crypto3/marshalling/zk
     url = git@github.com:NilFoundation/crypto3-zk-marshalling.git
-    branch = 27-update-input-types-marshalling
 [submodule "crypto3-algebra-marshalling"]
 	path = libs/crypto3/marshalling/algebra
 	url = git@github.com:NilFoundation/crypto3-algebra-marshalling.git
