@@ -40,11 +40,13 @@
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/params.hpp>
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/preprocessor.hpp>
 
+#include <boost/assert.hpp>
+
 namespace nil {
     namespace crypto3 {
         template<typename FieldType, typename ArithmetizationParams>
         struct minimized_profiling_plonk_circuit {
-            using columns_rotations_type = std::array<std::vector<int>, ArithmetizationParams::TotalColumns>;
+            using columns_rotations_type = std::array<std::vector<int>, ArithmetizationParams::total_columns>;
             using ArithmetizationType = zk::snark::plonk_constraint_system<FieldType, ArithmetizationParams>;
             using TableDescriptionType = zk::snark::plonk_table_description<FieldType, ArithmetizationParams> ;
             using GateType = zk::snark::plonk_gate<FieldType, zk::snark::plonk_constraint<FieldType>>;
@@ -126,7 +128,7 @@ namespace nil {
                     }
                 }
 
-                for (std::size_t i = 0; i < ArithmetizationParams::TotalColumns; i++) {
+                for (std::size_t i = 0; i < ArithmetizationParams::total_columns; i++) {
                     if (std::find(result[i].begin(), result[i].end(), 0) == result[i].end()) {
                         result[i].push_back(0);
                     }
@@ -142,14 +144,48 @@ namespace nil {
 
             static void print_variable(std::ostream &os, const nil::crypto3::zk::snark::plonk_variable<FieldType> &var,
                                        columns_rotations_type &columns_rotations) {
+                using variable_type =const nil::crypto3::zk::snark::plonk_variable<FieldType>;
+
+                //if( var.type == variable_type::witness ) std::cout << "witness variable" << std::endl;
+                //if( var.type == variable_type::public_input ) std::cout << "public_input variable" << std::endl;
+                //if( var.type == variable_type::constant ) std::cout << "constant variable" << std::endl;
+                //if( var.type == variable_type::selector ) std::cout << "selector variable" << std::endl;
+
+                std::size_t index = 0;
+                std::string type;
+                std::size_t global_index;
+                if( var.type == variable_type::witness ){
+                    global_index = var.index;
+                    index = var.index;
+                    type = "WITNESS_EVALUATIONS_OFFSET";
+                }
+                if( var.type == variable_type::public_input ){
+                    global_index = var.index + ArithmetizationParams::witness_columns;
+                    index = var.index + ArithmetizationParams::witness_columns;
+                    type = "WITNESS_EVALUATIONS_OFFSET";
+                }
+                if( var.type == variable_type::constant ){
+                    global_index = var.index + ArithmetizationParams::witness_columns + ArithmetizationParams::public_input_columns;
+                    index = var.index;
+                    type = "CONSTANT_EVALUATIONS_OFFSET";
+                }
+                if( var.type == variable_type::selector ){
+                    global_index = var.index + ArithmetizationParams::witness_columns + ArithmetizationParams::public_input_columns + ArithmetizationParams::constant_columns;
+                    index = var.index;
+                    type = "CONSTANT_EVALUATIONS_OFFSET";
+                }
                 std::size_t rotation_idx =
-                    std::find(std::cbegin(columns_rotations.at(var.index)),
-                              std::cend(columns_rotations.at(var.index)),
+                    std::find(std::cbegin(columns_rotations.at(global_index)),
+                              std::cend(columns_rotations.at(global_index)),
                               var.rotation) -
-                    std::begin(columns_rotations.at(var.index));
-                os << "get_eval_i_by_rotation_idx(" << var.index << "," << rotation_idx
+                    std::begin(columns_rotations.at(global_index));
+
+                //std::cout << "Print variable var.index = " << index << 
+                //    " var.rotation = " << var.rotation <<  
+                //    " rotation_idx = " << rotation_idx << std::endl;
+                os << "get_eval_i_by_rotation_idx(" << index << "," << rotation_idx
                    << ","
-                      "mload(add(gate_params, WITNESS_EVALUATIONS_OFFSET))"
+                      "mload(add(gate_params, "<< type <<"))"
                       ")";
             }
 
@@ -277,10 +313,12 @@ namespace nil {
                                        FieldType, nil::crypto3::zk::snark::plonk_constraint<FieldType>> &gate,
                                    columns_rotations_type &columns_rotations) {
                 os << "mstore(add(gate_params, GATE_EVAL_OFFSET), 0)" << std::endl;
+                std::size_t i = 0;
                 for (auto &constraint : gate.constraints) {
                     print_constraint(os, constraint, columns_rotations);
                     print_gate_evaluation(os);
                     print_theta_acc(os);
+                    i++;
                 }
                 print_selector(os, gate);
                 print_argument_evaluation(os);
@@ -361,11 +399,11 @@ std::endl <<
 
                 out << std::endl <<
 "contract gate_argument_split_gen {" << std::endl <<
-"    uint256 constant WITNESSES_N = " << ArithmetizationParams::WitnessColumns << ";" << std::endl <<
-"    uint256 constant SELECTOR_N = " << ArithmetizationParams::SelectorColumns << ";" << std::endl <<
-"    uint256 constant PUBLIC_INPUT_N =" << ArithmetizationParams::PublicInputColumns<< ";" << std::endl <<
+"    uint256 constant WITNESSES_N = " << ArithmetizationParams::witness_columns << ";" << std::endl <<
+"    uint256 constant SELECTOR_N = " << ArithmetizationParams::selector_columns << ";" << std::endl <<
+"    uint256 constant PUBLIC_INPUT_N =" << ArithmetizationParams::public_input_columns<< ";" << std::endl <<
 "    uint256 constant GATES_N = " << bp.gates().size() << ";" << std::endl <<
-"    uint256 constant CONSTANTS_N = " << ArithmetizationParams::ConstantColumns << ";" << std::endl <<
+"    uint256 constant CONSTANTS_N = " << ArithmetizationParams::constant_columns << ";" << std::endl <<
 std::endl <<
 "    function evaluate_gates_be(" << std::endl <<
 "        bytes calldata blob," << std::endl <<
@@ -446,11 +484,13 @@ std::endl <<
                 print_linked_libraries_list(json_out, bp.gates().size());
                 json_out.close();
 
+                size_t i = 0;
                 for (const auto &gate : bp.gates()) {
                     std::ofstream gate_out;
-                    gate_out.open(out_folder_path + "/gate" + std::to_string(gate.selector_index) + ".sol");
-                    print_gate_file(gate.selector_index, gate_out, gate, columns_rotations);
+                    gate_out.open(out_folder_path + "/gate" + std::to_string(i) + ".sol");
+                    print_gate_file(i, gate_out, gate, columns_rotations);
                     gate_out.close();
+                    i++;
                 }
             }
         };
