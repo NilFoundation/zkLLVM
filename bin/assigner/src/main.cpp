@@ -126,8 +126,6 @@ int main(int argc, char *argv[]) {
     zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams> desc;
     desc.usable_rows_amount = parser_instance.assignmnt.rows_amount();
     desc.rows_amount = zk::snark::basic_padding(parser_instance.assignmnt);
-    std::cout << "Usable rows: " << desc.usable_rows_amount << std::endl;
-    std::cout << "Padded rows: " << desc.rows_amount << std::endl;
 
     std::ofstream otable;
     otable.open(output_folder_name+"/assignment_table.data");
