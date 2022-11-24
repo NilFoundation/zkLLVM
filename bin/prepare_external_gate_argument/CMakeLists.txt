@@ -16,7 +16,7 @@ include(CMSetupVersion)
 cm_project(prepare_external_gate_argument WORKSPACE_NAME ${CMAKE_WORKSPACE_NAME} LANGUAGES ASM C CXX)
 
 if(NOT Boost_FOUND AND NOT CMAKE_CROSSCOMPILING)
-    cm_find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system)
+    find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system)
 elseif(CMAKE_CROSSCOMPILING)
     if(NOT TARGET boost)
         include(ExternalProject)
@@ -94,8 +94,8 @@ if(APPLE OR NOT ${CMAKE_TARGET_ARCHITECTURE} STREQUAL ${CMAKE_HOST_SYSTEM_PROCES
 elseif(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
         set_target_properties(${CURRENT_PROJECT_NAME} PROPERTIES
-                              COMPILE_FLAGS "-s USE_BOOST_HEADERS=1 -s ASYNCIFY=1 -s EXPORTED_FUNCTIONS=_generate_proof,_main,_parse_proof,_parse_pconst -s EXPORTED_RUNTIME_METHODS=ccall,cwrap"
-                              LINK_FLAGS "-s USE_BOOST_HEADERS=1 -s ASYNCIFY=1 -s EXPORTED_FUNCTIONS=_generate_proof,_main,_parse_proof,_parse_pconst -s EXPORTED_RUNTIME_METHODS=ccall,cwrap"
+                              COMPILE_FLAGS "-s USE_BOOST_HEADERS=1 -s EXPORTED_FUNCTIONS=_proof_gen,_main -s EXPORTED_RUNTIME_METHODS=ccall,cwrap"
+                              LINK_FLAGS "-s USE_BOOST_HEADERS=1 -s EXPORTED_FUNCTIONS=_proof_gen,_main -s EXPORTED_RUNTIME_METHODS=ccall,cwrap"
                               LINK_DIRECTORIES "${CMAKE_BINARY_DIR}/libs/boost/src/boost/stage/lib")
     endif()
 
