@@ -1,0 +1,139 @@
+name: Run tests
+
+on:
+  # Triggers the workflow on pull request events but only for the master branch
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  LIB_NAME: "blueprint"
+  CACHE_NAME: "checkout_and_build_job_cache"
+
+jobs:
+  checkout_and_build:
+    runs-on: [self-hosted, tests-runner]
+    steps:
+      - name: Cleanup
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.SUBMODULE_CHECKOUT_SECRET }}
+          submodules: recursive
+
+      - name: Cmake and build
+        env:
+          CMAKE_ARGS: "
+            -DCMAKE_BUILD_TYPE=Debug
+            -DBUILD_SHARED_LIBS=FALSE
+            -DBUILD_TESTS=TRUE
+            "
+        run: |
+          mkdir build
+          cd build
+          cmake ${{ env.CMAKE_ARGS }} ..
+
+      - name: Archive build results
+        run: |
+          touch ${{ env.CACHE_NAME }}.tar.gz
+          tar -czf ${{ env.CACHE_NAME }}.tar.gz --exclude=${{ env.CACHE_NAME }}.tar.gz .
+
+      - name: Cache archived job output
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.CACHE_NAME }}
+          path: ${{ env.CACHE_NAME }}.tar.gz
+          retention-days: 1
+
+
+  run_tests:
+    runs-on: [self-hosted, tests-runner]
+    needs: [checkout_and_build]
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [
+            blueprint_hashes_plonk_sha256_test,
+            blueprint_hashes_plonk_decomposition_test,
+            blueprint_hashes_plonk_sha256_process_test,
+            blueprint_hashes_plonk_sha512_process_test,
+            blueprint_hashes_plonk_poseidon_test,
+            blueprint_non_native_plonk_range_test,
+            blueprint_non_native_plonk_field_add_test,
+            blueprint_non_native_plonk_field_sub_test,
+            blueprint_non_native_plonk_field_mul_test,
+            blueprint_non_native_plonk_fixed_base_mul_test,
+            blueprint_non_native_plonk_complete_addition_test,
+            blueprint_non_native_plonk_var_base_mul_per_bit_test,
+            blueprint_non_native_plonk_variable_base_multiplication_test,
+            blueprint_algebra_fields_plonk_field_operations_test,
+            blueprint_algebra_fields_plonk_sqrt_test,
+            blueprint_algebra_fields_plonk_exponentiation_test,
+            blueprint_algebra_fields_plonk_range_check_test,
+            blueprint_algebra_curves_plonk_variable_base_scalar_mul_test,
+            blueprint_algebra_curves_plonk_unified_addition_test,
+            blueprint_algebra_curves_plonk_endo_scalar_test,
+            blueprint_algebra_curves_plonk_multi_scalar_multiplication_test,
+            blueprint_verifiers_kimchi_base_field_test,
+            blueprint_verifiers_kimchi_prepare_batch_scalar_test,
+            blueprint_verifiers_kimchi_verify_scalar_test,
+            blueprint_verifiers_kimchi_oracles_scalar_test,
+            blueprint_verifiers_kimchi_batch_verify_base_field_test,
+            blueprint_verifiers_kimchi_batch_verify_scalar_field_test,
+            blueprint_verifiers_kimchi_detail_lagrange_denominators_test,
+            blueprint_verifiers_kimchi_detail_b_poly_test,
+            blueprint_verifiers_kimchi_detail_b_poly_coefficients_test,
+            blueprint_verifiers_kimchi_detail_to_group_test,
+            blueprint_verifiers_kimchi_detail_public_evaluations_test,
+            blueprint_verifiers_kimchi_detail_prev_chal_evals_test,
+            blueprint_verifiers_kimchi_detail_ft_eval_test,
+            blueprint_verifiers_kimchi_detail_combine_proof_evals_test,
+            blueprint_verifiers_kimchi_detail__constraints_index_terms_scalars_test,
+            blueprint_verifiers_kimchi_detail_constraints_rpn_expression_test,
+            blueprint_verifiers_kimchi_detail_constraints_vanishes_on_last_4_rows_test,
+            blueprint_verifiers_kimchi_detail_constraints_unnormalized_lagrange_basis_test,
+            blueprint_verifiers_kimchi_detail_constraints_perm_scalars_test,
+            blueprint_verifiers_kimchi_detail_constraints_generic_scalars_test,
+            blueprint_verifiers_kimchi_detail_oracles_cip_test,
+            blueprint_verifiers_kimchi_detail_zk_w3_test,
+            blueprint_verifiers_kimchi_detail_zkpm_evaluate_test,
+            blueprint_verifiers_kimchi_detail_prepare_scalars_test,
+            blueprint_verifiers_kimchi_sponge_compare_test,
+            blueprint_verifiers_kimchi_sponge_transcript_fr_test,
+            blueprint_verifiers_kimchi_sponge_transcript_fq_test,
+            blueprint_verifiers_kimchi_sponge_sponge_test,
+            blueprint_verifiers_kimchi_sponge_oracles_test
+          ]  # Tests to execute
+    steps:
+      - name: Cleanup # TODO - move to scripts on runner
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+
+      - name: Upload checkout_and_build job cache
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.CACHE_NAME }}
+
+      - name: Extract artifacts
+        run: |
+          tar -xf ${{ env.CACHE_NAME }}.tar.gz
+          rm ${{ env.CACHE_NAME }}.tar.gz
+
+      - name: Build
+        working-directory: ./build
+        run: cmake --build . -t ${{ matrix.target }}
+
+      - name: Run test
+        working-directory: ./build
+        run: |
+          cd libs/${{ env.LIB_NAME }}/test
+          COLOR='\033[0;33m'
+          echo -e "${COLOR}${{ matrix.target }}"
+          ./${{ matrix.target }}
