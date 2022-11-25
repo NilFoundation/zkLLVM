@@ -1,0 +1,29 @@
+name: Set version
+
+on:
+  # Triggers the workflow on push to master branch
+  push:
+    branches: [ master ]
+
+jobs:
+  set_version:
+    name: Set and tag version
+    runs-on: [ubuntu-latest]
+    env:
+      VERSION_FILE_NAME: VERSION
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set version
+      id: set_version
+      run: |
+        version=$(cat ${{ env.VERSION_FILE_NAME }} | tr -d '\r').$GITHUB_RUN_NUMBER
+        echo "VERSION=$version" >> $GITHUB_ENV
+    - name: Tag new version
+      run: git tag v${{ env.VERSION }}
+
+    - name: Push tags
+      uses: ad-m/github-push-action@master
+      with:
+        tags: true
