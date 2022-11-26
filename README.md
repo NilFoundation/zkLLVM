@@ -1,4 +1,4 @@
-# zkLLVM
+# zkLLVM [![Set version](https://github.com/NilFoundation/zkllvm/actions/workflows/set_version.yml/badge.svg)](https://github.com/NilFoundation/zkllvm/actions/workflows/set_version.yml)
 
 zkLLVM is a compiler from high-level programming languages into input for provable computations protocols. 
 It can be used to generate input for any arbitrary zero-knowledge proof system or protocol, which accepts 
