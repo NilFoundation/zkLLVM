@@ -1,14 +1,9 @@
+#include <nil/crypto3/algebra/curves/pallas.hpp>
 
 namespace nil{
     namespace crypto3{
-        namespace algebra {
-            struct fields {
-                typedef field_curve25519b curve25519_base_field;
-            };
-        }
-
         namespace hashes {
-            typedef __attribute__((ext_vector_type(2))) typename algebra::fields::curve25519_base_field sha256_block_type;
+            typedef __attribute__((ext_vector_type(2))) typename algebra::curves::pallas::base_field_type::value_type sha256_block_type;
 
             sha256_block_type sha256(sha256_block_type first_input_block, sha256_block_type second_input_block);
         }
