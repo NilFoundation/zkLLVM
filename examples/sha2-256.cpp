@@ -1,0 +1,27 @@
+
+namespace nil{
+    namespace crypto3{
+        namespace algebra {
+            struct fields {
+                typedef field_curve25519b curve25519_base_field;
+            };
+        }
+
+        namespace hashes {
+            typedef __attribute__((ext_vector_type(2))) typename algebra::fields::curve25519_base_field sha256_block_type;
+
+            sha256_block_type sha256(sha256_block_type first_input_block, sha256_block_type second_input_block);
+        }
+    }
+}
+
+using namespace nil::crypto3;
+
+[[circuit]] typename hashes::sha256_block_type sha256_example(
+    hashes::sha256_block_type first_input_block, hashes::sha256_block_type second_input_block) {
+
+    typename hashes::sha256_block_type hash_result = hashes::sha256(first_input_block,
+        second_input_block);
+
+    return hash_result;
+}

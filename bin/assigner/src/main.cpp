@@ -19,6 +19,21 @@
 #include <cstdio>
 #include <fstream>
 
+#ifndef BOOST_FILESYSTEM_NO_DEPRECATED 
+#  define BOOST_FILESYSTEM_NO_DEPRECATED
+#endif
+#ifndef BOOST_SYSTEM_NO_DEPRECATED 
+#  define BOOST_SYSTEM_NO_DEPRECATED
+#endif
+
+#include <boost/random.hpp>
+#include <boost/random/random_device.hpp>
+#include <boost/json/src.hpp>
+#include <boost/circular_buffer.hpp>
+#include <boost/optional.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
@@ -65,28 +80,48 @@ void print_circuit(const ConstraintSystemType &circuit, std::ostream &out = std:
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2 && argc != 4 && argc != 3 && argc != 5) {
-        std::cerr << "Usage: " << argv[0] << "[-i input_file] ir_file output_folder_name" << std::endl;
-        return 1;
+
+    boost::program_options::options_description options_desc("zkLLVM assigner");
+
+    // clang-format off
+    options_desc.add_options()("help,h", "Display help message")
+            ("version,v", "Display version")
+            ("bytecode,b", boost::program_options::value<std::string>(), "Bytecode input file")
+            ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
+            ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
+            ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file");
+    // clang-format on
+
+    boost::program_options::variables_map vm;
+    boost::program_options::store(
+        boost::program_options::command_line_parser(argc, argv).
+          options(options_desc).run(), vm);
+    boost::program_options::notify(vm);
+
+    if (vm.count("help")) {
+        std::cout << options_desc << std::endl;
+        return 0;
     }
-    std::string input_file_name = "input.txt";
-    char *ir_file = argv[1];
-    std::string output_folder_name = ".";
 
-    if (argc == 3) output_folder_name = argv[2];
-    if (argc == 5) output_folder_name = argv[4];
+    std::string bytecode_file_name;
+    std::string public_input_file_name;
+    std::string assignment_table_file_name;
+    std::string circuit_file_name;
 
-    if (argc == 4 || argc == 5) {
-        if (argv[1] == std::string("-i")) {
-            input_file_name = argv[2];
-            ir_file = argv[3];
-        } else if (argv[2] == std::string("-i")) {
-            input_file_name = argv[3];
-            ir_file = argv[1];
-        } else {
-            std::cerr << "Usage: " << argv[0] << "[-i input_file] ir_file" << std::endl;
-            return 1;
-        }
+    if (vm.count("bytecode")) {
+        bytecode_file_name = vm["bytecode"].as<std::string>();
+    }
+
+    if (vm.count("public-input")) {
+        public_input_file_name = vm["public-input"].as<std::string>();
+    }
+
+    if (vm.count("assignment-table")) {
+        assignment_table_file_name = vm["assignment-table"].as<std::string>();
+    }
+
+    if (vm.count("circuit")) {
+        circuit_file_name = vm["circuit"].as<std::string>();
     }
 
     using curve_type = algebra::curves::pallas;
@@ -102,9 +137,9 @@ int main(int argc, char *argv[]) {
 
     std::vector<typename BlueprintFieldType::value_type> public_input;
     long long number;
-    auto fptr = std::fopen(input_file_name.c_str(), "r");
+    auto fptr = std::fopen(public_input_file_name.c_str(), "r");
     if (fptr == NULL) {
-        std::cerr << "Could not open the file - '" << input_file_name << "'" << std::endl;
+        std::cerr << "Could not open the file - '" << public_input_file_name << "'" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -114,7 +149,7 @@ int main(int argc, char *argv[]) {
     }
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
 
-    std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(ir_file);
+    std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
     if (module == nullptr) {
         return 1;
     }
@@ -126,22 +161,20 @@ int main(int argc, char *argv[]) {
     zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams> desc;
     desc.usable_rows_amount = parser_instance.assignmnt.rows_amount();
     desc.rows_amount = zk::snark::basic_padding(parser_instance.assignmnt);
-    std::cout << "Usable rows: " << desc.usable_rows_amount << std::endl;
-    std::cout << "Padded rows: " << desc.rows_amount << std::endl;
 
     std::ofstream otable;
-    otable.open(output_folder_name+"/assignment_table.data");
+    otable.open(assignment_table_file_name);
     if( !otable ){
-        std::cout << "Something wrong with output " << output_folder_name+"/assignment_table.data" << std::endl;
+        std::cout << "Something wrong with output " << assignment_table_file_name << std::endl;
         return 1;
     }
     nil::blueprint::profiling_assignment_table(parser_instance.assignmnt, desc.usable_rows_amount, otable);
     otable.close();
 
     std::ofstream ocircuit;
-    ocircuit.open(output_folder_name+"/circuit.bin");
+    ocircuit.open(circuit_file_name);
     if( !ocircuit ){
-        std::cout << "Something wrong with output " << output_folder_name+"/circuit.bin" << std::endl;
+        std::cout << "Something wrong with output " << circuit_file_name << std::endl;
         return 1;
     }
     print_circuit<nil::marshalling::option::big_endian, ConstraintSystemType>(parser_instance.bp, ocircuit);

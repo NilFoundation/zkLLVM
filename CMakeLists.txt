@@ -61,8 +61,6 @@ if(BUILD_TESTS)
     cm_find_package(Boost COMPONENTS REQUIRED unit_test_framework)
 endif()
 
-cm_find_package(Boost REQUIRED COMPONENTS container random system unit_test_framework)
-
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3"
                    SUBMODULE_DEFINITION_HEADER "cm_project\\(")
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3/marshalling")
