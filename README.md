@@ -1,6 +1,6 @@
 # zkLLVM
 
-zkLLVM is a compiler from high-level programming languages into input for provable computations protocols. 
+zkLLVM is a compiler from high-level programming languages into an input for provable computations protocols. 
 It can be used to generate input for any arbitrary zero-knowledge proof system or protocol, which accepts 
 input data in form of algebraic circuits It assumed to be used together with `Placeholder` proof system or 
 any other arithmetization compatible with `Placeholder`; which is a derivative of PLONK proof system.
