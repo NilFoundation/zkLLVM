@@ -5,7 +5,7 @@ It can be used to generate input for any arbitrary zero-knowledge proof system o
 input data in form of algebraic circuits It assumed to be used together with `Placeholder` proof system or 
 any other arithmetization compatible with `Placeholder` proof system.
 
-**Notice**: zkLLVM is **NOT** a virtual machine and has nothing to do with it. It, moreover, with its existence proves 
+**Notice**: zkLLVM is **NOT** a virtual machine and has nothing to do with it. It, moreover, with its existence proves the absence of necessity in zkVMs, posing them as redundant.
 
 zkLLVM is designed as an extension to LLVM toolchain, thus supports any front end which compiles to LLVM IR. This 
 enables developers to write code in native language instead of DSL's specific to other libraries.
