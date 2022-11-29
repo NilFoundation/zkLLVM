@@ -1,18 +1,18 @@
 # zkLLVM
 
-zkLLVM is a compiler from high-level programming languages into input for provable computations protocols. 
+zkLLVM is a compiler from high-level programming languages into an input for provable computations protocols. 
 It can be used to generate input for any arbitrary zero-knowledge proof system or protocol, which accepts 
 input data in form of algebraic circuits It assumed to be used together with `Placeholder` proof system or 
-any other arithmetization compatible with `Placeholder`; which is a derivative of PLONK proof system.
+any other arithmetization compatible with `Placeholder` proof system.
 
-**Notice**: zkLLVM is **NOT** a virtual machine and has nothing to do with it. It, moreover, with its existence proves 
+**Notice**: zkLLVM is **NOT** a virtual machine and has nothing to do with it. It, moreover, with its existence proves the absence of necessity in zkVMs, posing them as redundant.
 
 zkLLVM is designed as an extension to LLVM toolchain, thus supports any front end which compiles to LLVM IR. This 
 enables developers to write code in native language instead of DSL's specific to other libraries.
 
 zkLLVM extends:
-1. `clang/clang++` : Compiles the program into intermediate representation byte-code from C++.
-2. `assigner` Creates the assignment table.
+1. `clang/clang++` : Compiles the program into general intermediate representation byte-code from C/C++.
+2. `assigner` Creates the circuit execution trace (a.k.a. assignment table) and produces data, needed by prover to produce proof.
 
 Languages currently supported are:
 1. C/C++ (all the standards Clang 15 supports).
