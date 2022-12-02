@@ -19,11 +19,11 @@
 #include <cstdio>
 #include <fstream>
 
-#ifndef BOOST_FILESYSTEM_NO_DEPRECATED 
-#  define BOOST_FILESYSTEM_NO_DEPRECATED
+#ifndef BOOST_FILESYSTEM_NO_DEPRECATED
+#define BOOST_FILESYSTEM_NO_DEPRECATED
 #endif
-#ifndef BOOST_SYSTEM_NO_DEPRECATED 
-#  define BOOST_SYSTEM_NO_DEPRECATED
+#ifndef BOOST_SYSTEM_NO_DEPRECATED
+#define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
 #include <boost/random.hpp>
@@ -35,6 +35,9 @@
 #include <boost/program_options.hpp>
 
 #include <nil/crypto3/algebra/curves/pallas.hpp>
+#include <nil/crypto3/algebra/fields/arithmetic_params/pallas.hpp>
+#include <nil/crypto3/algebra/curves/ed25519.hpp>
+#include <nil/crypto3/algebra/fields/arithmetic_params/ed25519.hpp>
 
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
@@ -93,9 +96,8 @@ int main(int argc, char *argv[]) {
     // clang-format on
 
     boost::program_options::variables_map vm;
-    boost::program_options::store(
-        boost::program_options::command_line_parser(argc, argv).
-          options(options_desc).run(), vm);
+    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(),
+                                  vm);
     boost::program_options::notify(vm);
 
     if (vm.count("help")) {
@@ -129,10 +131,9 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 5;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 20;
 
     using ArithmetizationParams =
-        zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
+        zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns>;
     using ConstraintSystemType = zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
 
     std::vector<typename BlueprintFieldType::value_type> public_input;
@@ -161,10 +162,11 @@ int main(int argc, char *argv[]) {
     zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams> desc;
     desc.usable_rows_amount = parser_instance.assignmnt.rows_amount();
     desc.rows_amount = zk::snark::basic_padding(parser_instance.assignmnt);
+    desc.selector_columns = parser_instance.assignmnt.selectors_amount();
 
     std::ofstream otable;
     otable.open(assignment_table_file_name);
-    if( !otable ){
+    if (!otable) {
         std::cout << "Something wrong with output " << assignment_table_file_name << std::endl;
         return 1;
     }
@@ -173,7 +175,7 @@ int main(int argc, char *argv[]) {
 
     std::ofstream ocircuit;
     ocircuit.open(circuit_file_name);
-    if( !ocircuit ){
+    if (!ocircuit) {
         std::cout << "Something wrong with output " << circuit_file_name << std::endl;
         return 1;
     }
