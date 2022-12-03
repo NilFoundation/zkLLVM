@@ -47,19 +47,13 @@ cd zkllvm
 #### **2. cmake configuration**
 
 ```bash
-cmake -GNinja -B ${ASSIGNER_BUILD:-build} -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS=clang .
+cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=clang .
 ```
 
-**3. Build clang**&#x20;
+**3. Build compiler**&#x20;
 
 ```bash
-ninja -C ${ASSIGNER_BUILD:-build} assigner -j$(nproc)
-```
-
-**4. Build assigner**
-
-```
-ninja -C ${ASSIGNER_BUILD:-build} assigner -j$(nproc)
+make -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)
 ```
 
 ## Usage
@@ -86,6 +80,6 @@ zkLLVM's workflow is as follows:
 ### Examples
 
 ```bash
-${ASSIGNER_BUILD:-build}/libs/circifier/llvm/bin/clang samples/sha512.cpp -emit-llvm -c -O1 -o samples/sha512.bc
-${ASSIGNER_BUILD:-build}/bin/assigner samples/sha512.bc -i samples/sha512.inp
+make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(nproc)
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ./build/examples/arithmetics_example.ll -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct
 ```
