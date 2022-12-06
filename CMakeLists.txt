@@ -21,7 +21,7 @@ include(CMConfig)
 include(CMSetupVersion)
 include(CircuitCompile)
 
-cm_workspace(crypto3)
+cm_workspace(zkllvm)
 
 macro(cm_find_package NAME)
     if(NOT "${NAME}" MATCHES "^${CMAKE_WORKSPACE_NAME}_.*$" AND NOT "${NAME}" STREQUAL CM)
@@ -61,12 +61,13 @@ if(BUILD_TESTS)
     cm_find_package(Boost COMPONENTS REQUIRED unit_test_framework)
 endif()
 
-add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3"
-                   SUBMODULE_DEFINITION_HEADER "cm_project\\(")
+add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3")
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3/marshalling")
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/blueprint")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/assigner")
+
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
+
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 add_subdirectory(examples)
