@@ -48,15 +48,11 @@ namespace nil {
         struct minimized_profiling_plonk_circuit {
             using columns_rotations_type = std::array<std::vector<int>, ArithmetizationParams::total_columns>;
             using ArithmetizationType = zk::snark::plonk_constraint_system<FieldType, ArithmetizationParams>;
-            using TableDescriptionType = zk::snark::plonk_table_description<FieldType, ArithmetizationParams> ;
+            using TableDescriptionType = zk::snark::plonk_table_description<FieldType, ArithmetizationParams>;
             using GateType = zk::snark::plonk_gate<FieldType, zk::snark::plonk_constraint<FieldType>>;
 
-            static inline columns_rotations_type
-                columns_rotations(
-                    ArithmetizationType &constraint_system,
-                    const TableDescriptionType &table_description
-                ) 
-            {
+            static inline columns_rotations_type columns_rotations(ArithmetizationType &constraint_system,
+                                                                   const TableDescriptionType &table_description) {
                 columns_rotations_type result;
 
                 std::vector<zk::snark::plonk_gate<FieldType, zk::snark::plonk_constraint<FieldType>>> gates =
@@ -66,25 +62,21 @@ namespace nil {
 
                     for (std::size_t c_index = 0; c_index < gates[g_index].constraints.size(); c_index++) {
 
-                        for (std::size_t t_index = 0;
-                                t_index < gates[g_index].constraints[c_index].terms.size();
-                                t_index++) {
+                        for (std::size_t t_index = 0; t_index < gates[g_index].constraints[c_index].terms.size();
+                             t_index++) {
                             for (std::size_t v_index = 0;
-                                    v_index < gates[g_index].constraints[c_index].terms[t_index].vars.size();
-                                    v_index++) {
+                                 v_index < gates[g_index].constraints[c_index].terms[t_index].vars.size();
+                                 v_index++) {
 
                                 if (gates[g_index].constraints[c_index].terms[t_index].vars[v_index].relative) {
                                     std::size_t column_index = table_description.global_index(
                                         gates[g_index].constraints[c_index].terms[t_index].vars[v_index]);
 
-                                    int rotation = gates[g_index]
-                                                        .constraints[c_index]
-                                                        .terms[t_index]
-                                                        .vars[v_index]
-                                                        .rotation;
+                                    int rotation =
+                                        gates[g_index].constraints[c_index].terms[t_index].vars[v_index].rotation;
 
-                                    if (std::find(result[column_index].begin(), result[column_index].end(),
-                                                    rotation) == result[column_index].end()) {
+                                    if (std::find(result[column_index].begin(), result[column_index].end(), rotation) ==
+                                        result[column_index].end()) {
                                         result[column_index].push_back(rotation);
                                     }
                                 }
@@ -93,34 +85,26 @@ namespace nil {
                     }
                 }
 
-                std::vector<zk::snark::plonk_gate<FieldType, zk::snark::plonk_lookup_constraint<FieldType>>> lookup_gates =
-                    constraint_system.lookup_gates();
+                std::vector<zk::snark::plonk_gate<FieldType, zk::snark::plonk_lookup_constraint<FieldType>>>
+                    lookup_gates = constraint_system.lookup_gates();
 
                 for (std::size_t g_index = 0; g_index < lookup_gates.size(); g_index++) {
 
-                    for (std::size_t c_index = 0; c_index < lookup_gates[g_index].constraints.size();
-                            c_index++) {
+                    for (std::size_t c_index = 0; c_index < lookup_gates[g_index].constraints.size(); c_index++) {
 
                         for (std::size_t v_index = 0;
-                                v_index < lookup_gates[g_index].constraints[c_index].lookup_input.size();
-                                v_index++) {
+                             v_index < lookup_gates[g_index].constraints[c_index].lookup_input.size();
+                             v_index++) {
 
-                            if (lookup_gates[g_index]
-                                    .constraints[c_index]
-                                    .lookup_input[v_index]
-                                    .vars[0]
-                                    .relative) {
+                            if (lookup_gates[g_index].constraints[c_index].lookup_input[v_index].vars[0].relative) {
                                 std::size_t column_index = table_description.global_index(
                                     lookup_gates[g_index].constraints[c_index].lookup_input[v_index].vars[0]);
 
-                                int rotation = lookup_gates[g_index]
-                                                    .constraints[c_index]
-                                                    .lookup_input[v_index]
-                                                    .vars[0]
-                                                    .rotation;
+                                int rotation =
+                                    lookup_gates[g_index].constraints[c_index].lookup_input[v_index].vars[0].rotation;
 
-                                if (std::find(result[column_index].begin(), result[column_index].end(),
-                                                rotation) == result[column_index].end()) {
+                                if (std::find(result[column_index].begin(), result[column_index].end(), rotation) ==
+                                    result[column_index].end()) {
                                     result[column_index].push_back(rotation);
                                 }
                             }
@@ -144,48 +128,52 @@ namespace nil {
 
             static void print_variable(std::ostream &os, const nil::crypto3::zk::snark::plonk_variable<FieldType> &var,
                                        columns_rotations_type &columns_rotations) {
-                using variable_type =const nil::crypto3::zk::snark::plonk_variable<FieldType>;
+                using variable_type = const nil::crypto3::zk::snark::plonk_variable<FieldType>;
 
-                //if( var.type == variable_type::witness ) std::cout << "witness variable" << std::endl;
-                //if( var.type == variable_type::public_input ) std::cout << "public_input variable" << std::endl;
-                //if( var.type == variable_type::constant ) std::cout << "constant variable" << std::endl;
-                //if( var.type == variable_type::selector ) std::cout << "selector variable" << std::endl;
+                // if( var.type == variable_type::witness ) std::cout << "witness variable" << std::endl;
+                // if( var.type == variable_type::public_input ) std::cout << "public_input variable" << std::endl;
+                // if( var.type == variable_type::constant ) std::cout << "constant variable" << std::endl;
+                // if( var.type == variable_type::selector ) std::cout << "selector variable" << std::endl;
 
                 std::size_t index = 0;
                 std::string type;
                 std::size_t global_index;
-                if( var.type == variable_type::witness ){
+                if (var.type == variable_type::witness) {
                     global_index = var.index;
                     index = var.index;
                     type = "WITNESS_EVALUATIONS_OFFSET";
                 }
-                if( var.type == variable_type::public_input ){
+                if (var.type == variable_type::public_input) {
                     global_index = var.index + ArithmetizationParams::witness_columns;
                     index = var.index + ArithmetizationParams::witness_columns;
                     type = "WITNESS_EVALUATIONS_OFFSET";
                 }
-                if( var.type == variable_type::constant ){
-                    global_index = var.index + ArithmetizationParams::witness_columns + ArithmetizationParams::public_input_columns;
+                if (var.type == variable_type::constant) {
+                    global_index = var.index + ArithmetizationParams::witness_columns +
+                                   ArithmetizationParams::public_input_columns;
                     index = var.index;
                     type = "CONSTANT_EVALUATIONS_OFFSET";
                 }
-                if( var.type == variable_type::selector ){
-                    global_index = var.index + ArithmetizationParams::witness_columns + ArithmetizationParams::public_input_columns + ArithmetizationParams::constant_columns;
+                if (var.type == variable_type::selector) {
+                    global_index = var.index + ArithmetizationParams::witness_columns +
+                                   ArithmetizationParams::public_input_columns +
+                                   ArithmetizationParams::constant_columns;
                     index = var.index;
                     type = "CONSTANT_EVALUATIONS_OFFSET";
                 }
-                std::size_t rotation_idx =
-                    std::find(std::cbegin(columns_rotations.at(global_index)),
-                              std::cend(columns_rotations.at(global_index)),
-                              var.rotation) -
-                    std::begin(columns_rotations.at(global_index));
+                std::size_t rotation_idx = std::find(std::cbegin(columns_rotations.at(global_index)),
+                                                     std::cend(columns_rotations.at(global_index)),
+                                                     var.rotation) -
+                                           std::begin(columns_rotations.at(global_index));
 
-                //std::cout << "Print variable var.index = " << index << 
-                //    " var.rotation = " << var.rotation <<  
-                //    " rotation_idx = " << rotation_idx << std::endl;
+                // std::cout << "Print variable var.index = " << index <<
+                //     " var.rotation = " << var.rotation <<
+                //     " rotation_idx = " << rotation_idx << std::endl;
                 os << "get_eval_i_by_rotation_idx(" << index << "," << rotation_idx
                    << ","
-                      "mload(add(gate_params, "<< type <<"))"
+                      "mload(add(gate_params, "
+                   << type
+                   << "))"
                       ")";
             }
 
@@ -193,10 +181,7 @@ namespace nil {
             static typename std::enable_if<
                 std::is_same<nil::crypto3::zk::snark::plonk_variable<FieldType>,
                              typename std::iterator_traits<typename Vars::iterator>::value_type>::value>::type
-                print_term(std::ostream &os,
-                           const Vars &vars,
-                           VarsIt it,
-                           columns_rotations_type &columns_rotations) {
+                print_term(std::ostream &os, const Vars &vars, VarsIt it, columns_rotations_type &columns_rotations) {
                 if (it != std::cend(vars)) {
                     if (!is_last_element(vars, it)) {
                         os << "mulmod(";
@@ -324,156 +309,174 @@ namespace nil {
                 print_argument_evaluation(os);
             }
 
-            static void process(std::ostream &os, ArithmetizationType &bp,
-                                columns_rotations_type &columns_rotations) {
+            static void process(std::ostream &os, ArithmetizationType &bp, columns_rotations_type &columns_rotations) {
                 for (const auto &gate : bp.gates()) {
                     print_gate(os, gate, columns_rotations);
                 }
             }
 
-            static void print_gate_file(int gate_ind, std::ostream &gate_out, const GateType &gate, columns_rotations_type &columns_rotations){
-                gate_out << 
-"pragma solidity >=0.8.4;" << std::endl <<
-std::endl <<
-"import \"../contracts/types.sol\";" << std::endl<<
-"import \"../contracts/logging.sol\";"<< std::endl <<
-"import \"../contracts/basic_marshalling.sol\";"<< std::endl <<
+            static void print_gate_file(int gate_ind, std::ostream &gate_out, const GateType &gate,
+                                        columns_rotations_type &columns_rotations) {
+                gate_out << "pragma solidity >=0.8.4;" << std::endl
+                         << std::endl
+                         << "import \"../contracts/types.sol\";" << std::endl
+                         << "import \"../contracts/logging.sol\";" << std::endl
+                         << "import \"../contracts/basic_marshalling.sol\";" << std::endl
+                         <<
 
-"library gate"<< gate_ind << " {"<< std::endl <<
-"    uint256 constant MODULUS_OFFSET = 0x0;"<< std::endl <<
-"    uint256 constant THETA_OFFSET = 0x20;"<< std::endl <<
-"    uint256 constant CONSTRAINT_EVAL_OFFSET = 0x40;"<< std::endl <<
-"    uint256 constant GATE_EVAL_OFFSET = 0x60;"<< std::endl <<
-"    uint256 constant WITNESS_EVALUATIONS_OFFSET_OFFSET = 0x80;"<< std::endl <<
-"    uint256 constant SELECTOR_EVALUATIONS_OFFSET = 0xa0;"<< std::endl <<
-"    uint256 constant EVAL_PROOF_WITNESS_OFFSET_OFFSET = 0xc0;"<< std::endl <<
-"    uint256 constant EVAL_PROOF_SELECTOR_OFFSET_OFFSET = 0xe0;"<< std::endl <<
-"    uint256 constant GATES_EVALUATION_OFFSET = 0x100;"<< std::endl <<
-"    uint256 constant THETA_ACC_OFFSET = 0x120;"<< std::endl <<
-"    uint256 constant SELECTOR_EVALUATIONS_OFFSET_OFFSET = 0x140;"<< std::endl <<
-"    uint256 constant OFFSET_OFFSET = 0x160;"<< std::endl <<
-"    uint256 constant WITNESS_EVALUATIONS_OFFSET = 0x180;"<< std::endl <<
-"    uint256 constant CONSTANT_EVALUATIONS_OFFSET = 0x1a0;"<< std::endl <<
-"    uint256 constant PUBLIC_INPUT_EVALUATIONS_OFFSET = 0x1c0;"<< std::endl <<
-std::endl <<
-std::endl <<
-"    function evaluate_gate_be("<< std::endl <<
-"        types.gate_argument_local_vars memory gate_params,"<< std::endl <<
-"        int256[][] memory columns_rotations"<< std::endl <<
-"    ) external pure returns (uint256 gates_evaluation, uint256 theta_acc) {"<< std::endl <<
-"        gates_evaluation = gate_params.gates_evaluation;"<< std::endl <<
-"        theta_acc = gate_params.theta_acc;"<< std::endl <<
-std::endl <<
-"    assembly {"<< std::endl <<
-"            let modulus := mload(gate_params)"<< std::endl <<
-"            mstore(add(gate_params, GATE_EVAL_OFFSET), 0)"<< std::endl <<
-std::endl <<
-"            function get_eval_i_by_rotation_idx(idx, rot_idx, ptr) -> result {"<< std::endl <<
-"                result := mload(add(add(mload(add(add(ptr, 0x20), mul(0x20, idx))), 0x20),"<< std::endl <<
-"                          mul(0x20, rot_idx)))"<< std::endl <<
-"            }"<< std::endl <<
-std::endl <<
-"            function get_selector_i(idx, ptr) -> result {"<< std::endl <<
-"                result := mload(add(add(ptr, 0x20), mul(0x20, idx)))"<< std::endl <<
-"            }" << std::endl;
-            // TODO: insert generated code for gate argument evaluation here
+                    "library gate" << gate_ind << " {" << std::endl
+                         << "    uint256 constant MODULUS_OFFSET = 0x0;" << std::endl
+                         << "    uint256 constant THETA_OFFSET = 0x20;" << std::endl
+                         << "    uint256 constant CONSTRAINT_EVAL_OFFSET = 0x40;" << std::endl
+                         << "    uint256 constant GATE_EVAL_OFFSET = 0x60;" << std::endl
+                         << "    uint256 constant WITNESS_EVALUATIONS_OFFSET_OFFSET = 0x80;" << std::endl
+                         << "    uint256 constant SELECTOR_EVALUATIONS_OFFSET = 0xa0;" << std::endl
+                         << "    uint256 constant EVAL_PROOF_WITNESS_OFFSET_OFFSET = 0xc0;" << std::endl
+                         << "    uint256 constant EVAL_PROOF_SELECTOR_OFFSET_OFFSET = 0xe0;" << std::endl
+                         << "    uint256 constant GATES_EVALUATION_OFFSET = 0x100;" << std::endl
+                         << "    uint256 constant THETA_ACC_OFFSET = 0x120;" << std::endl
+                         << "    uint256 constant SELECTOR_EVALUATIONS_OFFSET_OFFSET = 0x140;" << std::endl
+                         << "    uint256 constant OFFSET_OFFSET = 0x160;" << std::endl
+                         << "    uint256 constant WITNESS_EVALUATIONS_OFFSET = 0x180;" << std::endl
+                         << "    uint256 constant CONSTANT_EVALUATIONS_OFFSET = 0x1a0;" << std::endl
+                         << "    uint256 constant PUBLIC_INPUT_EVALUATIONS_OFFSET = 0x1c0;" << std::endl
+                         << std::endl
+                         << std::endl
+                         << "    function evaluate_gate_be(" << std::endl
+                         << "        types.gate_argument_local_vars memory gate_params," << std::endl
+                         << "        int256[][] memory columns_rotations" << std::endl
+                         << "    ) external pure returns (uint256 gates_evaluation, uint256 theta_acc) {" << std::endl
+                         << "        gates_evaluation = gate_params.gates_evaluation;" << std::endl
+                         << "        theta_acc = gate_params.theta_acc;" << std::endl
+                         << std::endl
+                         << "    assembly {" << std::endl
+                         << "            let modulus := mload(gate_params)" << std::endl
+                         << "            mstore(add(gate_params, GATE_EVAL_OFFSET), 0)" << std::endl
+                         << std::endl
+                         << "            function get_eval_i_by_rotation_idx(idx, rot_idx, ptr) -> result {"
+                         << std::endl
+                         << "                result := mload(add(add(mload(add(add(ptr, 0x20), mul(0x20, idx))), 0x20),"
+                         << std::endl
+                         << "                          mul(0x20, rot_idx)))" << std::endl
+                         << "            }" << std::endl
+                         << std::endl
+                         << "            function get_selector_i(idx, ptr) -> result {" << std::endl
+                         << "                result := mload(add(add(ptr, 0x20), mul(0x20, idx)))" << std::endl
+                         << "            }" << std::endl;
+                // TODO: insert generated code for gate argument evaluation here
 
                 print_gate(gate_out, gate, columns_rotations);
-                gate_out << "}}}"<< std::endl;
+                gate_out << "}}}" << std::endl;
             }
 
-            static void print_main_file(std::ostream &out, 
-                ArithmetizationType &bp,
-                columns_rotations_type &columns_rotations) 
-            {
-                out <<
-"pragma solidity >=0.8.4;" << std::endl << 
-std::endl <<
-"import \"../contracts/types.sol\";" << std::endl <<
-"import \"../contracts/basic_marshalling.sol\";" << std::endl <<
-"import \"../contracts/commitments/batched_lpc_verifier.sol\";" << std:: endl;
+            static void print_main_file(std::ostream &out, ArithmetizationType &bp,
+                                        columns_rotations_type &columns_rotations) {
+                out << "pragma solidity >=0.8.4;" << std::endl
+                    << std::endl
+                    << "import \"../contracts/types.sol\";" << std::endl
+                    << "import \"../contracts/basic_marshalling.sol\";" << std::endl
+                    << "import \"../contracts/commitments/batched_lpc_verifier.sol\";" << std::endl;
                 // ind???
                 for (std::size_t ind = 0; ind < bp.gates().size(); ind++) {
-                    out << "import \"./gate"<< ind <<".sol\";"<<std::endl;  
-                }              
+                    out << "import \"./gate" << ind << ".sol\";" << std::endl;
+                }
 
-                out << std::endl <<
-"contract gate_argument_split_gen {" << std::endl <<
-"    uint256 constant WITNESSES_N = " << ArithmetizationParams::witness_columns << ";" << std::endl <<
-"    uint256 constant SELECTOR_N = " << ArithmetizationParams::selector_columns << ";" << std::endl <<
-"    uint256 constant PUBLIC_INPUT_N =" << ArithmetizationParams::public_input_columns<< ";" << std::endl <<
-"    uint256 constant GATES_N = " << bp.gates().size() << ";" << std::endl <<
-"    uint256 constant CONSTANTS_N = " << ArithmetizationParams::constant_columns << ";" << std::endl <<
-std::endl <<
-"    function evaluate_gates_be(" << std::endl <<
-"        bytes calldata blob," << std::endl <<
-"        types.gate_argument_local_vars memory gate_params," << std::endl <<
-"        types.arithmetization_params memory ar_params," << std::endl <<
-"        int256[][] memory columns_rotations" << std::endl <<
-"    ) external view returns (uint256 gates_evaluation) {" << std::endl <<
-std::endl <<
-"        gate_params.witness_evaluations = new uint256[][](WITNESSES_N);" << std::endl <<
-"        gate_params.offset = batched_lpc_verifier.skip_to_z(blob,  gate_params.eval_proof_witness_offset);" << std::endl <<
-"        for (uint256 i = 0; i < WITNESSES_N; i++) {" << std::endl <<
-"            gate_params.witness_evaluations[i] = new uint256[](columns_rotations[i].length);" << std::endl <<
-"            for (uint256 j = 0; j < columns_rotations[i].length; j++) {" << std::endl <<
-"                gate_params.witness_evaluations[i][j] = basic_marshalling.get_i_j_uint256_from_vector_of_vectors(blob, gate_params.offset, i, j);" << std::endl <<
-"            }" << std::endl <<
-"        }" << std::endl <<
-std::endl <<
-"        gate_params.selector_evaluations = new uint256[](GATES_N);" << std::endl <<
-"        gate_params.offset = batched_lpc_verifier.skip_to_z(blob,  gate_params.eval_proof_selector_offset);" << std::endl <<
-"        for (uint256 i = 0; i < GATES_N; i++) {" << std::endl <<
-"           gate_params.selector_evaluations[i] = basic_marshalling.get_i_j_uint256_from_vector_of_vectors(" << std::endl <<
-"                blob, " << std::endl <<
-"                gate_params.offset, " << std::endl <<
-"                i + ar_params.permutation_columns + ar_params.permutation_columns + ar_params.constant_columns, " << std::endl <<
-"                0" << std::endl <<
-"            );" << std::endl <<
-"        }" << std::endl <<
-std::endl <<
-"        gate_params.constant_evaluations = new uint256[][](CONSTANTS_N);" << std::endl <<
-"        gate_params.offset = batched_lpc_verifier.skip_to_z(blob,  gate_params.eval_proof_constant_offset);" << std::endl <<
-"        for (uint256 i = 0; i < CONSTANTS_N; i++) {" << std::endl <<
-"            gate_params.constant_evaluations[i] = new uint256[](columns_rotations[i].length);" << std::endl <<
-"            for (uint256 j = 0; j < columns_rotations[i].length; j++) {" << std::endl <<
-"                gate_params.constant_evaluations[i][j] = basic_marshalling.get_i_j_uint256_from_vector_of_vectors(" << std::endl <<
-"                    blob, " << std::endl <<
-"                    gate_params.offset, " << std::endl <<
-"                    i + ar_params.permutation_columns + ar_params.permutation_columns, " << std::endl <<
-"                    j" << std::endl <<
-"                );" << std::endl <<
-"            }" << std::endl <<
-"        }" << std::endl <<
-std::endl <<
-"        gate_params.theta_acc = 1;" << std::endl <<
-"        gate_params.gates_evaluation = 0;" << std::endl;
+                out << std::endl
+                    << "contract gate_argument_split_gen {" << std::endl
+                    << "    uint256 constant WITNESSES_N = " << ArithmetizationParams::witness_columns << ";"
+                    << std::endl
+                    << "    uint256 constant SELECTOR_N = " << ArithmetizationParams::selector_columns << ";"
+                    << std::endl
+                    << "    uint256 constant PUBLIC_INPUT_N =" << ArithmetizationParams::public_input_columns << ";"
+                    << std::endl
+                    << "    uint256 constant GATES_N = " << bp.gates().size() << ";" << std::endl
+                    << "    uint256 constant CONSTANTS_N = " << ArithmetizationParams::constant_columns << ";"
+                    << std::endl
+                    << std::endl
+                    << "    function evaluate_gates_be(" << std::endl
+                    << "        bytes calldata blob," << std::endl
+                    << "        types.gate_argument_local_vars memory gate_params," << std::endl
+                    << "        types.arithmetization_params memory ar_params," << std::endl
+                    << "        int256[][] memory columns_rotations" << std::endl
+                    << "    ) external view returns (uint256 gates_evaluation) {" << std::endl
+                    << std::endl
+                    << "        gate_params.witness_evaluations = new uint256[][](WITNESSES_N);" << std::endl
+                    << "        gate_params.offset = batched_lpc_verifier.skip_to_z(blob,  "
+                       "gate_params.eval_proof_witness_offset);"
+                    << std::endl
+                    << "        for (uint256 i = 0; i < WITNESSES_N; i++) {" << std::endl
+                    << "            gate_params.witness_evaluations[i] = new uint256[](columns_rotations[i].length);"
+                    << std::endl
+                    << "            for (uint256 j = 0; j < columns_rotations[i].length; j++) {" << std::endl
+                    << "                gate_params.witness_evaluations[i][j] = "
+                       "basic_marshalling.get_i_j_uint256_from_vector_of_vectors(blob, gate_params.offset, i, j);"
+                    << std::endl
+                    << "            }" << std::endl
+                    << "        }" << std::endl
+                    << std::endl
+                    << "        gate_params.selector_evaluations = new uint256[](GATES_N);" << std::endl
+                    << "        gate_params.offset = batched_lpc_verifier.skip_to_z(blob,  "
+                       "gate_params.eval_proof_selector_offset);"
+                    << std::endl
+                    << "        for (uint256 i = 0; i < GATES_N; i++) {" << std::endl
+                    << "           gate_params.selector_evaluations[i] = "
+                       "basic_marshalling.get_i_j_uint256_from_vector_of_vectors("
+                    << std::endl
+                    << "                blob, " << std::endl
+                    << "                gate_params.offset, " << std::endl
+                    << "                i + ar_params.permutation_columns + ar_params.permutation_columns + "
+                       "ar_params.constant_columns, "
+                    << std::endl
+                    << "                0" << std::endl
+                    << "            );" << std::endl
+                    << "        }" << std::endl
+                    << std::endl
+                    << "        gate_params.constant_evaluations = new uint256[][](CONSTANTS_N);" << std::endl
+                    << "        gate_params.offset = batched_lpc_verifier.skip_to_z(blob,  "
+                       "gate_params.eval_proof_constant_offset);"
+                    << std::endl
+                    << "        for (uint256 i = 0; i < CONSTANTS_N; i++) {" << std::endl
+                    << "            gate_params.constant_evaluations[i] = new uint256[](columns_rotations[i].length);"
+                    << std::endl
+                    << "            for (uint256 j = 0; j < columns_rotations[i].length; j++) {" << std::endl
+                    << "                gate_params.constant_evaluations[i][j] = "
+                       "basic_marshalling.get_i_j_uint256_from_vector_of_vectors("
+                    << std::endl
+                    << "                    blob, " << std::endl
+                    << "                    gate_params.offset, " << std::endl
+                    << "                    i + ar_params.permutation_columns + ar_params.permutation_columns, "
+                    << std::endl
+                    << "                    j" << std::endl
+                    << "                );" << std::endl
+                    << "            }" << std::endl
+                    << "        }" << std::endl
+                    << std::endl
+                    << "        gate_params.theta_acc = 1;" << std::endl
+                    << "        gate_params.gates_evaluation = 0;" << std::endl;
 
                 for (std::size_t ind = 0; ind < bp.gates().size(); ind++) {
-                    out << 
-"        (gate_params.gates_evaluation, gate_params.theta_acc) = gate" << ind <<  ".evaluate_gate_be(gate_params, columns_rotations);" << std::endl;
+                    out << "        (gate_params.gates_evaluation, gate_params.theta_acc) = gate" << ind
+                        << ".evaluate_gate_be(gate_params, columns_rotations);" << std::endl;
                 }
-                out <<
-"        gates_evaluation = gate_params.gates_evaluation;}}" << std::endl;
+                out << "        gates_evaluation = gate_params.gates_evaluation;}}" << std::endl;
             }
 
-            static void print_linked_libraries_list(std::ostream &out, std::size_t lib_num){
+            static void print_linked_libraries_list(std::ostream &out, std::size_t lib_num) {
                 bool first = true;
                 out << "[";
-                for( size_t i = 0; i < lib_num; i++){
-                    if( first ) 
+                for (size_t i = 0; i < lib_num; i++) {
+                    if (first)
                         first = false;
                     else
                         out << "," << std::endl;
-                    out << "\"gate" <<i << "\""; 
+                    out << "\"gate" << i << "\"";
                 }
                 out << std::endl << "]" << std::endl;
             }
 
             static void process_split(ArithmetizationType &bp,
-                columns_rotations_type &columns_rotations, 
-                std::string out_folder_path = ".") 
-            {
+                                      columns_rotations_type &columns_rotations,
+                                      std::string out_folder_path = ".") {
                 std::ofstream gate_argument_out;
                 gate_argument_out.open(out_folder_path + "/gate_argument.sol");
                 print_main_file(gate_argument_out, bp, columns_rotations);
