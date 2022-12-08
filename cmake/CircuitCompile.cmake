@@ -69,9 +69,9 @@ function(add_circuit name)
     add_custom_command(OUTPUT ${binary_name}
 
                        COMMAND $<TARGET_FILE:clang> -DZKLLVM_INLINES_ENABLED ${INCLUDE_DIRS_LIST} -emit-llvm -S -O1
-                       -o ${binary_name} ${ARG_SOURCE}
+                       -std=c++20 -o ${binary_name} ${ARG_SOURCE}
 
-                       DEPENDS ${ARG_SOURCE}
+                       DEPENDS ${ARG_SOURCE} $<TARGET_FILE:clang>
                        COMMENT "Compiling ${name} circuit"
                        COMMAND_EXPAND_LISTS
                        VERBATIM)
