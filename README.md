@@ -35,22 +35,22 @@ On \*nix systems, the following dependencies need to be present & can be install
  sudo apt install build-essential libssl-dev libboost-all-dev cmake clang git
 ```
 
-#### 1. Clone repository
+#### 1. Clone the repository
 
-Clone the repository and all sub-modules
+Clone the repository and all the submodules via:
 
 ```
 git clone --recurse-submodules git@github.com:NilFoundation/zkllvm.git
 cd zkllvm
 ```
 
-#### **2. cmake configuration**
+#### **2. Configure CMake**
 
 ```bash
 cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=clang .
 ```
 
-**3. Build compiler**&#x20;
+**3. Build the compiler**
 
 ```bash
 make -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)
@@ -64,7 +64,7 @@ zkLLVM's workflow is as follows:
    > For the most performant cryptography circuits (e.g. hashes, signatures, VDFs, proof system verifications, etc.) 
    > we recommend using [=nil; Foundation's Crypto3 library](https://github.com/nilfoundation/crypto3.git).
 
-2. zkLLVM is tightly coupled with [=nil; Foundation's Proof Market](https://proof.market) so users willing to generate a 
+2. zkLLVM is tightly coupled with [=nil; Foundation's Proof Market](https://proof.market.nil.foundation) so users willing to generate a 
    proof for the circuit, will be required to put an order for a proof so proof generators could pick it up and 
    generate proofs necessary. To submit an order it is required to: 
 
