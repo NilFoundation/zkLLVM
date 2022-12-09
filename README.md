@@ -35,7 +35,7 @@ On \*nix systems, the following dependencies need to be present & can be install
  sudo apt install build-essential libssl-dev libboost-all-dev cmake clang git
 ```
 
-#### 1. Clone repository
+#### 1. Clone the repository
 
 Clone the repository and all sub-modules
 
@@ -44,13 +44,13 @@ git clone --recurse-submodules git@github.com:NilFoundation/zkllvm.git
 cd zkllvm
 ```
 
-#### **2. cmake configuration**
+#### **2. Configure CMake**
 
 ```bash
 cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=clang .
 ```
 
-**3. Build compiler**&#x20;
+**3. Build the compiler**
 
 ```bash
 make -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)
