@@ -19,7 +19,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake"
 
 include(CMConfig)
 include(CMSetupVersion)
-include(CircuitCompile)
 
 cm_workspace(zkllvm)
 
@@ -37,11 +36,13 @@ option(BUILD_SHARED_LIBS "Build shared library" TRUE)
 option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
 option(BUILD_TESTS "Build unit tests" FALSE)
 option(BUILD_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
+option(CIRCUIT_ASSEMBLY_OUTPUT "Emit circuit IR as assembly file" FALSE)
 
 set(BUILD_WITH_TARGET_ARCHITECTURE "" CACHE STRING "Target build architecture")
 set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_LIST_DIR}/docs" CACHE STRING "Specify doxygen output directory")
 
 include(TargetArchitecture)
+include(CircuitCompile)
 
 if(UNIX AND BUILD_WITH_CCACHE)
     find_program(CCACHE_FOUND ccache)
@@ -69,5 +70,7 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/assigner")
 
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
 
+set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
+
 add_subdirectory(examples)
