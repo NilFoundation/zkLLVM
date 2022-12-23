@@ -47,7 +47,7 @@ cd zkllvm
 #### **2. Configure CMake**
 
 ```bash
-cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=clang .
+cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release .
 ```
 
 **3. Build the compiler**
@@ -81,5 +81,5 @@ zkLLVM's workflow is as follows:
 
 ```bash
 make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(nproc)
-${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ./build/examples/arithmetics_example.ll -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ./build/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct
 ```
