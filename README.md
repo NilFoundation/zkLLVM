@@ -12,7 +12,7 @@ enables developers to write code in native language instead of DSL's specific to
 
 zkLLVM extends:
 1. `clang/clang++` : Compiles the program into general intermediate representation byte-code from C/C++.
-2. `assigner` Creates the circuit execution trace (a.k.a. assignment table) and produces data, needed by prover to produce proof.
+2. `assigner` Creates the circuit execution trace (a.k.a. assignment table) and produces data, needed by the prover to produce proof.
 
 Languages currently supported are:
 1. C/C++ (all the standards Clang 15 supports).
@@ -79,7 +79,15 @@ zkLLVM's workflow is as follows:
 
 ### Examples
 
+#### Linux 
+
 ```bash
-make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(nproc)
-${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ./build/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct
+make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(nproc) 
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct
+```
+
+#### macOS
+```bash
+make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(sysctl -n hw.logicalcpu)
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct
 ```
