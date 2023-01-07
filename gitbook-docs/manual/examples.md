@@ -8,7 +8,8 @@ In this serie of simple examples we are going to learn, how to build a provable 
 
 ## Hello, world
 
-Every provable computations 101 starts with this example, so let's follow the tradition:
+Every provable computations 101 starts with this example, so let's follow the tradition.
+Every provable computations circuit starts with entry point function, marked with `[[circuit]]` attribute. The function takes some arguments and returns a result. The function body represents an algorithm, which is going to be compiled into a circuit, which further can be used for proof generation.
 
 ```
 #include <nil/crypto3/algebra/curves/bls12.hpp>
@@ -23,7 +24,7 @@ using namespace nil::crypto3::algebra::curves;
     return c;
 }
 ```
-The function takes two arguments - two numbers - and multiplies them (as expected). The function is marked with `[[circuit]]` attribute, which tells the compiler, that this function is the circuit entry point. The function returns a number, which is a result of multiplication.
+The function takes two arguments - two numbers - and multiplies them (as expected).
 
 ## Galois field arithmetic circuit
 
@@ -202,3 +203,11 @@ using namespace nil::marshalling;
 ```
 
 Awesome, we just have build a circuit of world's most used commitment scheme. Now, let's see how we can use it to generate the proof from the code we have written.
+
+# Generating circuit
+
+Circuit generation consist of two steps: compiling the code into Intermediate Representation and assigning the values to the variables of the execution trace. The first step is done by the clang/rustc compiler and the second step is done by the assigner binary.
+
+# Proof generation
+
+Proof generation may be resource-demanding process. It is recommended to use a machine with at least 32GB of RAM and 8 cores. But instead of generating the proof by himself, one can use https://proof.market to order a proof generation. The interaction with proof market is done via [it's toolchain](https://github.com/NilFoundation/proof-market-toolchain), which is a set of scripts that automate the process of proof ordering.
