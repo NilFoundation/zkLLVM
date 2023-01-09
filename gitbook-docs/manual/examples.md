@@ -4,14 +4,15 @@ description: Samples
 
 # Examples
 
-In this serie of simple examples we are going to learn, how to build a provable computations circuit using the [C++ SDK](https://github.com/NilFoundation/crypto3).
+## Examples
 
-## Hello, world
+In this series of simple examples we are going to learn, how to build a provable computations circuit using the [C++ SDK](https://github.com/NilFoundation/crypto3).
 
-Every provable computations 101 starts with this example, so let's follow the tradition.
-Every provable computations circuit starts with entry point function, marked with `[[circuit]]` attribute. The function takes some arguments and returns a result. The function body represents an algorithm, which is going to be compiled into a circuit, which further can be used for proof generation.
+### Hello, world
 
-```
+Every provable computations 101 starts with this example, so let's follow the tradition. Every provable computations circuit starts with entry point function, marked with `[[circuit]]` attribute. The function takes some arguments and returns a result. The function body represents an algorithm, which is going to be compiled into a circuit, which further can be used for proof generation.
+
+```cpp
 #include <nil/crypto3/algebra/curves/bls12.hpp>
 
 using namespace nil::crypto3::algebra::curves;
@@ -24,13 +25,14 @@ using namespace nil::crypto3::algebra::curves;
     return c;
 }
 ```
+
 The function takes two arguments - two numbers - and multiplies them (as expected).
 
-## Galois field arithmetic circuit
+### Galois field arithmetic circuit
 
- In this example we want demonstrate functionality of basic field arithmetic:
+In this example we want demonstrate functionality of basic field arithmetic:
 
-```
+```cpp
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 
 using namespace nil::crypto3::algebra::curves;
@@ -50,11 +52,11 @@ typename pallas::base_field_type::value_type square(
 
 The function takes two arguments - two numbers - and performs some a bit more complex arithmetic operations on them.
 
-## Polygon balance point
+### Polygon balance point
 
-Let's try something more difficult. How about polygon center of mass calculation? Voila:
+Let's try something more difficult. How about polygon centre of mass calculation? Voila:
 
-```
+```cpp
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 
 using namespace nil::crypto3::algebra::curves;
@@ -80,15 +82,13 @@ template <std::size_t VertexAmount>
 }
 ```
 
-Balancing a polygon is a well-known problem in computational geometry. The function takes two arguments - an array of vertexes and an array of weights. The function returns a point, which is a center of mass of the polygon.
+Balancing a polygon is a well-known problem in computational geometry. The function takes two arguments - an array of vertexes and an array of weights. The function returns a point, which is a centre of mass of the polygon.
 
+### Merkle tree commitment
 
-## Merkle tree commitment 
+Psst, you want some cryptography? Then let's build a Merkle tree - a widely used data commitment scheme. Out of curiosity, we will take 2\*\*20 leaves as input, a real-live input size.
 
-Pss, you want some cryptography? Then let's build a Merkle tree - a widely used data commitment scheme. Out of curiosity,
-we will take 2**20 leaves as input, a real-live input size.
-
-```
+```cpp
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 #include <nil/crypto3/hash/sha256.hpp>
 
@@ -204,32 +204,34 @@ using namespace nil::marshalling;
 
 Awesome, we just have build a circuit of world's most used commitment scheme. Now, let's see how we can use it to generate the proof from the code we have written.
 
-# Generating circuit
+## Generating circuit
 
 Circuit generation consist of two steps: compiling the code into Intermediate Representation and assigning the values to the variables of the execution trace. The first step is done by the clang/rustc compiler and the second step is done by the assigner binary.
 
-# Proof generation
+## Proof generation
 
 Proof generation may be resource-demanding process. It is recommended to use a machine with at least 32GB of RAM and 8 cores. But instead of generating the proof by himself, one can use https://proof.market to order a proof generation. The interaction with proof market is done via [it's toolchain](https://github.com/NilFoundation/proof-market-toolchain), which is a set of scripts that automate the process of proof ordering.
 
-# Builtin types and SDK
+## Builtin types and SDK
 
-Every PLONK circuit operates with the Finite fields elements and thus we provide some dialect extension to standard C++ to make the code more readable. Such extension includes custom types for the fields and elliptic curves elements. We also provide a set of functions that are highly optimized and can be used when building a circuit.
+Every PLONK circuit operates with the Finite fields elements and thus we provide some dialect extension to standard C++ to make the code more readable. Such extension includes custom types for the fields and elliptic curves elements. We also provide a set of functions that are highly optimised and can be used when building a circuit.
 
 Full list of the builtin types and functions is as follows.
 
 Fields:
-* __zkllvm_field_pallas_base
-* __zkllvm_field_pallas_scalar
-* __zkllvm_field_vesta_base
-* __zkllvm_field_vesta_scalar
-* __zkllvm_field_bls12381_base
-* __zkllvm_field_bls12381_scalar
-* __zkllvm_field_curve25519_base
-* __zkllvm_field_curve25519_scalar
+
+* \_\_zkllvm\_field\_pallas\_base
+* \_\_zkllvm\_field\_pallas\_scalar
+* \_\_zkllvm\_field\_vesta\_base
+* \_\_zkllvm\_field\_vesta\_scalar
+* \_\_zkllvm\_field\_bls12381\_base
+* \_\_zkllvm\_field\_bls12381\_scalar
+* \_\_zkllvm\_field\_curve25519\_base
+* \_\_zkllvm\_field\_curve25519\_scalar
 
 Curves:
-* __zkllvm_curve_pallas
-* __zkllvm_curve_vesta
-* __zkllvm_curve_bls12381
-* __zkllvm_curve_curve25519
+
+* \_\_zkllvm\_curve\_pallas
+* \_\_zkllvm\_curve\_vesta
+* \_\_zkllvm\_curve\_bls12381
+* \_\_zkllvm\_curve\_curve25519
