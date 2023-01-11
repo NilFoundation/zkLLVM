@@ -8,18 +8,39 @@ In this guide , we will first look at a few examples of circuits which can be co
 
 ## Circuit Examples
 
-In this series of simple examples we are going to learn, how to build a provable computations circuit using the [C++ SDK](https://github.com/NilFoundation/crypto3).
+In this series of simple examples we are going to learn, how to build a provable computations circuit using the [C++ SDK](https://github.com/NilFoundation/crypto3) and introduce important concepts as we go along.
 
-### 1. Hello, world
+### 1. Addition
 
 Every provable computations 101 starts with this example, so let's follow the tradition. Every provable computations circuit starts with entry point function, marked with `[[circuit]]` [attribute](https://isocpp.org/wiki/faq/cpp11-language-misc#attributes). The function takes some arguments and returns a result. The function body represents an algorithm, which is going to be compiled into a circuit, which further can be used for proof generation.
+
+{% hint style="danger" %}
+There can only be a single \[`[circuit]] directive in a project.`
+{% endhint %}
+
+A circuit is comprised of many `components.` A component is any piece of code that can be arithmetized into a circuit.
+
+Standard library types such as `int` , `long` are  supported. The standard types of `int32_t` are the modified versions of a fork of std C++ library which the compiler includes internally. The user is hidden from this complexity. Some types such as `strings` are currently not supported (but will be in the future - see [limitations](../limitations.md)).
+
+```cpp
+[[circuit]] std::int32_t addition_std_example(
+	std::int32_t a,
+	std::int32_t b) {
+    auto c = a*b;
+    return c;
+}
+```
+
+The function takes two arguments - two numbers - and multiplies them.
+
+Next, lets see the same example , but using the components `bls` from crypto3 library.
 
 ```cpp
 #include <nil/crypto3/algebra/curves/bls12.hpp>
 
 using namespace nil::crypto3::algebra::curves;
 
-[[circuit]] typename bls12<381>::base_field_type::value_type hello_world_example(
+[[circuit]] typename bls12<381>::base_field_type::value_type addition_example(
 	typename bls12<381>::base_field_type::value_type a,
 	typename bls12<381>::base_field_type::value_type b) {
 
@@ -28,9 +49,23 @@ using namespace nil::crypto3::algebra::curves;
 }
 ```
 
-The function takes two arguments - two numbers - and multiplies them (as expected).
+&#x20;The most performant types will be from the crypto3 library. However , the user can still write circuits without including the library as the compiler includes some types internally.&#x20;
 
-### 2. Galois field arithmetic circuit
+Hence our addition example can be re-written as:
+
+```cpp
+[[circuit]] __zkllvm_field_pallas_base::value_type addition_example(
+	__zkllvm_field_pallas_base::value_type a,
+	__zkllvm_field_pallas_base::value_type b) {
+
+    __zkllvm_field_pallas_base::value_type c = a*b;
+    return c;
+}
+```
+
+Please see[ Builtin types](../builtin-types-sdk.md) for more details.
+
+### 2. Galois field arithmetic
 
 In this example we want demonstrate functionality of basic field arithmetic:
 
@@ -210,30 +245,6 @@ using namespace nil::marshalling;
 
 Awesome, we just have build a circuit of world's most used commitment scheme.&#x20;
 
-## Builtin types and SDK
+## Next Steps
 
-Every PLONK circuit operates with the Finite fields elements and thus we provide some dialect extension to standard C++ to make the code more readable. Such extension includes custom types for the fields and elliptic curves elements. We also provide a set of functions that are highly optimised and can be used when building a circuit.
-
-Full list of the builtin types and functions is as follows.
-
-Fields:
-
-* \_\_zkllvm\_field\_pallas\_base
-* \_\_zkllvm\_field\_pallas\_scalar
-* \_\_zkllvm\_field\_vesta\_base
-* \_\_zkllvm\_field\_vesta\_scalar
-* \_\_zkllvm\_field\_bls12381\_base
-* \_\_zkllvm\_field\_bls12381\_scalar
-* \_\_zkllvm\_field\_curve25519\_base
-* \_\_zkllvm\_field\_curve25519\_scalar
-
-Curves:
-
-* \_\_zkllvm\_curve\_pallas
-* \_\_zkllvm\_curve\_vesta
-* \_\_zkllvm\_curve\_bls12381
-* \_\_zkllvm\_curve\_curve25519
-
-
-
-Now, let's see how we can compile these examples to generate a circuit next.
+Now, let's see how we can compile these examples to generate a circuit representation.

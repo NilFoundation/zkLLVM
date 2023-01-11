@@ -6,7 +6,7 @@ description: Compile zero knowledge proof systems in high-level programming lang
 
 ## =nil; zkLLVM Project
 
-zkLLVM is compiler from high-level programming languages into input for provable computations protocols. It can be used to generate input for any arbitrary zero-knowledge proof system or protocol, which accepts input data in form of algebraic circuits.It is assumed to be used together with `placeholder` proof system or any arithmetization compatible with `placeholder;` which is a derivative of PLONK proof system.
+zkLLVM is compiler from high-level programming languages into input for provable computations protocols. It can be used to generate input for any arbitrary zero-knowledge proof system or protocol, which accepts input data in form of algebraic circuits.It is assumed to be used together with `placeholder` proof system or any arithmetization compatible with `placeholder` which is a derivative of PLONK proof system.
 
 It is designed as an extension to LLVM tool chain , thus supports any front end which compiles to LLVM IR. This enables developers to write code in native language instead of DLS's specific to other libraries.
 
