@@ -1,16 +1,18 @@
 ---
-description: Samples
+description: Examples of zkLLVM programs
 ---
 
-# Examples
+# Getting Started
 
-## Examples
+In this guide , we will first look at a few examples of circuits which can be compiled with zkLLVM.
+
+## Circuit Examples
 
 In this series of simple examples we are going to learn, how to build a provable computations circuit using the [C++ SDK](https://github.com/NilFoundation/crypto3).
 
-### Hello, world
+### 1. Hello, world
 
-Every provable computations 101 starts with this example, so let's follow the tradition. Every provable computations circuit starts with entry point function, marked with `[[circuit]]` attribute. The function takes some arguments and returns a result. The function body represents an algorithm, which is going to be compiled into a circuit, which further can be used for proof generation.
+Every provable computations 101 starts with this example, so let's follow the tradition. Every provable computations circuit starts with entry point function, marked with `[[circuit]]` [attribute](https://isocpp.org/wiki/faq/cpp11-language-misc#attributes). The function takes some arguments and returns a result. The function body represents an algorithm, which is going to be compiled into a circuit, which further can be used for proof generation.
 
 ```cpp
 #include <nil/crypto3/algebra/curves/bls12.hpp>
@@ -28,7 +30,7 @@ using namespace nil::crypto3::algebra::curves;
 
 The function takes two arguments - two numbers - and multiplies them (as expected).
 
-### Galois field arithmetic circuit
+### 2. Galois field arithmetic circuit
 
 In this example we want demonstrate functionality of basic field arithmetic:
 
@@ -50,9 +52,9 @@ typename pallas::base_field_type::value_type square(
 }
 ```
 
-The function takes two arguments - two numbers - and performs some a bit more complex arithmetic operations on them.
+The function takes two arguments - two numbers - and performs more complex arithmetic operations on them.
 
-### Polygon balance point
+### 3. Polygon balance point
 
 Let's try something more difficult. How about polygon centre of mass calculation? Voila:
 
@@ -84,9 +86,13 @@ template <std::size_t VertexAmount>
 
 Balancing a polygon is a well-known problem in computational geometry. The function takes two arguments - an array of vertexes and an array of weights. The function returns a point, which is a centre of mass of the polygon.
 
-### Merkle tree commitment
+### 4. Merkle tree commitment
 
 Psst, you want some cryptography? Then let's build a Merkle tree - a widely used data commitment scheme. Out of curiosity, we will take 2\*\*20 leaves as input, a real-live input size.
+
+{% hint style="info" %}
+We support loops!  This is unlike other DLS's for writing proof systems.
+{% endhint %}
 
 ```cpp
 #include <nil/crypto3/algebra/curves/pallas.hpp>
@@ -202,15 +208,7 @@ using namespace nil::marshalling;
 }
 ```
 
-Awesome, we just have build a circuit of world's most used commitment scheme. Now, let's see how we can use it to generate the proof from the code we have written.
-
-## Generating circuit
-
-Circuit generation consist of two steps: compiling the code into Intermediate Representation and assigning the values to the variables of the execution trace. The first step is done by the clang/rustc compiler and the second step is done by the assigner binary.
-
-## Proof generation
-
-Proof generation may be resource-demanding process. It is recommended to use a machine with at least 32GB of RAM and 8 cores. But instead of generating the proof by himself, one can use https://proof.market to order a proof generation. The interaction with proof market is done via [it's toolchain](https://github.com/NilFoundation/proof-market-toolchain), which is a set of scripts that automate the process of proof ordering.
+Awesome, we just have build a circuit of world's most used commitment scheme.&#x20;
 
 ## Builtin types and SDK
 
@@ -235,3 +233,7 @@ Curves:
 * \_\_zkllvm\_curve\_vesta
 * \_\_zkllvm\_curve\_bls12381
 * \_\_zkllvm\_curve\_curve25519
+
+
+
+Now, let's see how we can compile these examples to generate a circuit next.

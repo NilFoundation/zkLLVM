@@ -14,7 +14,9 @@
 
 ## Manual
 
-* [Examples](manual/examples.md)
+* [Getting Started](manual/examples/README.md)
+  * [Circuit Generation](manual/examples/circuit-generation.md)
+  * [Proof Generation](manual/examples/proof-generation.md)
 
 ## Misc
 
