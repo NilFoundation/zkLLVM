@@ -14,9 +14,9 @@
 
 ## Manual
 
-* [Getting Started](manual/examples/README.md)
-  * [Circuit Generation](manual/examples/circuit-generation.md)
-  * [Proof Generation](manual/examples/proof-generation.md)
+* [Getting Started](manual/getting-started/README.md)
+  * [Circuit Generation](manual/getting-started/circuit-generation.md)
+  * [Proof Generation](manual/getting-started/proof-generation.md)
 * [Builtin types/SDK](manual/builtin-types-sdk.md)
 * [Limitations](manual/limitations.md)
 
