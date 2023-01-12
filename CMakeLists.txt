@@ -73,4 +73,19 @@ add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
 set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
+# TODO: Fix configuration and build commands. For now leave it as it is for development purposes.
+add_custom_target(rslang
+    ./configure
+        --enable-llvm-link-shared
+        --llvm-config "${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config"
+        --set llvm.download-ci-llvm=false
+        --set llvm.assertions=true
+        --set rust.debug-logging=true
+        --set rust.incremental=true
+        --set rust.backtrace-on-ice=true
+    COMMAND export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/lib"
+    COMMAND ./x build library
+    COMMENT "Building rslang (it may take a while)..."
+    WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/libs/circifier/rslang")
+
 add_subdirectory(examples)
