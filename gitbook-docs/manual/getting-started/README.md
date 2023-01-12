@@ -20,7 +20,7 @@ There can only be a single \[`[circuit]] directive in a project.`
 
 A circuit is comprised of many `components.` A component is any piece of code that can be arithmetized into a circuit.
 
-Standard library types such as `int` , `long` are  supported. The standard types of `int32_t` are the modified versions of a fork of std C++ library which the compiler includes internally. The user is hidden from this complexity. Some types such as `strings` are currently not supported (but will be in the future - see [limitations](../limitations.md)).
+Standard library integral types such as `int` , `long` are  supported. The standard types of `int32_t` are the modified versions of a fork of std C++ library which the compiler includes internally. The user is hidden from this complexity. Some types such as `strings` are currently not supported (but will soon - see [limitations](../limitations.md)).
 
 ```cpp
 [[circuit]] std::int32_t addition_std_example(
@@ -49,16 +49,16 @@ using namespace nil::crypto3::algebra::curves;
 }
 ```
 
-&#x20;The most performant types will be from the crypto3 library. However , the user can still write circuits without including the library as the compiler includes some types internally.&#x20;
+&#x20;The most performant algorithms and types will be from the crypto3 SDK. However , the user can still write circuits without including the library as the compiler provides a C++ dialect with such types supported.&#x20;
 
 Hence our addition example can be re-written as:
 
 ```cpp
-[[circuit]] __zkllvm_field_pallas_base::value_type addition_example(
-	__zkllvm_field_pallas_base::value_type a,
-	__zkllvm_field_pallas_base::value_type b) {
+[[circuit]] __zkllvm_field_pallas_base addition_example(
+	__zkllvm_field_pallas_base a,
+	__zkllvm_field_pallas_base b) {
 
-    __zkllvm_field_pallas_base::value_type c = a*b;
+    __zkllvm_field_pallas_base c = a*b;
     return c;
 }
 ```

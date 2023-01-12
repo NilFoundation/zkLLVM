@@ -8,7 +8,7 @@ Every PLONK circuit operates with the Finite fields elements and thus we provide
 
 Full list of the builtin types and functions is as follows.
 
-Fields:
+Fields integral types:
 
 * `__zkllvm_field_pallas_base`
 * `__zkllvm_field_pallas_scalar`
@@ -19,7 +19,7 @@ Fields:
 * `__zkllvm_field_curve25519_base`
 * `__zkllvm_field_curve25519_scalar`
 
-Curves:
+Curves integral types:
 
 * `__zkllvm_curve_pallas`
 * `__zkllvm_curve_vesta`

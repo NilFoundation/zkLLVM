@@ -10,4 +10,4 @@ The zkLLVM project is under active development. The current limitations are list
 * Following C++ standard types are not supported
   * `string`
   * `float` , `double`
-* Circuits cannot return pointer types.
+* Circuits cannot return pointer types for now.
