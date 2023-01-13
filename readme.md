@@ -1,4 +1,7 @@
 # =nil; Foundation's Cryptography Suite
+[![Build docs](https://github.com/NilFoundation/crypto3/actions/workflows/build_docs.yaml/badge.svg)](https://github.com/NilFoundation/crypto3/actions/workflows/build_docs.yaml) 
+[![Discord](https://img.shields.io/discord/969303013749579846.svg?logo=discord&style=flat-square)](https://discord.gg/KmTAEjbmM3)
+[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-square&logo=telegram&logoColor=dark)](https://t.me/nilfoundation)
 
 Crypto3 cryptography suite's purpose is:
 1. To provide a secure, fast and architecturally clean C++ generic cryptography schemes implementation.
@@ -121,7 +124,7 @@ This cryptography suite is authored by [=nil; Crypto3](https://crypto3.nil.found
  several ways:
  * E-Mail. Just drop a line to [nemo@nil.foundation](mailto:nemo@nil.foundation).
  * Telegram Group. Join our Telegram group [@nilfoundation](https://t.me/nilfoundation) and ask any question in there.
- * Discord [channel](https://discord.gg/cDUppDdb3m) for discussions.
+ * Discord [channel](https://discord.gg/KmTAEjbmM3) for discussions.
  * Issue. Issue which does not belong to any particular module (or you just don't know where to put it) can be
   created in this repository. The team will answer that.
  * Discussion Topic (proposal, tutorial request, suggestion, etc). Would be happy to discuss that in the repository's GitHub [Discussions](https://github.com/NilFoundation/crypto3/discussions)
