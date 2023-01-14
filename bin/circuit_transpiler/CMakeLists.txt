@@ -7,13 +7,13 @@
 # http://www.boost.org/LICENSE_1_0.txt
 #---------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 2.8.12)
 
 cm_find_package(CM)
 include(CMDeploy)
 include(CMSetupVersion)
 
-cm_project(prepare_external_gate_argument WORKSPACE_NAME ${CMAKE_WORKSPACE_NAME} LANGUAGES ASM C CXX)
+cm_project(circuit_transpiler WORKSPACE_NAME ${CMAKE_WORKSPACE_NAME} LANGUAGES ASM C CXX)
 
 if(NOT Boost_FOUND AND NOT CMAKE_CROSSCOMPILING)
     find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system)
@@ -70,6 +70,7 @@ target_link_libraries(${CURRENT_PROJECT_NAME}
                       crypto3::zk
 
                       crypto3::assigner
+                      crypto3::transpiler
 
                       marshalling::core
                       marshalling::crypto3_algebra
