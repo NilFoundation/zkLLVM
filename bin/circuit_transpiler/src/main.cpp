@@ -23,8 +23,6 @@
 #include <nil/crypto3/math/polynomial/polynomial.hpp>
 #include <nil/crypto3/math/algorithms/calculate_domain_set.hpp>
 
-#include <nil/blueprint/component.hpp>
-#include <nil/blueprint/parser.hpp>
 #include <nil/blueprint/transpiler/minimized_profiling_plonk_circuit.hpp>
 
 bool read_buffer_from_file(std::ifstream &ifile, std::vector<std::uint8_t> &v) {
