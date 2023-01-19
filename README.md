@@ -1,4 +1,8 @@
-# zkLLVM
+# zkLLVM Circuit Compiler
+
+[![Discord](https://img.shields.io/discord/969303013749579846.svg?logo=discord&style=flat-square)](https://discord.gg/KmTAEjbmM3)
+[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-square&logo=telegram&logoColor=dark)](https://t.me/nilfoundation)
+[![Twitter](https://img.shields.io/twitter/follow/nil_foundation)](https://twitter.com/nil_foundation)
 
 zkLLVM is a compiler from high-level programming languages into an input for provable computations protocols. 
 It can be used to generate input for any arbitrary zero-knowledge proof system or protocol, which accepts 
