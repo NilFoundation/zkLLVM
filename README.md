@@ -9,6 +9,8 @@ It can be used to generate input for any arbitrary zero-knowledge proof system o
 input data in form of algebraic circuits It assumed to be used together with `Placeholder` proof system or 
 any other arithmetization compatible with `Placeholder` proof system.
 
+Every proof output from zkLLVM is **an in-EVM verifiable** one through the [Proof Market](https://proof.market). Use the Proof Market Toolchain repository (https://github.com/NilFoundation/proof-market-toolchain) to generate in-EVM verifiers.
+
 **Notice**: zkLLVM is **NOT** a virtual machine and has nothing to do with it. It, moreover, with its existence proves the absence of necessity in zkVMs, posing them as redundant.
 
 zkLLVM is designed as an extension to LLVM toolchain, thus supports any front end which compiles to LLVM IR. This 
