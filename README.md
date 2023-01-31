@@ -31,14 +31,14 @@ Languages currently supported are:
 
 #### Install Dependencies
 
-* [Boost](https://www.boost.org/) >= 1.74.0
+* [Boost](https://www.boost.org/) >= 1.76.0
 * [CMake](https://cmake.org/) >= 3.5
-* [Clang](https://clang.llvm.org/) >= 14.0.6
+* [Clang](https://clang.llvm.org/) >= 12.0
 
 On \*nix systems, the following dependencies need to be present & can be installed using the following command
 
 ```
- sudo apt install build-essential libssl-dev libboost-all-dev cmake clang git
+ sudo apt install build-essential libssl-dev libboost-all-dev cmake clang-12 git
 ```
 
 #### 1. Clone the repository
@@ -54,6 +54,13 @@ cd zkllvm
 
 ```bash
 cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release .
+```
+
+Proof Market requires the IR files in the *.ll format. If you are generating circuit/statement
+to publish on proof market. Please use the below command instead.
+
+```
+cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
 ```
 
 **3. Build the compiler**
