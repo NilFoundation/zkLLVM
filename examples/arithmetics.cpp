@@ -1,5 +1,4 @@
 #include <nil/crypto3/algebra/curves/pallas.hpp>
-#include "utility.hpp"
 
 using namespace nil::crypto3::algebra::curves;
 typename pallas::base_field_type::value_type pow(

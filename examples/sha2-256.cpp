@@ -16,7 +16,7 @@ using namespace nil::crypto3;
     hashes::sha256_block_type first_input_block, hashes::sha256_block_type second_input_block) {
 
     typename hashes::sha256_block_type hash_result = hashes::sha256(first_input_block,
-        second_input_block);
+            second_input_block);
 
     return hash_result;
 }
