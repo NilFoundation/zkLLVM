@@ -17,7 +17,7 @@
 * [Getting Started](manual/getting-started/README.md)
   * [Circuit Developer](manual/getting-started/circuit-generation.md)
   * [Proof Producer](manual/getting-started/proof-generation.md)
-  * [Proof Verification](manual/getting-started/proof-verification.md)
+  * [Proof Verifier](manual/getting-started/proof-verifier.md)
 * [Builtin types/SDK](manual/builtin-types-sdk.md)
 * [Limitations](manual/limitations.md)
 
