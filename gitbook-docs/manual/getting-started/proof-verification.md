@@ -1,6 +1,6 @@
 # Proof Verification
 
-Proof verification can be done locally or can be done in on chain smart contracts.
+Proof verification can be done locally or can be done in on chain smart contracts. Proof verification process is not handled by zkLLVM , though mentioned here as the circuit developer is still responsible to publish the onchain verifier contracts and wrappers. The onchain verification flow is managed by the lorem-ipsum project.
 
 <figure><img src="../../.gitbook/assets/image (5).png" alt=""><figcaption><p>Proof Verification</p></figcaption></figure>
 
