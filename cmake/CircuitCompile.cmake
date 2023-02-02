@@ -63,6 +63,8 @@ function(add_circuit name)
         endif()
         list(APPEND INCLUDE_DIRS_LIST "-I${include_dir}")
     endforeach()
+    # TODO(maksenov): replace with custom standard library
+    list(APPEND INCLUDE_DIRS_LIST -I/usr/lib/gcc/x86_64-linux-gnu/9/../../../../include/c++/9 -I/usr/lib/gcc/x86_64-linux-gnu/9/../../../../include/x86_64-linux-gnu/c++/9 -I/usr/lib/gcc/x86_64-linux-gnu/9/../../../../include/c++/9/backward -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/9/../../../../x86_64-linux-gnu/include -I/usr/include/x86_64-linux-gnu -I/include -I/usr/include)
     list(REMOVE_DUPLICATES INCLUDE_DIRS_LIST)
 
     if(CIRCUIT_ASSEMBLY_OUTPUT)
@@ -75,8 +77,8 @@ function(add_circuit name)
 
     add_custom_target(${name} COMMAND_EXPAND_LISTS VERBATIM
 
-                      COMMAND $<TARGET_FILE:clang> -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1
-                      ${format_option} -o ${binary_name} ${ARG_SOURCE}
+                       COMMAND $<TARGET_FILE:clang> -target assigner -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1
+                       ${format_option} -o ${binary_name} ${ARG_SOURCE}
 
                       SOURCES ${ARG_SOURCE})
     set_target_properties(${name} PROPERTIES
