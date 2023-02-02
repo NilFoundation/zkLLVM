@@ -88,7 +88,11 @@ zkLLVM's workflow is as follows:
    will output a binary proof file.
 
 3. Proof verification is not part of the zkLLVM project. This involves a few more steps which requires serialization of
-   the circuit to be setup on chain.
+   Proof verification is not part of the zkLLVM tool-chain currently, can be done via:
+   1. Offline : Tooling to support validation of off-chain proof will be added in the future.
+   2. On-chain : This involves a more steps which requires serialisation of the circuit and deployed on blockchain clusters. 
+   This flow of generating smart contracts is handled by the [lorem-ipsum](https://github.com/NilFoundation/lorem-ipsum-cli) project. A high level flow is described in the guides 
+   for [circuit developer](https://docs.nil.foundation/zkllvm/manual/getting-started/circuit-generation) & [proof verifier](https://docs.nil.foundation/zkllvm/manual/getting-started/proof-verifier).
 
 ### Examples
 
