@@ -25,5 +25,7 @@ Below we look at flow of how the zkLLVM tool chain is invoked:
     * Constraint : Binary file representing arithmetization of the circuit.
     * Assignment Table: Binary file pre-processed with public inputs & witness.
 
-    The constraint and assignment table generated above should be passed as in input to proof generator binary. (TODO add more details). This will output a binary proof file.
-3. Proof verification is not part of the zkLLVM tool-chain. This involves a more steps which requires serialisation of the circuit and deployed on blockchain clusters. (TODO add example)
+    The constraint and assignment table generated above should be passed as in input to proof generator binary. This will output a binary proof file.
+3. Proof verification is not part of the zkLLVM tool-chain currently, can be done via:&#x20;
+   1. Offline : Tooling to support validation of off-chain proof will be added in future.
+   2. On-chain : This involves a more steps which requires serialisation of the circuit and deployed on blockchain clusters. This flow of generating smart contracts is handled by the [lorem-ipsum](https://github.com/NilFoundation/lorem-ipsum-cli) project. A high level flow is described in the guides for [circuit developer](manual/getting-started/circuit-generation.md) & [proof verifier](manual/getting-started/proof-verifier.md).
