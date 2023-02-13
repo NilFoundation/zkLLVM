@@ -73,27 +73,41 @@ make -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)
 
 zkLLVM's workflow is as follows:
 
-1. Users wishing to prove some statement are supposed to implement an application in a language compatible with some frontend (C++ for now). This code will be compiled with a modified version of the `clang` compiler, which will output intermediate representation of the circuit. 
+1. **Write Circuit :** Users wishing to prove some statement are supposed to implement an application in a language compatible with some frontend (C++ for now). This code will be compiled with a modified version of the `clang` compiler, which will output intermediate representation of the circuit.
+   ![compile](./docs/assets/compile.png)
    > For the most performant cryptography circuits (e.g. hashes, signatures, VDFs, proof system verifications, etc.) 
    > we recommend using [=nil; Foundation's Crypto3 library](https://github.com/nilfoundation/crypto3.git).
 
-2. zkLLVM is tightly coupled with [=nil; Foundation's Proof Market](https://proof.market.nil.foundation) so users willing to generate a 
-   proof for the circuit, will be required to put an order for a proof so proof generators could pick it up and 
-   generate proofs necessary. To submit an order it is required to: 
+   ![compile](./docs/assets/transpile.png)
+  The circuit developer will be generating the smart contracts for the circuits they have created. This will enable on-chain verification of the proof. 
+  The smart contracts consist of gate representations of the circuit. These contracts work in conjunction with the placeholder proof validation smart contracts.
+  The process to transpile the circuit into smart contracts is handled by the [lorem-ipsum](https://github.com/NilFoundation/lorem-ipsum-cli)
+  project.
 
-    * Retrieve a constraints description from Constraint : Binary file representing arithmetization of the circuit.
-    * Assignment Table: Binary file pre-processed public inputs & witness.
+2. **Publish Circuit/Generate Proof**: zkLLVM is tightly coupled with [=nil; Foundation's Proof Market](https://proof.market.nil.foundation). Users willing to generate a 
+   proof for the circuit, will be matched with counter-parties based on price and other conditions.
+   The circuit generated above needs to be published to proof market to enable this. 
+   ![publish](./docs/assets/publish.png)
+ 
+To generate a proof it is required to pass the following to the proof generator:
 
-   The constraint and assignment table generated above should be passed as in input to proof generator binary. This 
-   will output a binary proof file.
+    * Circuit : Arithmetization of the circuit.
+    * Inputs: Public (and private) inputs to circuit part of the proof request. 
 
-3. Proof verification is not part of the zkLLVM project. This involves a few more steps which requires serialization of
-   Proof verification is not part of the zkLLVM tool-chain currently, can be done via:
+This generates the binary proof file. This flow is handled by the [proof market toolchain](https://github.com/NilFoundation/proof-market-toolchain) repository 
+& documented [here](https://docs.nil.foundation/proof-market/market/user-guides/proof-producer).   
+
+Users can generate & inspect intermediate artifacts such as execution trace by running the `assigner` process. See examples below.
+
+3. **Verify Proof**: Proof can be retrieved from the proof market and verified on chain. Users can verify proof in these modes : 
    1. Offline : Tooling to support validation of off-chain proof will be added in the future.
-   2. On-chain : This involves a more steps which requires serialisation of the circuit and deployed on blockchain clusters. 
-   This flow of generating smart contracts is handled by the [lorem-ipsum](https://github.com/NilFoundation/lorem-ipsum-cli) project. A high level flow is described in the guides 
-   for [circuit developer](https://docs.nil.foundation/zkllvm/manual/getting-started/circuit-generation) & [proof verifier](https://docs.nil.foundation/zkllvm/manual/getting-started/proof-verifier).
-
+   2. On-chain : This flow of generating smart contracts is handled by the [lorem-ipsum](https://github.com/NilFoundation/lorem-ipsum-cli) project. A high level flow is described in the guides 
+   for [circuit developer](https://docs.nil.foundation/zkllvm/manual/getting-started/circuit-generation) & [proof verifier](https://docs.nil.foundation/zkllvm/manual/getting-started/proof-verifier)
+   described above.   
+    ![verify](./docs/assets/dapp_verify.png)
+   
+   Above we see how a dApp can use generated verifiers on-chain by simply including verification interfaces. 
+    
 ### Examples
 
 #### Linux 
