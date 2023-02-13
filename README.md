@@ -1,9 +1,15 @@
-# zkLLVM
+# zkLLVM Circuit Compiler
+
+[![Discord](https://img.shields.io/discord/969303013749579846.svg?logo=discord&style=flat-square)](https://discord.gg/KmTAEjbmM3)
+[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-square&logo=telegram&logoColor=dark)](https://t.me/nilfoundation)
+[![Twitter](https://img.shields.io/twitter/follow/nil_foundation)](https://twitter.com/nil_foundation)
 
 zkLLVM is a compiler from high-level programming languages into an input for provable computations protocols. 
 It can be used to generate input for any arbitrary zero-knowledge proof system or protocol, which accepts 
 input data in form of algebraic circuits It assumed to be used together with `Placeholder` proof system or 
 any other arithmetization compatible with `Placeholder` proof system.
+
+Every proof output from zkLLVM is **an in-EVM verifiable** one through the [Proof Market](https://proof.market). Use the Proof Market Toolchain repository (https://github.com/NilFoundation/proof-market-toolchain) to generate in-EVM verifiers.
 
 **Notice**: zkLLVM is **NOT** a virtual machine and has nothing to do with it. It, moreover, with its existence proves the absence of necessity in zkVMs, posing them as redundant.
 
@@ -25,14 +31,14 @@ Languages currently supported are:
 
 #### Install Dependencies
 
-* [Boost](https://www.boost.org/) >= 1.74.0
+* [Boost](https://www.boost.org/) >= 1.76.0
 * [CMake](https://cmake.org/) >= 3.5
-* [Clang](https://clang.llvm.org/) >= 14.0.6
+* [Clang](https://clang.llvm.org/) >= 12.0
 
 On \*nix systems, the following dependencies need to be present & can be installed using the following command
 
 ```
- sudo apt install build-essential libssl-dev libboost-all-dev cmake clang git
+ sudo apt install build-essential libssl-dev libboost-all-dev cmake clang-12 git
 ```
 
 #### 1. Clone the repository
@@ -48,6 +54,13 @@ cd zkllvm
 
 ```bash
 cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release .
+```
+
+Proof Market requires the IR files in the *.ll format. If you are generating circuit/statement
+to publish on proof market. Please use the below command instead.
+
+```
+cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
 ```
 
 **3. Build the compiler**
@@ -75,7 +88,11 @@ zkLLVM's workflow is as follows:
    will output a binary proof file.
 
 3. Proof verification is not part of the zkLLVM project. This involves a few more steps which requires serialization of
-   the circuit to be setup on chain.
+   Proof verification is not part of the zkLLVM tool-chain currently, can be done via:
+   1. Offline : Tooling to support validation of off-chain proof will be added in the future.
+   2. On-chain : This involves a more steps which requires serialisation of the circuit and deployed on blockchain clusters. 
+   This flow of generating smart contracts is handled by the [lorem-ipsum](https://github.com/NilFoundation/lorem-ipsum-cli) project. A high level flow is described in the guides 
+   for [circuit developer](https://docs.nil.foundation/zkllvm/manual/getting-started/circuit-generation) & [proof verifier](https://docs.nil.foundation/zkllvm/manual/getting-started/proof-verifier).
 
 ### Examples
 
