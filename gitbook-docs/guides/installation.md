@@ -15,25 +15,50 @@ cd zkllvm
 
 ## **Configure cmake**&#x20;
 
-```bash
-cmake -GNinja -B ${ASSIGNER_BUILD:-build} -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS=clang .
-```
-
-## **Build clang**&#x20;
+If you wish to generate IR (Intermediate representation) in binary format (\*.bc). This format is not compatible with the proof market currently.
 
 ```bash
-ninja -C ${ASSIGNER_BUILD:-build} assigner -j$(nproc)
+cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release .
 ```
 
-## **Build assigner**
+If you wish to generate IR (Intermediate representation) in text format (\*.ll). This format is compatible with the proof market.
 
 ```
-ninja -C ${ASSIGNER_BUILD:-build} assigner -j$(nproc)
+cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
 ```
 
-## Test
+## **Build clang /assigner**
 
 ```bash
-${ASSIGNER_BUILD:-build}/libs/circifier/llvm/bin/clang samples/sha512.cpp -emit-llvm -c -O1 -o samples/sha512.bc
-${ASSIGNER_BUILD:-build}/bin/assigner samples/sha512.bc -i samples/sha512.inp
+make -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)
 ```
+
+## Examples
+
+### Build Circuit IR
+
+This builds some samples we have in the `examples` directory
+
+```bash
+make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(nproc) 
+```
+
+### Generate Execution trace
+
+This generates an execution trace for the arithmetic example built.
+
+```
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct
+```
+
+Where
+
+Inputs:&#x20;
+
+* _**b**_: Binary representation of the circuit
+* _**i**_: Public inputs for the circuit
+
+Output:
+
+* _**t**_: Execution trace
+* _**c**_: Pre-processed constraints
