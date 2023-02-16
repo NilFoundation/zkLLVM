@@ -138,7 +138,6 @@ int main(int argc, char *argv[]) {
     using ConstraintSystemType = zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
 
     std::vector<typename BlueprintFieldType::value_type> public_input;
-    long long number;
     auto fptr = std::fopen(public_input_file_name.c_str(), "r");
     if (fptr == NULL) {
         std::cerr << "Could not open the file - '" << public_input_file_name << "'" << std::endl;
@@ -146,7 +145,10 @@ int main(int argc, char *argv[]) {
     }
 
     while (!std::feof(fptr)) {
-        fscanf(fptr, "%lld\n", &number);
+        char input_string[256];
+        fscanf(fptr, "%s\n", input_string);
+        typename curve_type::base_field_type::extended_integral_type number(input_string);
+        assert(number < BlueprintFieldType::modulus && "input does not fit into BlueprintFieldType");
         public_input.push_back(number);
     }
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
