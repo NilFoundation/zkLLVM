@@ -77,7 +77,7 @@ function(add_circuit name)
 
     add_custom_target(${name} COMMAND_EXPAND_LISTS VERBATIM
 
-                       COMMAND $<TARGET_FILE:clang> -target assigner -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1
+                       COMMAND $<TARGET_FILE:clang> -target assigner -Xclang -no-opaque-pointers -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1
                        ${format_option} -o ${binary_name} ${ARG_SOURCE}
 
                       SOURCES ${ARG_SOURCE})

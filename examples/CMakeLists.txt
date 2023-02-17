@@ -13,3 +13,4 @@ add_example(pallas_curve_addition_example SOURCE pallas_curve_examples/pallas_cu
 add_example(pallas_curve_multiplication_example SOURCE pallas_curve_examples/pallas_curve_mul.cpp)
 add_example(pallas_curve_mul_add_example SOURCE pallas_curve_examples/pallas_curve_mul_add.cpp)
 add_example(ed25519_curve_add SOURCE ed25519_curve_add.cpp)
+add_example(balance_example SOURCE balance.cpp)
