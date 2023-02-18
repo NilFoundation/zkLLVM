@@ -65,7 +65,7 @@ function(add_circuit name)
     endforeach()
     list(REMOVE_DUPLICATES INCLUDE_DIRS_LIST)
 
-    if (CIRCUIT_ASSEMBLY_OUTPUT)
+    if(CIRCUIT_ASSEMBLY_OUTPUT)
         set(binary_name ${name}.ll)
         set(format_option -S)
     else()
@@ -73,15 +73,14 @@ function(add_circuit name)
         set(format_option -c)
     endif()
 
-    add_custom_command(OUTPUT ${binary_name}
+    add_custom_target(${name} COMMAND_EXPAND_LISTS VERBATIM
 
-                       COMMAND $<TARGET_FILE:clang> -DZKLLVM_INLINES_ENABLED ${INCLUDE_DIRS_LIST} -emit-llvm -O1
-                       -std=c++20 ${format_option} -o ${binary_name} ${ARG_SOURCE}
+                      COMMAND ${CMAKE_CXX_COMPILER} -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1
+                      ${format_option} -o ${binary_name} ${ARG_SOURCE}
 
-                       DEPENDS ${ARG_SOURCE} $<TARGET_FILE:clang>
-                       COMMENT "Compiling ${name} circuit"
-                       COMMAND_EXPAND_LISTS
-                       VERBATIM)
-
-    add_custom_target(${name} DEPENDS ${binary_name})
+                      SOURCES ${ARG_SOURCE})
+    set_target_properties(${name} PROPERTIES
+                          CXX_STANDARD 20
+                          CXX_STANDARD_REQUIRED TRUE
+                          OUTPUT_NAME ${binary_name})
 endfunction(add_circuit)
