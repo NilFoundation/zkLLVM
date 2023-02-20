@@ -1,5 +1,8 @@
 # zkLLVM Circuit Compiler
 
+[![build-linux](https://github.com/NilFoundation/zkllvm/actions/workflows/build_linux.yml/badge.svg?branch=master)](
+https://github.com/NilFoundation/zkllvm/actions/workflows/build_linux.yml)
+
 [![Discord](https://img.shields.io/discord/969303013749579846.svg?logo=discord&style=flat-square)](https://discord.gg/KmTAEjbmM3)
 [![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-square&logo=telegram&logoColor=dark)](https://t.me/nilfoundation)
 [![Twitter](https://img.shields.io/twitter/follow/nil_foundation)](https://twitter.com/nil_foundation)
