@@ -63,8 +63,8 @@ function(add_circuit name)
         endif()
         list(APPEND INCLUDE_DIRS_LIST "-I${include_dir}")
     endforeach()
-    # TODO(maksenov): replace with custom standard library
-    list(APPEND INCLUDE_DIRS_LIST -I/usr/lib/gcc/x86_64-linux-gnu/9/../../../../include/c++/9 -I/usr/lib/gcc/x86_64-linux-gnu/9/../../../../include/x86_64-linux-gnu/c++/9 -I/usr/lib/gcc/x86_64-linux-gnu/9/../../../../include/c++/9/backward -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/9/../../../../x86_64-linux-gnu/include -I/usr/include/x86_64-linux-gnu -I/include -I/usr/include)
+    list(APPEND INCLUDE_DIRS_LIST -I${CMAKE_SOURCE_DIR}/libs/stdlib/libcpp -I${CMAKE_SOURCE_DIR}/libs/stdlib/libc/include )
+
     list(REMOVE_DUPLICATES INCLUDE_DIRS_LIST)
 
     if(CIRCUIT_ASSEMBLY_OUTPUT)

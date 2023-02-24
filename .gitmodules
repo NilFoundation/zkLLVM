@@ -67,3 +67,6 @@
 [submodule "zkllvm-blueprint"]
 	path = libs/blueprint
 	url = ../../NilFoundation/zkllvm-blueprint.git
+[submodule "libs/stdlib"]
+	path = libs/stdlib
+	url = ../../NilFoundation/zkllvm-stdlib.git
