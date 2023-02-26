@@ -18,11 +18,12 @@ enables developers to write code in native language instead of DSL's specific to
 
 zkLLVM extends:
 1. `clang/clang++` : Compiles the program into general intermediate representation byte-code from C/C++.
-2. `assigner` Creates the circuit execution trace (a.k.a. assignment table) and produces data, needed by the prover to produce proof.
+2. `rustc`: Compiles the program into general intermediate representation byte-code from Rust. (https://github.com/NilFoundation/zkllvm-rslang)
+3. `assigner` Creates the circuit execution trace (a.k.a. assignment table) and produces data, needed by the prover to produce proof.
 
 Languages currently supported are:
 1. C/C++ (all the standards Clang 15 supports).
-2. Rust (coming up soon).
+2. Rust (https://github.com/NilFoundation/zkllvm-rslang).
 3. Your language suggestions are warmly welcomed in Telegram (https://t.me/nilfoundation) or on Discord (https://discord.gg/KmTAEjbmM3).
 
 ## Building
@@ -73,19 +74,18 @@ make -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)
 
 zkLLVM's workflow is as follows:
 
-1. **Write Circuit :** Users wishing to prove some statement are supposed to implement an application in a language compatible with some frontend (C++ for now). This code will be compiled with a modified version of the `clang` compiler, which will output intermediate representation of the circuit.
+1. **Write Circuit :** Users willing to prove some statement are supposed to implement an application in a language compatible with some frontend (C++ for now). This code will be compiled with a modified version of the `clang` compiler, which will output intermediate representation of the circuit.
    ![compile](./docs/assets/compile.png)
    > For the most performant cryptography circuits (e.g. hashes, signatures, VDFs, proof system verifications, etc.) 
    > we recommend using [=nil; Foundation's Crypto3 library](https://github.com/nilfoundation/crypto3.git).
 
    ![compile](./docs/assets/transpile.png)
-  The circuit developer will be generating the smart contracts for the circuits they have created. This will enable on-chain verification of the proof. 
-  The smart contracts consist of gate representations of the circuit. These contracts work in conjunction with the placeholder proof validation smart contracts.
+  The circuit developer will be generating the in-EVM applications for the circuits they have created. This will enable on-chain verification of the proof. 
+  The in-EVM logic consists of gate representations of the circuit. These contracts work in conjunction with the Placeholder proof validation in-EVM logic.
   The process to transpile the circuit into smart contracts is handled by the [lorem-ipsum](https://github.com/NilFoundation/lorem-ipsum-cli)
   project.
 
-2. **Publish Circuit/Generate Proof**: zkLLVM is tightly coupled with [=nil; Foundation's Proof Market](https://proof.market.nil.foundation). Users willing to generate a 
-   proof for the circuit, will be matched with counter-parties based on price and other conditions.
+2. **Publish Circuit/Generate Proof**: zkLLVM is tightly coupled with [=nil; Foundation's Proof Market](https://proof.market.nil.foundation). Users willing to generate a proof for the circuit, will be matched with counter-parties based on price and other conditions.
    The circuit generated above needs to be published to proof market to enable this. 
    ![publish](./docs/assets/publish.png)
  
@@ -94,8 +94,7 @@ To generate a proof it is required to pass the following to the proof generator:
     * Circuit : Arithmetization of the circuit.
     * Inputs: Public (and private) inputs to circuit part of the proof request. 
 
-This generates the binary proof file. This flow is handled by the [proof market toolchain](https://github.com/NilFoundation/proof-market-toolchain) repository 
-& documented [here](https://docs.nil.foundation/proof-market/market/user-guides/proof-producer).   
+This generates the binary proof file. This flow is handled by the [proof market toolchain](https://github.com/NilFoundation/proof-market-toolchain) repository & documented [here](https://docs.nil.foundation/proof-market/market/user-guides/proof-producer).   
 
 Users can generate & inspect intermediate artifacts such as execution trace by running the `assigner` process. See examples below.
 
