@@ -203,18 +203,22 @@ int main(int argc, char *argv[]) {
             break;
         }
         case 1: {
+            std::cerr << "command line argument -e 1: vesta curve is not supported yet" << std::endl;
             assert(1==0 && "vesta curve is not supported yet");
             break;
         }
         case 2: {
+            std::cerr << "command line argument -e 2: ed25519 curve is not supported yet" << std::endl;
             assert(1==0 && "ed25519 curve is not supported yet");
             break;
         }
         case 3: {
+            std::cerr << "command line argument -e 3: bls12381 curve is not supported yet" << std::endl;
             assert(1==0 && "bls12381 curve is not supported yet");
             break;
         }
         default:
+            std::cerr << "invalid command line argument -e" << std::endl;
             assert(1 == 0 && "invalid curve type");
     };
 }
