@@ -48,13 +48,18 @@ jobs:
       - name: Print toolchain information
         run: |
           git --version
-          clang --version
+          cc --version
           cmake --version          
 
       - name: Checkout sources
         uses: actions/checkout@v3
         with:
           submodules: 'recursive'
+
+      - name: Enable ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}
 
       - name: Install boost
         uses: MarkusJx/install-boost@v2.4.1
@@ -74,6 +79,7 @@ jobs:
         run: |
           cmake -G "Unix Makefiles" \
             -B ${ZKLLVM_BUILD:-build} \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_BUILD_TYPE=Release \
             -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
 
