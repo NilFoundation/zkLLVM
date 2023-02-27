@@ -29,7 +29,7 @@ function(add_circuit name)
     set(prefix ARG)
     set(noValues "")
     set(singleValues SOURCE)
-    set(multiValues INCLUDE_DIRECTORIES)
+    set(multiValues INCLUDE_DIRECTORIES CLANG_OPTIONS)
     cmake_parse_arguments(${prefix}
                           "${noValues}"
                           "${singleValues}"
@@ -78,7 +78,7 @@ function(add_circuit name)
     add_custom_target(${name} COMMAND_EXPAND_LISTS VERBATIM
 
                        COMMAND $<TARGET_FILE:clang> -target assigner -Xclang -no-opaque-pointers -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1
-                       ${format_option} -o ${binary_name} ${ARG_SOURCE}
+                       ${format_option} ${ARG_CLANG_OPTIONS} -o ${binary_name} ${ARG_SOURCE}
 
                       SOURCES ${ARG_SOURCE})
     set_target_properties(${name} PROPERTIES
