@@ -75,3 +75,10 @@ set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
 add_subdirectory(examples)
+
+install(TARGETS assigner RUNTIME DESTINATION bin)
+
+SET(CPACK_GENERATOR DEB)
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "=nil; Foundation")
+
+include(CPack)
