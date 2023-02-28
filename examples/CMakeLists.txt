@@ -8,7 +8,10 @@ endmacro()
 add_example(arithmetics_example SOURCE arithmetics.cpp)
 add_example(poseidon_example SOURCE poseidon.cpp INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../libs/crypto3)
 add_example(sha256_example SOURCE sha2-256.cpp INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/../libs/crypto3)
-add_example(polynomial_example SOURCE polynomial.cpp CLANG_OPTIONS -std=c++20)
+
+add_example(polynomial_example SOURCE polynomial.cpp)
+set_target_properties(polynomial_example PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED TRUE)
+
 add_example(pallas_curve_addition_example SOURCE pallas_curve_examples/pallas_curve_add.cpp)
 add_example(pallas_curve_multiplication_example SOURCE pallas_curve_examples/pallas_curve_mul.cpp)
 add_example(pallas_curve_mul_add_example SOURCE pallas_curve_examples/pallas_curve_mul_add.cpp)

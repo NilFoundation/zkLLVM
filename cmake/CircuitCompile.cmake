@@ -29,7 +29,7 @@ function(add_circuit name)
     set(prefix ARG)
     set(noValues "")
     set(singleValues SOURCE)
-    set(multiValues INCLUDE_DIRECTORIES CLANG_OPTIONS)
+    set(multiValues INCLUDE_DIRECTORIES)
     cmake_parse_arguments(${prefix}
                           "${noValues}"
                           "${singleValues}"
@@ -63,7 +63,7 @@ function(add_circuit name)
         endif()
         list(APPEND INCLUDE_DIRS_LIST "-I${include_dir}")
     endforeach()
-    list(APPEND INCLUDE_DIRS_LIST -I${CMAKE_SOURCE_DIR}/libs/stdlib/libcpp -I${CMAKE_SOURCE_DIR}/libs/stdlib/libc/include )
+    list(APPEND INCLUDE_DIRS_LIST -I${CMAKE_SOURCE_DIR}/libs/stdlib/libcpp -I${CMAKE_SOURCE_DIR}/libs/stdlib/libc/include)
 
     list(REMOVE_DUPLICATES INCLUDE_DIRS_LIST)
 
@@ -78,11 +78,9 @@ function(add_circuit name)
     add_custom_target(${name} COMMAND_EXPAND_LISTS VERBATIM
 
                        COMMAND $<TARGET_FILE:clang> -target assigner -Xclang -no-opaque-pointers -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1
-                       ${format_option} ${ARG_CLANG_OPTIONS} -o ${binary_name} ${ARG_SOURCE}
+                       ${format_option} -o ${binary_name} ${ARG_SOURCE}
 
                       SOURCES ${ARG_SOURCE})
     set_target_properties(${name} PROPERTIES
-                          CXX_STANDARD 20
-                          CXX_STANDARD_REQUIRED TRUE
                           OUTPUT_NAME ${binary_name})
 endfunction(add_circuit)
