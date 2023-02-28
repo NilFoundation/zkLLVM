@@ -33,39 +33,15 @@ macro(add_example example_target)
     add_dependencies(circuit_examples "${example_target}")
 endmacro()
 
-add_example(arithmetics_example
-
-            SOURCES arithmetics.cpp)
-
-add_example(poseidon_example SOURCES poseidon.cpp
-
-            INCLUDE_DIRECTORIES
-            ${CMAKE_CURRENT_SOURCE_DIR}/../libs/crypto3)
-
-add_example(sha256_example
-            SOURCES sha2-256.cpp
-
-            INCLUDE_DIRECTORIES
-            ${CMAKE_CURRENT_SOURCE_DIR}/../libs/crypto3)
-
-add_example(polynomial_example
-            SOURCES polynomial.cpp)
-
-set_target_properties(polynomial_example PROPERTIES
-                      CXX_STANDARD 20
-                      CXX_STANDARD_REQUIRED TRUE)
-
+add_example(arithmetics_example SOURCES arithmetics.cpp)
+add_example(poseidon_example SOURCES poseidon.cpp)
+add_example(sha256_example SOURCES sha2-256.cpp)
+add_example(polynomial_example SOURCES polynomial.cpp)
 add_example(pallas_curve_addition_example
             SOURCES pallas_curve_examples/pallas_curve_add.cpp)
-
 add_example(pallas_curve_multiplication_example
             SOURCES pallas_curve_examples/pallas_curve_mul.cpp)
-
 add_example(pallas_curve_mul_add_example
             SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp)
-
-add_example(ed25519_curve_add
-            SOURCES ed25519_curve_add.cpp)
-
-add_example(balance_example
-            SOURCES balance.cpp)
+add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp)
+add_example(balance_example SOURCES balance.cpp)
