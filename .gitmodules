@@ -70,3 +70,15 @@
 [submodule "libs/stdlib"]
 	path = libs/stdlib
 	url = ../../NilFoundation/zkllvm-stdlib.git
+[submodule "libs/crypto3/kdf"]
+	path = libs/crypto3/kdf
+	url = git@github.com:nilfoundation/crypto3-kdf.git
+[submodule "libs/crypto3/vdf"]
+	path = libs/crypto3/vdf
+	url = git@github.com:nilfoundation/crypto3-vdf.git
+[submodule "libs/crypto3/pbkdf"]
+	path = libs/crypto3/pbkdf
+	url = git@github.com:nilfoundation/crypto3-pbkdf.git
+[submodule "libs/crypto3/passhash"]
+	path = libs/crypto3/passhash
+	url = git@github.com:nilfoundation/crypto3-passhash.git
