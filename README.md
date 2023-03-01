@@ -39,10 +39,10 @@ Languages currently supported are:
 * [CMake](https://cmake.org/) >= 3.5
 * [Clang](https://clang.llvm.org/) >= 12.0
 
-On \*nix systems, the following dependencies need to be present & can be installed using the following command
+On Debian systems, everything except Boost can be installed with the following command:
 
 ```
- sudo apt install build-essential libssl-dev libboost-all-dev cmake clang-12 git
+sudo apt install build-essential libssl-dev cmake clang-12 git
 ```
 
 #### 1. Clone the repository
