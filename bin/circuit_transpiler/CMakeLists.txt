@@ -7,7 +7,7 @@
 # http://www.boost.org/LICENSE_1_0.txt
 #---------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 
 cm_find_package(CM)
 include(CMDeploy)
