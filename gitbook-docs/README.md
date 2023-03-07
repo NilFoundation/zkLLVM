@@ -1,31 +1,54 @@
 ---
-description: Compile zero knowledge proof systems in high-level programming languages
+description: Compile zero-knowledge proof systems in high-level programming languages
 ---
 
 # zkLLVM
 
-## =nil; zkLLVM Project
+## `=nil;` zkLLVM Project
 
-zkLLVM is compiler from high-level programming languages into input for provable computations protocols. It can be used to generate input for any arbitrary zero-knowledge proof system or protocol, which accepts input data in form of algebraic circuits.It is assumed to be used together with `placeholder` proof system or any arithmetization compatible with `placeholder` which is a derivative of PLONK proof system.
+zkLLVM is a compiler from high-level programming languages into input for provable computation protocols.
+Developers can use zkLLVM to generate inputs for any arbitrary zero-knowledge proof system or protocol
+that accepts input data in the form of algebraic circuits.
+It can be used with the Placeholder proof system — a derivative of PLONK —
+or any other compatible arithmetization.
 
-It is designed as an extension to LLVM tool chain , thus supports any front end which compiles to LLVM IR. This enables developers to write code in native language instead of DLS's specific to other libraries.
+zkLLVM is an extension to the LLVM toolchain, supporting any frontend that compiles to
+[LLVM intermediate representation](https://llvm.org/docs/LangRef.html#introduction).
+With zkLLVM, developers can write code in native languages instead of DSLs specific to other tools.
 
-zkLLVM tool chain adds extensions via:&#x20;
+zkLLVM toolchain has two main tools:
 
-1. `clang` : Compiles the program into intermediate representation byte-code.
-2. `assigner` : Creates the assignment table for circuit.
+1.  `clang` compiles the program into a circuit — an intermediate representation in bytecode.
+2.  `assigner` creates an assignment table using the compiled circuit and input data.
 
-### Tool Chain
+### Zero-knowledge proof workflow with zkLLVM
 
-Below we look at flow of how the zkLLVM tool chain is invoked:
+zkLLVM toolchain is a crucial part of the zero-knowledge proof verification workflow.
+Here's how it all works.
 
-1. Users who wish to **generate a provable circuit**, will write their code in a compatible front end ex: C++. This code will be compiled with the modified version of the `clang` compiler , which will output byte-code representation of the circuit.  For the most performant circuit components  we recommend using crypto3 library , however this is not essential.
-2.  Users who wish to **generate a proof for the circuit** , will require to run the `assigner` along with the circuit generated above and pass the public inputs & witness (if necessary). This will output two files:
+1.  First, the companies who want to prove transactions develop their code in a compatible language, like C++.
+    They compile it with zkLLVM into a circuit — a provable bytecode representation of the application.
+    
+    {% hint style="info" %}
+    `=nil;` recommends using [Crypto3 library](https://docs.nil.foundation/crypto3/)
+    for developing most performant circuit components.
+    {% endhint %}
 
-    * Constraint : Binary file representing arithmetization of the circuit.
-    * Assignment Table: Binary file pre-processed with public inputs & witness.
+1.  To prove a particular transaction, the proof requester
+    combines the circuit with the inputs of that transaction in the `assigner`
+    and gets two binary files:
+    
+    * Constraint, which represents the arithmetization of the circuit.
+    * Assignment table, which contains pre-processed public inputs.
 
-    The constraint and assignment table generated above should be passed as in input to proof generator binary. This will output a binary proof file.
-3. Proof verification is not part of the zkLLVM tool-chain currently, can be done via:&#x20;
-   1. Offline : Tooling to support validation of off-chain proof will be added in future.
-   2. On-chain : This involves a more steps which requires serialisation of the circuit and deployed on blockchain clusters. This flow of generating smart contracts is handled by the [lorem-ipsum](https://github.com/NilFoundation/lorem-ipsum-cli) project. A high level flow is described in the guides for [circuit developer](manual/getting-started/circuit-generation.md) & [proof verifier](manual/getting-started/proof-verifier.md).
+3.  Proof producers use these files to verify the proof.
+    They return a verified proof to the requester if the form of another binary file.
+    There are two general approaches to verification: on-chain and off-chain:
+    
+    *   On-chain verification requires serialisation of the circuit and is deployed on blockchain clusters.
+        The [lorem-ipsum](https://github.com/NilFoundation/lorem-ipsum-cli) project
+        handles this flow of generating smart contracts.
+    *   Support for off-chain proof verification with `=nil;` tools will be added in the future.
+
+For more details about the workflow, read the guides for [circuit developers](manual/getting-started/circuit-generation.md)
+and [proof verifiers](manual/getting-started/proof-verifier.md).
