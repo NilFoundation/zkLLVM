@@ -35,7 +35,9 @@ endmacro()
 
 add_example(arithmetics_example SOURCES arithmetics.cpp)
 add_example(poseidon_example SOURCES poseidon.cpp)
-add_example(sha256_example SOURCES sha2-256.cpp)
+add_example(bls12_381_example SOURCES bls12_381.cpp)
+add_example(sha256_example SOURCES sha2_256.cpp)
+add_example(merkle_tree_example SOURCES merkle_tree.cpp)
 add_example(polynomial_example SOURCES polynomial.cpp)
 add_example(pallas_curve_addition_example
             SOURCES pallas_curve_examples/pallas_curve_add.cpp)
