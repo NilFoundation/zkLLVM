@@ -49,17 +49,19 @@ jobs:
         run: |
           git --version
           cc --version
-          cmake --version          
+          cmake --version
+          sysctl -a
 
       - name: Checkout sources
         uses: actions/checkout@v3
         with:
           submodules: 'recursive'
+          fetch-depth: 0
 
-      - name: Enable ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: ${{ github.job }}
+      # - name: Enable ccache
+      #   uses: hendrikmuhs/ccache-action@v1.2
+      #   with:
+      #     key: ${{ github.job }}
 
 #      - name: Install boost
 #        uses: MarkusJx/install-boost@v2.4.1
@@ -79,23 +81,28 @@ jobs:
         run: |
           cmake -G "Unix Makefiles" \
             -B build \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
             -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
 
       - name: Build zkllvm
         run: |
-          make -C build assigner clang -j$(sysctl -n hw.logicalcpu)
+          make -C build avxtest -j$(sysctl -n hw.logicalcpu)
 
       - name: Build examples
         run: |
-          make -C build circuit_examples -j$(nproc)
-          ls -al ./build/examples
+          # make -C build circuit_examples -j$(nproc)
+          # ls -al ./build/examples
+          grep 1.cpp ./build/compile_commands.json
+
+      - name: Prepare lldb script
+        run: |
+          echo r >./build/ls.txt
+          echo bt >>./build/ls.txt
+          echo q >>./build/ls.txt
+          lldb --version
 
       - name: Build circuits
         run: |
-          build/bin/assigner/assigner \
-            -b build/examples/arithmetics_example.ll \
-            -i examples/arithmetics.inp \
-            -t assignment.tbl \
-            -c circuit.crct
+          lldb -s ./build/ls.txt -- build/bin/assigner/avxtest
+          # make -C build arithmetics_example_run

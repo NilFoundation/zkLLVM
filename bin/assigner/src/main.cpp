@@ -74,12 +74,15 @@ void print_circuit(const ConstraintSystemType &circuit, std::ostream &out = std:
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     auto filled_val =
         nil::crypto3::marshalling::types::fill_plonk_constraint_system<ConstraintSystemType, Endianness>(circuit);
+    std::cout << "Filled " << filled_val.length() << std::endl;
 
-    std::vector<std::uint8_t> cv;
-    cv.resize(filled_val.length(), 0x00);
+    std::vector<std::uint8_t> cv(filled_val.length(), 0);
+    std::cout << "Resized" << std::endl;
     auto write_iter = cv.begin();
     nil::marshalling::status_type status = filled_val.write(write_iter, cv.size());
+    std::cout << "Written" << std::endl;
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
+    std::cout << "Printed" << std::endl;
 }
 
 template<typename CurveType>
