@@ -45,3 +45,4 @@ add_example(pallas_curve_mul_add_example
             SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp)
 add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp)
 add_example(balance_example SOURCES balance.cpp)
+add_example(memory_example SOURCES memory.cpp)
