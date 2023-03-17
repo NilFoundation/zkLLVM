@@ -1,6 +1,6 @@
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 
-#include <nil/crypto3/hash/algorithms/hash.hpp>
+#include <nil/crypto3/hash/algorithm/hash.hpp>
 #include <nil/crypto3/hash/sha2.hpp>
 
 using namespace nil::crypto3::algebra::curves;
