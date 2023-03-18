@@ -57,8 +57,9 @@ void print_sol_file(std::ostream &os, ConstraintSystemType &constraint_system,
        << "import \"../types.sol\";\n"
        << "import \"../basic_marshalling.sol\";\n"
        << "import \"../commitments/batched_lpc_verifier.sol\";\n"
+       << "import \"../interfaces/gate_argument.sol\";\n"
        << "\n"
-       << "contract gate_argument_gen {\n"
+       << "contract gate_argument_gen is IGateArgument {\n"
        << "    uint256 constant WITNESSES_N = " << ArithmetizationParams::WitnessColumns << ";\n"
        << "    uint256 constant GATES_N = " << constraint_system.gates().size() << ";\n"
        << "\n"
@@ -304,7 +305,7 @@ void print_hex_byteblob(std::ostream &os, TIter iter_begin, TIter iter_end, bool
 }
 
 template<typename Endianness, typename Proof>
-void proof_print(Proof &proof, std::string output_file) {
+void proof_print(Proof &proof, const std::string &output_file) {
     using namespace nil::crypto3::marshalling;
 
     using TTypeBase = nil::marshalling::field_type<Endianness>;
@@ -481,13 +482,13 @@ int main(int argc, char *argv[]) {
                 nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
             proof_print<Endianness, ProofType>(proof, ofolder_path + "/proof.bin");
             std::cout << "Proof is verified" << std::endl;
+            iassignment.close();
             return 0;
         } else {
             std::cout << "Proof is not verified" << std::endl;
+            iassignment.close();
             return 1;
         }
-
-        iassignment.close();
     }
 
     std::cout << "Done" << std::endl;
