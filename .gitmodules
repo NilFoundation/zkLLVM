@@ -47,8 +47,8 @@
     path = libs/pkmodes
     url = https://github.com/nilfoundation/crypto3-pkmodes.git
 [submodule "libs/zk"]
-    path = libs/zk
-    url = https://github.com/nilfoundation/crypto3-zk.git
+	path = libs/zk
+	url = git@github.com:nilfoundation/crypto3-zk.git
 [submodule "libs/random"]
     path = libs/random
     url = https://github.com/NilFoundation/crypto3-random.git
