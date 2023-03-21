@@ -56,7 +56,7 @@ jobs:
         run: |
           git --version
           cc --version
-          cmake --version    
+          cmake --version
 
       - name: Checkout sources
         uses: actions/checkout@v3
@@ -95,8 +95,4 @@ jobs:
 
       - name: Build circuits
         run: |
-          build/bin/assigner/assigner \
-            -b build/examples/arithmetics_example.ll \
-            -i examples/arithmetics.inp \
-            -t assignment.tbl \
-            -c circuit.crct
+          make -C build run_examples -j$(nproc)
