@@ -1,7 +1,18 @@
 add_custom_target(circuit_examples)
+add_custom_target(run_examples)
 
-macro(add_example example_target)
-    add_circuit(${ARGV}
+function(add_example example_target)
+    set(prefix ARG)
+    set(noValues "")
+    set(singleValues INPUT)
+    set(multiValues SOURCES)
+    cmake_parse_arguments(${prefix}
+                        "${noValues}"
+                        "${singleValues}"
+                        "${multiValues}"
+                        ${ARGN})
+    add_circuit(${example_target}
+                SOURCES ${ARG_SOURCES}
 
                 LINK_LIBRARIES
                 crypto3::algebra
@@ -31,19 +42,35 @@ macro(add_example example_target)
 
                 ${Boost_LIBRARIES})
     add_dependencies(circuit_examples "${example_target}")
-endmacro()
 
-add_example(arithmetics_example SOURCES arithmetics.cpp)
-add_example(poseidon_example SOURCES poseidon.cpp)
-add_example(bls12_381_example SOURCES bls12_381.cpp)
-add_example(sha256_example SOURCES sha2_256.cpp)
-add_example(merkle_tree_example SOURCES merkle_tree.cpp)
-add_example(polynomial_example SOURCES polynomial.cpp)
-add_example(pallas_curve_addition_example
-            SOURCES pallas_curve_examples/pallas_curve_add.cpp)
-add_example(pallas_curve_multiplication_example
-            SOURCES pallas_curve_examples/pallas_curve_mul.cpp)
-add_example(pallas_curve_mul_add_example
-            SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp)
-add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp)
-add_example(balance_example SOURCES balance.cpp)
+    if (CIRCUIT_ASSEMBLY_OUTPUT)
+        set(binary_name ${example_target}.ll)
+    else()
+        set(binary_name ${example_target}.bc)
+    endif()
+    add_custom_target(${example_target}_run
+                      COMMAND $<TARGET_FILE:assigner> -b ${binary_name} -i ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_INPUT} -c circuit_${example_target}.crct -t assignment_${example_target}.tbl
+                      DEPENDS ${example_target} ${ARG_INPUT} $<TARGET_FILE:assigner>
+                      COMMAND_EXPAND_LISTS
+                      VERBATIM)
+    add_dependencies(run_examples ${example_target}_run)
+endfunction()
+
+add_example(arithmetics_example SOURCES arithmetics.cpp INPUT arithmetics.inp)
+add_example(poseidon_example SOURCES poseidon.cpp INPUT poseidon.inp)
+add_example(sha256_example SOURCES sha2-256.cpp INPUT sha2-256.inp)
+add_example(balance_example SOURCES balance.cpp INPUT balance.inp)
+add_example(memory_example SOURCES memory.cpp INPUT memory.inp)
+
+# Temporarily disabled
+# add_example(polynomial_example SOURCES polynomial.cpp INPUT polynomial.inp)
+# add_example(pallas_curve_addition_example
+#             SOURCES pallas_curve_examples/pallas_curve_add.cpp
+#             INPUT pallas_curve_examples/pallas_curve_add.inp)
+# add_example(pallas_curve_multiplication_example
+#             SOURCES pallas_curve_examples/pallas_curve_mul.cpp
+#             INPUT pallas_curve_examples/pallas_curve_mul.inp)
+# add_example(pallas_curve_mul_add_example
+#             SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
+#             INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
+# add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)

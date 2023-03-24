@@ -82,3 +82,6 @@
 [submodule "libs/crypto3/passhash"]
 	path = libs/crypto3/passhash
 	url = ../../NilFoundation/crypto3-passhash.git
+[submodule "libs/transpiler"]
+	path = libs/transpiler
+	url = ../../NilFoundation/zkllvm-transpiler.git

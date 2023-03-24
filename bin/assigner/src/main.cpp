@@ -53,6 +53,8 @@
 #include <nil/blueprint/utils/table_profiling.hpp>
 #include <nil/blueprint/utils/satisfiability_check.hpp>
 
+#include <llvm/Support/CommandLine.h>
+
 using namespace nil;
 using namespace nil::crypto3;
 
@@ -131,9 +133,10 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 5;
     constexpr std::size_t ConstantColumns = 5;
+    constexpr std::size_t SelectorColumns = 50;
 
     using ArithmetizationParams =
-        zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns>;
+        zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
     using ConstraintSystemType = zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
 
     std::vector<typename BlueprintFieldType::value_type> public_input;
@@ -150,6 +153,9 @@ int main(int argc, char *argv[]) {
     }
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
 
+    const char *llvm_arguments[2] = {"", "-opaque-pointers=0"};
+    llvm::cl::ParseCommandLineOptions(2, llvm_arguments);
+
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
     if (module == nullptr) {
         return 1;
@@ -162,7 +168,6 @@ int main(int argc, char *argv[]) {
     zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams> desc;
     desc.usable_rows_amount = parser_instance.assignmnt.rows_amount();
     desc.rows_amount = zk::snark::basic_padding(parser_instance.assignmnt);
-    desc.selector_columns = parser_instance.assignmnt.selectors_amount();
 
     std::ofstream otable;
     otable.open(assignment_table_file_name);
