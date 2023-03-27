@@ -53,6 +53,8 @@
 #include <nil/blueprint/utils/table_profiling.hpp>
 #include <nil/blueprint/utils/satisfiability_check.hpp>
 
+#include <llvm/Support/CommandLine.h>
+
 using namespace nil;
 using namespace nil::crypto3;
 
@@ -112,6 +114,9 @@ bool curve_dependent_main(std::string bytecode_file_name,
         public_input.push_back(number);
     }
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
+
+    const char *llvm_arguments[2] = {"", "-opaque-pointers=0"};
+    llvm::cl::ParseCommandLineOptions(2, llvm_arguments);
 
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
     if (module == nullptr) {
