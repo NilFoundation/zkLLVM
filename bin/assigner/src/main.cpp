@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
             ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
-            ("elliptic-curve-type,e", boost::program_options::value<int>(), "Native elliptic curve type (0=pallas, 1=vesta, 2=ed25519, 3=bls12381)");
+            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)");
     // clang-format on
 
     boost::program_options::variables_map vm;
@@ -175,50 +175,82 @@ int main(int argc, char *argv[]) {
     std::string public_input_file_name;
     std::string assignment_table_file_name;
     std::string circuit_file_name;
-    int elliptic_curve;
+    std::string elliptic_curve;
 
     if (vm.count("bytecode")) {
         bytecode_file_name = vm["bytecode"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - bytecode file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
     if (vm.count("public-input")) {
         public_input_file_name = vm["public-input"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - public input file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
     if (vm.count("assignment-table")) {
         assignment_table_file_name = vm["assignment-table"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
     if (vm.count("circuit")) {
         circuit_file_name = vm["circuit"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
     if (vm.count("elliptic-curve-type")) {
-        elliptic_curve = vm["elliptic-curve-type"].as<int>();
+        elliptic_curve = vm["elliptic-curve-type"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - elliptic curve type is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
-    switch (elliptic_curve) {
+    std::map<std::string, int> curve_options{
+        {"pallas", 0},
+        {"vesta", 1},
+        {"ed25519", 2},
+        {"bls12-381", 3},
+    };
+
+    if (curve_options.find(elliptic_curve) == curve_options.end()) {
+        std::cerr << "Invalid command line argument -e (Native elliptic curve type): " << elliptic_curve << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    switch (curve_options[elliptic_curve]) {
         case 0: {
             return curve_dependent_main<typename algebra::curves::pallas>(bytecode_file_name, public_input_file_name, assignment_table_file_name, circuit_file_name);
             break;
         }
         case 1: {
-            std::cerr << "command line argument -e 1: vesta curve is not supported yet" << std::endl;
-            assert(1==0 && "vesta curve is not supported yet");
+            std::cerr << "command line argument -e vesta is not supported yet" << std::endl;
+            assert(1==0 && "vesta curve based circuits are not supported yet");
             break;
         }
         case 2: {
-            std::cerr << "command line argument -e 2: ed25519 curve is not supported yet" << std::endl;
-            assert(1==0 && "ed25519 curve is not supported yet");
+            std::cerr << "command line argument -e ed25519 is not supported yet" << std::endl;
+            assert(1==0 && "ed25519 curve based circuits are not supported yet");
             break;
         }
         case 3: {
-            std::cerr << "command line argument -e 3: bls12381 curve is not supported yet" << std::endl;
-            assert(1==0 && "bls12381 curve is not supported yet");
+            std::cerr << "command line argument -e bls12-381 is not supported yet" << std::endl;
+            assert(1==0 && "bls12-381 curve based circuits are not supported yet");
             break;
         }
-        default:
-            std::cerr << "invalid command line argument -e" << std::endl;
-            assert(1 == 0 && "invalid curve type");
     };
+
+    return 0;
 }
