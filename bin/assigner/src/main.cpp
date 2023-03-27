@@ -26,8 +26,6 @@
 #define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <boost/random.hpp>
-#include <boost/random/random_device.hpp>
 #include <boost/json/src.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/optional.hpp>
