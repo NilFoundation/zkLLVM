@@ -3,6 +3,19 @@
 #include <vector>
 #include <random>
 
+#ifndef BOOST_FILESYSTEM_NO_DEPRECATED
+#define BOOST_FILESYSTEM_NO_DEPRECATED
+#endif
+#ifndef BOOST_SYSTEM_NO_DEPRECATED
+#define BOOST_SYSTEM_NO_DEPRECATED
+#endif
+
+#include <boost/json/src.hpp>
+#include <boost/circular_buffer.hpp>
+#include <boost/optional.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 #include <nil/crypto3/algebra/fields/arithmetic_params/pallas.hpp>
 
@@ -322,60 +335,69 @@ void proof_print(Proof &proof, const std::string &output_file) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        std::cout << "There are two commands:" << std::endl
-                  << "gen_test_proof prepares gate argument, placeholder params and sample proof for testing"
-                  << std::endl
-                  << "gen_gate_argument prepares gate argument and some placeholder params" << std::endl;
+
+    boost::program_options::options_description options_desc("zkLLVM circuit EVM gate argument transpiler");
+
+    // clang-format off
+    options_desc.add_options()("help,h", "Display help message")
+            ("version,v", "Display version")
+            ("mode,m", boost::program_options::value<std::string>(), "Transpiler mode (gen-test-proof, gen-gate-argument).\
+            gen-test-proof prepares gate argument, placeholder params and sample proof for testing.\
+            gen-gate-argument prepares gate argument and some placeholder params")
+            ("input-folder-path,in", boost::program_options::value<std::string>(), "Input folder path")
+            ("output-folder-path,out", boost::program_options::value<std::string>(), "Output folder path.\
+            It'll be better to create an empty folder for output");
+    // clang-format on
+
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(),
+                                  vm);
+    boost::program_options::notify(vm);
+
+    if (vm.count("help")) {
+        std::cout << options_desc << std::endl;
+        return 0;
+    }
+
+    std::string mode;
+    std::string input_folder_path;
+    std::string output_folder_path;
+    
+    if (vm.count("mode")) {
+        mode = vm["mode"].as<std::string>();
+    } else {
+        std::cerr << "Invalid mode specified" << std::endl;
+        std::cout << options_desc << std::endl;
         return 1;
     }
 
-    std::string command = argv[1];
+    if (mode != "gen-test-proof" && mode != "gen-gate-argument") {
+        std::cerr << "Invalid mode specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    if (vm.count("input-folder-path")) {
+        input_folder_path = vm["input-folder-path"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - input folder path is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    if (vm.count("output-folder-path")) {
+        output_folder_path = vm["output-folder-path"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - output folder path is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
     std::string ifile_path;
     std::string iassignment_path;
-    std::string ifolder_path;
-    std::string ofolder_path;
 
-    if (command == "gen_test_proof") {
-        if (argc < 4) {
-            std::cout << "First parameter marshalled plonk_constraint_system file path" << std::endl
-                      << "1st parameter is a command gen_gate_argument or gen_test_proof" << std::endl
-                      << "2nd parameter is input folder path" << std::endl
-                      << "3th parameter is output folder path" << std::endl
-                      << "It'll be better to create an empty folder for output" << std::endl
-                      << "Copy output folder to evm-placeholder-verification" << std::endl;
-            return 1;
-        }
-        if (argc > 4) {
-            std::cout << "This program is not so complex yet" << std::endl;
-            return 1;
-        }
-        std::cout << "proof" << std::endl;
-        ifolder_path = argv[2];
-        ofolder_path = argv[3];
-    } else if (command == "gen_gate_argument") {
-        if (argc < 4) {
-            std::cout << "First parameter marshalled plonk_constraint_system file path" << std::endl
-                      << "1st parameter is a command gen_gate_argument or gen_test_proof" << std::endl
-                      << "2nd parameter is input folder path" << std::endl
-                      << "3th parameter is output folder path" << std::endl
-                      << "It'll be better to create an empty folder for output" << std::endl
-                      << "Copy output folder to evm-placeholder-verification" << std::endl;
-            return 1;
-        }
-        if (argc > 4) {
-            std::cout << "This program is not so complex yet" << std::endl;
-            return 0;
-        }
-        ifolder_path = argv[2];
-        ofolder_path = argv[3];
-        std::cout << "gate_argument" << std::endl;
-    } else {
-        std::cout << "Unknown command " << argv[1] << std::endl;
-        return 1;
-    }
-    ifile_path = ifolder_path + "/circuit.bin";
-    iassignment_path = ifolder_path + "/assignment_table.data";
+    ifile_path = input_folder_path + "/circuit.crct";
+    iassignment_path = output_folder_path + "/assignment.tbl";
 
     std::ifstream ifile;
     std::ofstream ofile;
@@ -443,7 +465,7 @@ int main(int argc, char *argv[]) {
 
     using FRIScheme =
         typename nil::crypto3::zk::commitments::fri<BlueprintFieldType, typename placeholder_params::merkle_hash_type,
-                                                    typename placeholder_params::transcript_hash_type, 2, 1>;
+                                                    typename placeholder_params::transcript_hash_type, Lambda, 2, 4>;
     using FRIParamsType = typename FRIScheme::params_type;
 
     std::size_t table_rows_log = std::ceil(std::log2(table_description.rows_amount));
@@ -451,14 +473,14 @@ int main(int argc, char *argv[]) {
     std::size_t permutation_size =
         table_description.witness_columns + table_description.public_input_columns + table_description.constant_columns;
 
-    if (command == "gen_gate_argument") {
+    if (mode == "gen-gate-argument") {
         print_sol_files<ProfilingType, ConstraintSystemType, ColumnsRotationsType, ArithmetizationParams>(
-            constraint_system, columns_rotations, ofolder_path);
+            constraint_system, columns_rotations, output_folder_path);
         print_params<FRIParamsType, TableDescriptionType, ColumnsRotationsType, ArithmetizationParams>(
-            fri_params, table_description, columns_rotations, ofolder_path);
+            fri_params, table_description, columns_rotations, output_folder_path);
     }
 
-    if (command == "gen_test_proof") {
+    if (mode == "gen-test-proof") {
         typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
             nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
@@ -480,7 +502,7 @@ int main(int argc, char *argv[]) {
         if (verifier_res) {
             auto filled_placeholder_proof =
                 nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
-            proof_print<Endianness, ProofType>(proof, ofolder_path + "/proof.bin");
+            proof_print<Endianness, ProofType>(proof, output_folder_path + "/proof.bin");
             std::cout << "Proof is verified" << std::endl;
             iassignment.close();
             return 0;
@@ -491,6 +513,5 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    std::cout << "Done" << std::endl;
     return 0;
 }
