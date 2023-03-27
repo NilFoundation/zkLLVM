@@ -26,8 +26,6 @@
 #define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <boost/random.hpp>
-#include <boost/random/random_device.hpp>
 #include <boost/json/src.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/optional.hpp>
@@ -84,52 +82,12 @@ void print_circuit(const ConstraintSystemType &circuit, std::ostream &out = std:
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
-int main(int argc, char *argv[]) {
-
-    boost::program_options::options_description options_desc("zkLLVM assigner");
-
-    // clang-format off
-    options_desc.add_options()("help,h", "Display help message")
-            ("version,v", "Display version")
-            ("bytecode,b", boost::program_options::value<std::string>(), "Bytecode input file")
-            ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
-            ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
-            ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file");
-    // clang-format on
-
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(),
-                                  vm);
-    boost::program_options::notify(vm);
-
-    if (vm.count("help")) {
-        std::cout << options_desc << std::endl;
-        return 0;
-    }
-
-    std::string bytecode_file_name;
-    std::string public_input_file_name;
-    std::string assignment_table_file_name;
-    std::string circuit_file_name;
-
-    if (vm.count("bytecode")) {
-        bytecode_file_name = vm["bytecode"].as<std::string>();
-    }
-
-    if (vm.count("public-input")) {
-        public_input_file_name = vm["public-input"].as<std::string>();
-    }
-
-    if (vm.count("assignment-table")) {
-        assignment_table_file_name = vm["assignment-table"].as<std::string>();
-    }
-
-    if (vm.count("circuit")) {
-        circuit_file_name = vm["circuit"].as<std::string>();
-    }
-
-    using curve_type = algebra::curves::pallas;
-    using BlueprintFieldType = typename curve_type::base_field_type;
+template<typename CurveType>
+bool curve_dependent_main(std::string bytecode_file_name,
+                          std::string public_input_file_name,
+                          std::string assignment_table_file_name,
+                          std::string circuit_file_name) {
+    using BlueprintFieldType = typename CurveType::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 5;
     constexpr std::size_t ConstantColumns = 5;
@@ -140,7 +98,6 @@ int main(int argc, char *argv[]) {
     using ConstraintSystemType = zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
 
     std::vector<typename BlueprintFieldType::value_type> public_input;
-    long long number;
     auto fptr = std::fopen(public_input_file_name.c_str(), "r");
     if (fptr == NULL) {
         std::cerr << "Could not open the file - '" << public_input_file_name << "'" << std::endl;
@@ -148,7 +105,10 @@ int main(int argc, char *argv[]) {
     }
 
     while (!std::feof(fptr)) {
-        fscanf(fptr, "%lld\n", &number);
+        char input_string[256];
+        fscanf(fptr, "%s\n", input_string);
+        typename CurveType::base_field_type::extended_integral_type number(input_string);
+        assert(number < BlueprintFieldType::modulus && "input does not fit into BlueprintFieldType");
         public_input.push_back(number);
     }
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
@@ -188,4 +148,112 @@ int main(int argc, char *argv[]) {
     ocircuit.close();
 
     return !nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignmnt);
+}
+
+int main(int argc, char *argv[]) {
+
+    boost::program_options::options_description options_desc("zkLLVM assigner");
+
+    // clang-format off
+    options_desc.add_options()("help,h", "Display help message")
+            ("version,v", "Display version")
+            ("bytecode,b", boost::program_options::value<std::string>(), "Bytecode input file")
+            ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
+            ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
+            ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
+            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)");
+    // clang-format on
+
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(),
+                                  vm);
+    boost::program_options::notify(vm);
+
+    if (vm.count("help")) {
+        std::cout << options_desc << std::endl;
+        return 0;
+    }
+
+    std::string bytecode_file_name;
+    std::string public_input_file_name;
+    std::string assignment_table_file_name;
+    std::string circuit_file_name;
+    std::string elliptic_curve;
+
+    if (vm.count("bytecode")) {
+        bytecode_file_name = vm["bytecode"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - bytecode file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    if (vm.count("public-input")) {
+        public_input_file_name = vm["public-input"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - public input file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    if (vm.count("assignment-table")) {
+        assignment_table_file_name = vm["assignment-table"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    if (vm.count("circuit")) {
+        circuit_file_name = vm["circuit"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    if (vm.count("elliptic-curve-type")) {
+        elliptic_curve = vm["elliptic-curve-type"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - elliptic curve type is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    std::map<std::string, int> curve_options{
+        {"pallas", 0},
+        {"vesta", 1},
+        {"ed25519", 2},
+        {"bls12-381", 3},
+    };
+
+    if (curve_options.find(elliptic_curve) == curve_options.end()) {
+        std::cerr << "Invalid command line argument -e (Native elliptic curve type): " << elliptic_curve << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    switch (curve_options[elliptic_curve]) {
+        case 0: {
+            return curve_dependent_main<typename algebra::curves::pallas>(bytecode_file_name, public_input_file_name, assignment_table_file_name, circuit_file_name);
+            break;
+        }
+        case 1: {
+            std::cerr << "command line argument -e vesta is not supported yet" << std::endl;
+            assert(1==0 && "vesta curve based circuits are not supported yet");
+            break;
+        }
+        case 2: {
+            std::cerr << "command line argument -e ed25519 is not supported yet" << std::endl;
+            assert(1==0 && "ed25519 curve based circuits are not supported yet");
+            break;
+        }
+        case 3: {
+            std::cerr << "command line argument -e bls12-381 is not supported yet" << std::endl;
+            assert(1==0 && "bls12-381 curve based circuits are not supported yet");
+            break;
+        }
+    };
+
+    return 0;
 }
