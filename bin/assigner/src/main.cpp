@@ -26,8 +26,6 @@
 #define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <boost/random.hpp>
-#include <boost/random/random_device.hpp>
 #include <boost/json/src.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/optional.hpp>
@@ -53,150 +51,7 @@
 #include <nil/blueprint/utils/table_profiling.hpp>
 #include <nil/blueprint/utils/satisfiability_check.hpp>
 
-#include <iostream>
-#include <vector>
-#include <random>
-
-#include <nil/crypto3/marshalling/zk/types/placeholder/proof.hpp>
-
-#include <nil/crypto3/zk/snark/systems/plonk/placeholder/preprocessor.hpp>
-#include <nil/crypto3/zk/snark/systems/plonk/placeholder/prover.hpp>
-#include <nil/crypto3/zk/snark/systems/plonk/placeholder/verifier.hpp>
-#include <nil/crypto3/zk/snark/systems/plonk/placeholder/params.hpp>
-
-#include <nil/crypto3/math/polynomial/polynomial.hpp>
-#include <nil/crypto3/math/algorithms/calculate_domain_set.hpp>
-
-// #include <nil/blueprint/transpiler/minimized_profiling_plonk_circuit.hpp>
-
-bool read_buffer_from_file(std::ifstream &ifile, std::vector<std::uint8_t> &v) {
-    char c;
-    char c1;
-    uint8_t b;
-
-    ifile >> c;
-    if (c != '0')
-        return false;
-    ifile >> c;
-    if (c != 'x')
-        return false;
-    while (ifile) {
-        std::string str = "";
-        ifile >> c >> c1;
-        if (!isxdigit(c) || !isxdigit(c1))
-            return false;
-        str += c;
-        str += c1;
-        b = stoi(str, 0, 0x10);
-        v.push_back(b);
-    }
-    return true;
-}
-
-template<typename BlueprintFieldType, typename ArithmetizationParams, typename ColumnType>
-std::tuple<std::size_t, std::size_t,
-           nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>>
-    load_assignment_table(std::istream &istr) {
-    using PrivateTableType =
-        nil::crypto3::zk::snark::plonk_private_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
-    using PublicTableType =
-        nil::crypto3::zk::snark::plonk_public_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
-    using TableAssignmentType =
-        nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
-    std::size_t usable_rows;
-    std::size_t rows_amount;
-
-    typename PrivateTableType::witnesses_container_type witness;
-    typename PublicTableType::public_input_container_type public_input;
-    typename PublicTableType::constant_container_type constant;
-    typename PublicTableType::selector_container_type selector;
-
-    istr >> usable_rows;
-    istr >> rows_amount;
-
-    for (size_t i = 0; i < witness.size(); i++) {    // witnesses.size() == ArithmetizationParams.WitnessColumns
-        ColumnType column;
-        typename BlueprintFieldType::integral_type num;
-        for (size_t j = 0; j < rows_amount; j++) {
-            istr >> num;
-            column.push_back(typename BlueprintFieldType::value_type(num));
-        }
-        witness[i] = column;
-    }
-
-    for (size_t i = 0; i < public_input.size(); i++) {    // witnesses.size() == ArithmetizationParams.WitnessColumns
-        ColumnType column;
-        typename BlueprintFieldType::integral_type num;
-        for (size_t j = 0; j < rows_amount; j++) {
-            istr >> num;
-            column.push_back(typename BlueprintFieldType::value_type(num));
-        }
-        public_input[i] = column;
-    }
-
-    for (size_t i = 0; i < constant.size(); i++) {    // witnesses.size() == ArithmetizationParams.WitnessColumns
-        ColumnType column;
-        typename BlueprintFieldType::integral_type num;
-        for (size_t j = 0; j < rows_amount; j++) {
-            istr >> num;
-            column.push_back(typename BlueprintFieldType::value_type(num));
-        }
-        constant[i] = column;
-    }
-    for (size_t i = 0; i < selector.size(); i++) {    // witnesses.size() == ArithmetizationParams.WitnessColumns
-        ColumnType column;
-        typename BlueprintFieldType::integral_type num;
-        for (size_t j = 0; j < rows_amount; j++) {
-            istr >> num;
-            column.push_back(typename BlueprintFieldType::value_type(num));
-        }
-        selector[i] = column;
-    }
-    return std::make_tuple(
-        usable_rows, rows_amount,
-        TableAssignmentType(PrivateTableType(witness), PublicTableType(public_input, constant, selector)));
-}
-
-inline std::vector<std::size_t> generate_random_step_list(const std::size_t r, const int max_step) {
-    using dist_type = std::uniform_int_distribution<int>;
-    static std::random_device random_engine;
-
-    std::vector<std::size_t> step_list;
-    std::size_t steps_sum = 0;
-    while (steps_sum != r) {
-        if (r - steps_sum <= max_step) {
-            while (r - steps_sum != 1) {
-                step_list.emplace_back(r - steps_sum - 1);
-                steps_sum += step_list.back();
-            }
-            step_list.emplace_back(1);
-            steps_sum += step_list.back();
-        } else {
-            step_list.emplace_back(dist_type(1, max_step)(random_engine));
-            steps_sum += step_list.back();
-        }
-    }
-    return step_list;
-}
-
-template<typename FRIScheme, typename FieldType>
-typename FRIScheme::params_type create_fri_params(std::size_t degree_log, const int max_step = 1) {
-    typename FRIScheme::params_type params;
-    nil::crypto3::math::polynomial<typename FieldType::value_type> q = {0, 0, 1};
-
-    constexpr std::size_t expand_factor = 0;
-    std::size_t r = degree_log - 1;
-
-    std::vector<std::shared_ptr<nil::crypto3::math::evaluation_domain<FieldType>>> domain_set =
-        nil::crypto3::math::calculate_domain_set<FieldType>(degree_log + expand_factor, r);
-
-    params.r = r;
-    params.D = domain_set;
-    params.max_degree = (1 << degree_log) - 1;
-    params.step_list = generate_random_step_list(r, max_step);
-
-    return params;
-}
+#include <llvm/Support/CommandLine.h>
 
 using namespace nil;
 using namespace nil::crypto3;
@@ -257,6 +112,9 @@ bool curve_dependent_main(std::string bytecode_file_name,
         public_input.push_back(number);
     }
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
+
+    const char *llvm_arguments[2] = {"", "-opaque-pointers=0"};
+    llvm::cl::ParseCommandLineOptions(2, llvm_arguments);
 
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
     if (module == nullptr) {
@@ -403,7 +261,7 @@ int main(int argc, char *argv[]) {
             ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
-            ("elliptic-curve-type,e", boost::program_options::value<int>(), "Native elliptic curve type (0=pallas, 1=vesta, 2=ed25519, 3=bls12381)");
+            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)");
     // clang-format on
 
     boost::program_options::variables_map vm;
@@ -420,50 +278,82 @@ int main(int argc, char *argv[]) {
     std::string public_input_file_name;
     std::string assignment_table_file_name;
     std::string circuit_file_name;
-    int elliptic_curve;
+    std::string elliptic_curve;
 
     if (vm.count("bytecode")) {
         bytecode_file_name = vm["bytecode"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - bytecode file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
     if (vm.count("public-input")) {
         public_input_file_name = vm["public-input"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - public input file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
     if (vm.count("assignment-table")) {
         assignment_table_file_name = vm["assignment-table"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
     if (vm.count("circuit")) {
         circuit_file_name = vm["circuit"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
     if (vm.count("elliptic-curve-type")) {
-        elliptic_curve = vm["elliptic-curve-type"].as<int>();
+        elliptic_curve = vm["elliptic-curve-type"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - elliptic curve type is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
-    switch (elliptic_curve) {
+    std::map<std::string, int> curve_options{
+        {"pallas", 0},
+        {"vesta", 1},
+        {"ed25519", 2},
+        {"bls12-381", 3},
+    };
+
+    if (curve_options.find(elliptic_curve) == curve_options.end()) {
+        std::cerr << "Invalid command line argument -e (Native elliptic curve type): " << elliptic_curve << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    switch (curve_options[elliptic_curve]) {
         case 0: {
             return curve_dependent_main<typename algebra::curves::pallas>(bytecode_file_name, public_input_file_name, assignment_table_file_name, circuit_file_name);
             break;
         }
         case 1: {
-            std::cerr << "command line argument -e 1: vesta curve is not supported yet" << std::endl;
-            assert(1==0 && "vesta curve is not supported yet");
+            std::cerr << "command line argument -e vesta is not supported yet" << std::endl;
+            assert(1==0 && "vesta curve based circuits are not supported yet");
             break;
         }
         case 2: {
-            std::cerr << "command line argument -e 2: ed25519 curve is not supported yet" << std::endl;
-            assert(1==0 && "ed25519 curve is not supported yet");
+            std::cerr << "command line argument -e ed25519 is not supported yet" << std::endl;
+            assert(1==0 && "ed25519 curve based circuits are not supported yet");
             break;
         }
         case 3: {
-            std::cerr << "command line argument -e 3: bls12381 curve is not supported yet" << std::endl;
-            assert(1==0 && "bls12381 curve is not supported yet");
+            std::cerr << "command line argument -e bls12-381 is not supported yet" << std::endl;
+            assert(1==0 && "bls12-381 curve based circuits are not supported yet");
             break;
         }
-        default:
-            std::cerr << "invalid command line argument -e" << std::endl;
-            assert(1 == 0 && "invalid curve type");
     };
+
+    return 0;
 }
