@@ -152,8 +152,15 @@ template<typename ProfilingType, typename ConstraintSystemType, typename Columns
          typename ArithmetizationParams>
 void print_sol_files(ConstraintSystemType &constraint_system, ColumnsRotationsType &columns_rotations,
                      std::string out_folder_path = ".") {
-    ProfilingType::process_split(constraint_system, columns_rotations, out_folder_path);
+    ProfilingType::process_split(
+        nil::blueprint::main_sol_file_template,
+        nil::blueprint::gate_sol_file_template,
+        constraint_system, 
+        columns_rotations, 
+        out_folder_path
+    );
 }
+
 
 template<typename FRIParamsType, typename TableDescriptionType, typename ColumnsRotationsType,
          typename ArithmetizationParams>
@@ -397,10 +404,9 @@ int main(int argc, char *argv[]) {
     std::string iassignment_path;
 
     ifile_path = input_folder_path + "/circuit.crct";
-    iassignment_path = output_folder_path + "/assignment.tbl";
+    iassignment_path = input_folder_path + "/assignment.tbl";
 
     std::ifstream ifile;
-    std::ofstream ofile;
     ifile.open(ifile_path);
     if (!ifile.is_open()) {
         std::cout << "Cannot find input file " << ifile_path << std::endl;
@@ -432,7 +438,7 @@ int main(int argc, char *argv[]) {
     using value_marshalling_type =
         nil::crypto3::marshalling::types::plonk_constraint_system<TTypeBase, ConstraintSystemType>;
     using ColumnsRotationsType = std::array<std::vector<int>, ArithmetizationParams::total_columns>;
-    using ProfilingType = nil::crypto3::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
+    using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
 
     value_marshalling_type marshalled_data;
     TableDescriptionType table_description;
