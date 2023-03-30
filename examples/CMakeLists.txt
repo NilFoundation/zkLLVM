@@ -63,6 +63,7 @@ add_example(useless_test_example_4_gates SOURCES useless_test_example_4_gates.cp
 add_example(useless_test_example_5_gates SOURCES useless_test_example_5_gates.cpp INPUT useless_test_example_5_gates.inp)
 add_example(useless_test_example_6_gates SOURCES useless_test_example_6_gates.cpp INPUT useless_test_example_6_gates.inp)
 add_example(useless_test_example_7_gates SOURCES useless_test_example_7_gates.cpp INPUT useless_test_example_7_gates.inp)
+add_example(useless_7_arithmetic_2_hashes SOURCES useless_7_arithmetic_2_hashes.cpp INPUT useless_7_arithmetic_2_hashes.inp)
 add_example(poseidon_example SOURCES poseidon.cpp INPUT poseidon.inp)
 add_example(merkle_tree_poseidon SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp)
 # add_example(sha256_example SOURCES sha2-256.cpp INPUT sha2-256.inp)
@@ -71,13 +72,13 @@ add_example(memory_example SOURCES memory.cpp INPUT memory.inp)
 
 # Temporarily disabled
 # add_example(polynomial_example SOURCES polynomial.cpp INPUT polynomial.inp)
-# add_example(pallas_curve_addition_example
-#             SOURCES pallas_curve_examples/pallas_curve_add.cpp
-#             INPUT pallas_curve_examples/pallas_curve_add.inp)
-# add_example(pallas_curve_multiplication_example
-#             SOURCES pallas_curve_examples/pallas_curve_mul.cpp
-#             INPUT pallas_curve_examples/pallas_curve_mul.inp)
-# add_example(pallas_curve_mul_add_example
-#             SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
-#             INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
-# add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
+add_example(pallas_curve_addition_example
+            SOURCES pallas_curve_examples/pallas_curve_add.cpp
+            INPUT pallas_curve_examples/pallas_curve_add.inp)
+add_example(pallas_curve_multiplication_example
+            SOURCES pallas_curve_examples/pallas_curve_mul.cpp
+            INPUT pallas_curve_examples/pallas_curve_mul.inp)
+add_example(pallas_curve_mul_add_example
+            SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
+            INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
+add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
