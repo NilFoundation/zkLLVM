@@ -58,8 +58,9 @@ endfunction()
 
 add_example(arithmetics_example SOURCES arithmetics.cpp INPUT arithmetics.inp)
 add_example(poseidon_example SOURCES poseidon.cpp INPUT poseidon.inp)
-add_example(merkle_tree_poseidon SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp)
-# add_example(sha256_example SOURCES sha2-256.cpp INPUT sha2-256.inp)
+add_example(merkle_tree_poseidon_example SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp)
+add_example(merkle_tree_sha2_256_example SOURCES merkle_tree_sha2_256.cpp INPUT merkle_tree_sha2_256.inp)
+add_example(sha256_example SOURCES sha2_256.cpp INPUT sha2_256.inp)
 add_example(balance_example SOURCES balance.cpp INPUT balance.inp)
 add_example(memory_example SOURCES memory.cpp INPUT memory.inp)
 

@@ -1,45 +1,44 @@
 
-#include <nil/crypto3/algebra/curves/pallas.hpp>
-
-namespace nil {
-    namespace crypto3 {
-        namespace hashes {
-            typedef __attribute__((ext_vector_type(3)))
-            typename algebra::curves::pallas::base_field_type::value_type poseidon_block_type;
-
-            poseidon_block_type poseidon(poseidon_block_type input_block);
-        }    // namespace hashes
-    }        // namespace crypto3
-}    // namespace nil
+#include <nil/crypto3/hash/algorithm/hash.hpp>
+#include <nil/crypto3/hash/poseidon.hpp>
 
 using namespace nil::crypto3;
 using namespace nil::crypto3::algebra::curves;
 
-typename pallas::base_field_type::value_type evaluate_poseidon(typename pallas::base_field_type::value_type a,
-                                                        typename pallas::base_field_type::value_type b,
-                                                        typename pallas::base_field_type::value_type c) {
-    typename hashes::poseidon_block_type input_block = {a, b, c};
-    typename hashes::poseidon_block_type hash_result = hashes::poseidon(input_block);
-    return hash_result[2];
-}
-
-constexpr static const std::size_t input_log2 = 5;
-constexpr static const std::size_t input_size = 1 << input_log2;
-constexpr static const std::size_t leaves_size = input_size - 1;
-
 [[circuit]] pallas::base_field_type::value_type merkle_tree_poseidon (
-    std::array<typename     algebra::curves::pallas::base_field_type::value_type, input_size> input) {
-        std::array<typename algebra::curves::pallas::base_field_type::value_type, leaves_size> leaves;
+    std::array<typename pallas::base_field_type::value_type, 0x20> layer_0_leaves) {
+        
+        std::array<typename pallas::base_field_type::value_type, 0x10> layer_1_leaves;
+        std::size_t layer_1_size = 0x10;
+        std::array<typename pallas::base_field_type::value_type, 0x8> layer_2_leaves;
+        std::size_t layer_2_size = 0x8;
+        std::array<typename pallas::base_field_type::value_type, 0x4> layer_3_leaves;
+        std::size_t layer_3_size = 0x4;
+        std::array<typename pallas::base_field_type::value_type, 0x2> layer_4_leaves;
+        std::size_t layer_4_size = 0x2;
+        typename pallas::base_field_type::value_type root;
 
-        typename pallas::base_field_type::value_type zero = 0;
-
-        for (std::size_t i = 0; i < input_size / 2; i ++) {
-            leaves[i] = evaluate_poseidon(zero, input[i + i], input[i + i + 1]);
-        }
-
-        for (std::size_t i = 0; i < input_size/2 -1; i++) {
-            leaves[input_size/2 + i] = evaluate_poseidon(zero, leaves[i+i], leaves[i+i + 1]);
-        }
-
-        return leaves[leaves_size -1];
+        for (std::size_t leaf_index = 0; leaf_index < layer_1_size; leaf_index++) {
+        layer_1_leaves[leaf_index] =
+            hash<hashes::poseidon>(layer_0_leaves[2 * leaf_index], layer_0_leaves[2 * leaf_index + 1]);
     }
+
+    for (std::size_t leaf_index = 0; leaf_index < layer_2_size; leaf_index++) {
+        layer_2_leaves[leaf_index] =
+            hash<hashes::poseidon>(layer_1_leaves[2 * leaf_index], layer_1_leaves[2 * leaf_index + 1]);
+    }
+
+    for (std::size_t leaf_index = 0; leaf_index < layer_3_size; leaf_index++) {
+        layer_3_leaves[leaf_index] =
+            hash<hashes::poseidon>(layer_2_leaves[2 * leaf_index], layer_2_leaves[2 * leaf_index + 1]);
+    }
+
+    for (std::size_t leaf_index = 0; leaf_index < layer_4_size; leaf_index++) {
+        layer_4_leaves[leaf_index] =
+            hash<hashes::poseidon>(layer_3_leaves[2 * leaf_index], layer_3_leaves[2 * leaf_index + 1]);
+    }
+
+    root = hash<hashes::poseidon>(layer_4_leaves[0], layer_4_leaves[1]);
+
+    return root;
+}
