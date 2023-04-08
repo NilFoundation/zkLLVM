@@ -351,8 +351,8 @@ int main(int argc, char *argv[]) {
             ("mode,m", boost::program_options::value<std::string>(), "Transpiler mode (gen-test-proof, gen-gate-argument).\
             gen-test-proof prepares gate argument, placeholder params and sample proof for testing.\
             gen-gate-argument prepares gate argument and some placeholder params")
-            ("input-folder-path,in", boost::program_options::value<std::string>(), "Input folder path")
-            ("output-folder-path,out", boost::program_options::value<std::string>(), "Output folder path.\
+            ("input-folder-path,i", boost::program_options::value<std::string>(), "Input folder absolute path")
+            ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output");
     // clang-format on
 
