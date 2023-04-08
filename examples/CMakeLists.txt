@@ -75,3 +75,4 @@ add_example(pallas_curve_mul_add_example
             INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
 add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
 add_example(eddsa_signature_verification SOURCES eddsa_signature_verification.cpp INPUT eddsa_signature_verification.inp)
+add_example(check_belongs_ec SOURCES check_belongs_ec.cpp INPUT check_belongs_ec.inp)
