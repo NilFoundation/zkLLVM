@@ -26,7 +26,7 @@ zkLLVM toolchain has two main tools:
 zkLLVM toolchain is a crucial part of the zero-knowledge proof verification workflow.
 Here's how it all works.
 
-1.  First, the companies who want to prove transactions develop their code in a compatible language, like C++.
+1.  First, developers willing to prove computations develop their code in a compatible language, like C++ or Rust.
     They compile it with zkLLVM into a circuit — a provable bytecode representation of the application.
     
     {% hint style="info" %}
@@ -34,9 +34,8 @@ Here's how it all works.
     for developing most performant circuit components.
     {% endhint %}
 
-1.  To prove a particular transaction, the proof requester
-    combines the circuit with the inputs of that transaction in the `assigner`
-    and gets two binary files:
+2.  To prove a particular piece of computations, the proof requester combines the circuit with the inputs of those computations 
+    in the `assigner` and gets two binary files:
     
     * Constraint, which represents the arithmetization of the circuit.
     * Assignment table, which contains pre-processed public inputs.
@@ -45,9 +44,9 @@ Here's how it all works.
     They return a verified proof to the requester if the form of another binary file.
     There are two general approaches to verification: on-chain and off-chain:
     
-    *   On-chain verification requires serialisation of the circuit and is deployed on blockchain clusters.
+    *   On-chain verification requires serialisation of the circuit and is deployed on public clusters.
         The [lorem-ipsum](https://github.com/NilFoundation/lorem-ipsum-cli) project
-        handles this flow of generating smart contracts.
+        handles this flow of generating in-EVM/in-BPF logic.
     *   Support for off-chain proof verification with `=nil;` tools will be added in the future.
 
 For more details about the workflow, read the guides for [circuit developers](manual/getting-started/circuit-generation.md)
