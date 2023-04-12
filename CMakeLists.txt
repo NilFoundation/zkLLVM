@@ -78,7 +78,13 @@ add_subdirectory(examples)
 
 install(TARGETS assigner RUNTIME DESTINATION bin)
 
-SET(CPACK_GENERATOR DEB)
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "=nil; Foundation")
+set(CPACK_GENERATOR DEB)
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "=nil; Foundation")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "zkllvm-stdlib")
+set(CPACK_PACKAGE_VERSION "0.0.0-58")
 
 include(CPack)
+
+# Package for stdlib
+add_custom_target(stdlib_package
+                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR})
