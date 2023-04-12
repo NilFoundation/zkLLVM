@@ -8,8 +8,7 @@ constexpr std::size_t VertexAmount = 5;
             std::array<typename pallas::base_field_type::value_type, VertexAmount>
                 weights) {
 
-    std::array<typename pallas::base_field_type::value_type, 2> balance_point;
-    balance_point[0] = balance_point[1] = static_cast<pallas::base_field_type::value_type>(0);
+    std::array<typename pallas::base_field_type::value_type, 2> balance_point = {0,0};
     typename pallas::base_field_type::value_type balance_weight = 0;
 
     for (std::size_t VertexIndex = 0; VertexIndex < VertexAmount; VertexIndex++) {

@@ -65,7 +65,7 @@ function(add_circuit name)
     endif()
 
     add_custom_target(${name}
-                      COMMAND $<TARGET_FILE:clang> -target assigner -Xclang -no-opaque-pointers -std=c++20
+                      COMMAND $<TARGET_FILE:clang> -target assigner -Xclang -no-opaque-pointers -Xclang -fpreserve-vec3-type -std=c++20
                       -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 ${format_option} -o ${binary_name} ${CIRCUIT_SOURCES}
 
                       VERBATIM COMMAND_EXPAND_LISTS
