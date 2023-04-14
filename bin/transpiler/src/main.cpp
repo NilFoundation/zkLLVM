@@ -266,6 +266,11 @@ int main(int argc, char *argv[]) {
 
     if (vm.count("output-folder-path")) {
         output_folder_path = vm["output-folder-path"].as<std::string>();
+        boost::filesystem::path dir(output_folder_path);
+        if(boost::filesystem::create_directory(output_folder_path))
+        {
+            std::cerr<< "Directory Created: "<<output_folder_path<<std::endl;
+        }
     } else {
         std::cerr << "Invalid command line argument - output folder path is not specified" << std::endl;
         std::cout << options_desc << std::endl;
