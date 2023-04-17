@@ -4,10 +4,10 @@ description: Setting up zkLLVM
 
 # Environment Setup
 
-In this guide , we will setup the dependencies required for compiling zkLLVM locally.
+In this guide, we will set up the dependencies required for compiling zkLLVM locally.
 
 {% hint style="info" %}
-zkLLVM needs to be compiled locally at the moment, we will be publishing binaries via package managers soon.
+zkLLVM needs to be compiled locally at the moment; we will be publishing binaries via package managers soon.
 {% endhint %}
 
 ## Installation
@@ -26,4 +26,4 @@ Please execute the below to fetch the packages required or adapt the command to 
 sudo apt install build-essential libssl-dev libboost-all-dev cmake clang git
 ```
 
-Once the base packages are installed, please see the installation on how you can build the zkLLVM artifacts.
+Once the base packages are installed, please see the installation on how you can build the zkLLVM artefacts.
