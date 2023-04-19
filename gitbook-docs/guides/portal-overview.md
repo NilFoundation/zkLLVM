@@ -6,7 +6,7 @@ description: Navigating the zkLLVM documentation portal
 
 ## [Guides](portal-overview.md#guides)
 
-Under guides, users can find step-by-step walk-throughs of setting up the environment and projects and using the zkLLVM compiler in your projects toolchain.
+Users can find step-by-step walk-throughs of setting up the environment and projects using the zkLLVM compiler in your project toolchain.
 
 ## [Architecture](portal-overview.md#architecture)
 

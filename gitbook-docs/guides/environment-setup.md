@@ -4,10 +4,10 @@ description: Setting up zkLLVM
 
 # Environment Setup
 
-In this guide, we will set up the dependencies required for compiling zkLLVM locally.
+This guide will set up the dependencies required for compiling zkLLVM locally.
 
 {% hint style="info" %}
-zkLLVM needs to be compiled locally at the moment; we will be publishing binaries via package managers soon.
+zkLLVM needs to be compiled locally; we will publish binaries via package managers soon.
 {% endhint %}
 
 ## Installation

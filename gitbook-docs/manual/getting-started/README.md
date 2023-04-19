@@ -4,15 +4,15 @@ description: Examples of zkLLVM programs
 
 # Getting Started
 
-In this guide , we will first look at a few examples of circuits which can be compiled with zkLLVM.
+In this guide, we will first look at a few examples of circuits which can be compiled with zkLLVM.
 
 ## Circuit Examples
 
-In this series of simple examples we are going to learn, how to build a provable computations circuit using the [C++ SDK](https://github.com/NilFoundation/crypto3) and introduce important concepts as we go along.
+In this series of simple examples, we are going to learn how to build a provable computations circuit using the [C++ SDK](https://github.com/NilFoundation/crypto3) and introduce important concepts as we go along.
 
 ### 1. Addition
 
-Every provable computations 101 starts with this example, so let's follow the tradition. Every provable computations circuit starts with entry point function, marked with `[[circuit]]` [attribute](https://isocpp.org/wiki/faq/cpp11-language-misc#attributes). The function takes some arguments and returns a result. The function body represents an algorithm, which is going to be compiled into a circuit, which further can be used for proof generation.
+Every provable computations 101 starts with this example, so let's follow the tradition. Every provable computations circuit starts with an entry point function marked with `[[circuit]]` [attribute](https://isocpp.org/wiki/faq/cpp11-language-misc#attributes). The function takes some arguments and returns a result. The function body represents an algorithm, which is going to be compiled into a circuit, which can further be used for proof generation.
 
 {% hint style="danger" %}
 There can only be a single \[`[circuit]] directive in a project.`
@@ -20,7 +20,7 @@ There can only be a single \[`[circuit]] directive in a project.`
 
 A circuit is comprised of many `components.` A component is any piece of code that can be arithmetized into a circuit.
 
-Standard library integral types such as `int` , `long` are  supported. The standard types of `int32_t` are the modified versions of a fork of std C++ library which the compiler includes internally. The user is hidden from this complexity. Some types such as `strings` are currently not supported (but will soon - see [limitations](../limitations.md)).
+Standard library integral types, such as `int` , `long` are supported. The standard types  `int32_t` are the modified versions of a fork of the std C++ library, which the compiler includes internally. The user is hidden from this complexity. Some types ex: `strings` are currently not supported (but will soon - see [limitations](../limitations.md)).
 
 ```cpp
 [[circuit]] std::int32_t addition_std_example(
@@ -33,7 +33,7 @@ Standard library integral types such as `int` , `long` are  supported. The stand
 
 The function takes two arguments - two numbers - and multiplies them.
 
-Next, lets see the same example , but using the components `bls` from crypto3 library.
+Next, let's see the same example but using the components `bls` from the crypto3 library.
 
 ```cpp
 #include <nil/crypto3/algebra/curves/bls12.hpp>
@@ -49,7 +49,7 @@ using namespace nil::crypto3::algebra::curves;
 }
 ```
 
-&#x20;The most performant algorithms and types will be from the crypto3 SDK. However , the user can still write circuits without including the library as the compiler provides a C++ dialect with such types supported.&#x20;
+The most performant algorithms and types will be from the crypto3 SDK. However, the user can still write circuits without including the library, as the compiler provides a C++ dialect with such types supported.
 
 Hence our addition example can be re-written as:
 
@@ -67,7 +67,7 @@ Please see[ Builtin types](../builtin-types-sdk.md) for more details.
 
 ### 2. Galois field arithmetic
 
-In this example we want demonstrate functionality of basic field arithmetic:
+In this example, we want to demonstrate functionality of basic field arithmetic:
 
 ```cpp
 #include <nil/crypto3/algebra/curves/pallas.hpp>
@@ -91,7 +91,7 @@ The function takes two arguments - two numbers - and performs more complex arith
 
 ### 3. Polygon balance point
 
-Let's try something more difficult. How about polygon centre of mass calculation? Voila:
+Let's try something more difficult. How about the polygon centre of mass calculation? Voila:
 
 ```cpp
 #include <nil/crypto3/algebra/curves/pallas.hpp>
@@ -119,14 +119,14 @@ template <std::size_t VertexAmount>
 }
 ```
 
-Balancing a polygon is a well-known problem in computational geometry. The function takes two arguments - an array of vertexes and an array of weights. The function returns a point, which is a centre of mass of the polygon.
+Balancing a polygon is a well-known problem in computational geometry. The function takes two arguments - an array of vertexes and an array of weights. The function returns a point, which is the centre of mass of the polygon.
 
 ### 4. Merkle tree commitment
 
 Psst, you want some cryptography? Then let's build a Merkle tree - a widely used data commitment scheme. Out of curiosity, we will take 2\*\*20 leaves as input, a real-live input size.
 
 {% hint style="info" %}
-We support loops!  This is unlike other DLS's for writing proof systems.
+We support loops! This is unlike other DLS's for writing proof systems.
 {% endhint %}
 
 ```cpp
@@ -243,7 +243,7 @@ using namespace nil::marshalling;
 }
 ```
 
-Awesome, we just have build a circuit of world's most used commitment scheme.&#x20;
+Awesome, we just built a circuit of the world's most used commitment scheme.
 
 ## Next Steps
 
