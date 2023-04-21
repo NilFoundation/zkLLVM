@@ -67,7 +67,7 @@ Please see[ Builtin types](../builtin-types-sdk.md) for more details.
 
 ### 2. Galois field arithmetic
 
-In this example, we want to demonstrate functionality of basic field arithmetic:
+In this example, we want to demonstrate the functionality of basic field arithmetic:
 
 ```cpp
 #include <nil/crypto3/algebra/curves/pallas.hpp>
