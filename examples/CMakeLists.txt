@@ -63,6 +63,7 @@ add_example(merkle_tree_sha2_256_example SOURCES merkle_tree_sha2_256.cpp INPUT 
 add_example(sha256_example SOURCES sha2_256.cpp INPUT sha2_256.inp)
 add_example(balance_example SOURCES balance.cpp INPUT balance.inp)
 add_example(memory_example SOURCES memory.cpp INPUT memory.inp)
+add_example(multi_scalar_mul_example SOURCES multi_scalar_mul.cpp INPUT multi_scalar_mul.inp)
 
 # Temporarily disabled
 # add_example(polynomial_example SOURCES polynomial.cpp INPUT polynomial.inp)
