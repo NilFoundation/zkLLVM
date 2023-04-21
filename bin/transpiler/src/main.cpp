@@ -301,7 +301,7 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 5;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 20;
+    constexpr std::size_t SelectorColumns = 30;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -362,8 +362,6 @@ int main(int argc, char *argv[]) {
             optimize_gates = true;
         print_sol_files<ProfilingType, ConstraintSystemType, ColumnsRotationsType, ArithmetizationParams>(
             constraint_system, columns_rotations, output_folder_path, optimize_gates);
-        nil::crypto3::zk::snark::print_placeholder_params<FRIScheme, TableDescriptionType, ColumnsRotationsType, ArithmetizationParams>(
-            fri_params, table_description, columns_rotations, output_folder_path+"/circuit_params.json");
     }
 
     if (mode == "gen-test-proof") {
@@ -376,6 +374,10 @@ int main(int argc, char *argv[]) {
             nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
                 constraint_system, assignment_table.private_table(), table_description, fri_params
             );
+            
+        nil::crypto3::zk::snark::print_placeholder_params<FRIScheme, TableDescriptionType, ColumnsRotationsType, ArithmetizationParams>(
+            fri_params, table_description, columns_rotations, output_folder_path+"/circuit_params.json");
+
         using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
         ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
             public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
