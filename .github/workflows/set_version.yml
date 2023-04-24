@@ -9,19 +9,23 @@ jobs:
   set_version:
     name: Set and tag version
     runs-on: [ubuntu-latest]
-    env:
-      VERSION_FILE_NAME: VERSION
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
     - name: Set version
       id: set_version
       run: |
-        version=$(cat ${{ env.VERSION_FILE_NAME }} | tr -d '\r').$GITHUB_RUN_NUMBER
-        echo "VERSION=$version" >> $GITHUB_ENV
+        LATEST_TAG=`git describe --tags | cut -d'-' -f1`
+        MAJOR=`echo $LATEST_TAG | cut -d'.' -f1`
+        MINOR=`echo $LATEST_TAG | cut -d'.' -f2`
+        PATCH=`echo $LATEST_TAG | cut -d'.' -f3`
+        INCREMENTED=$((PATCH+1))
+        echo "VERSION=$MAJOR.$MINOR.$INCREMENTED" >> $GITHUB_ENV
     - name: Tag new version
-      run: git tag v${{ env.VERSION }}
+      run: git tag ${{ env.VERSION }}
 
     - name: Push tags
       uses: ad-m/github-push-action@master
