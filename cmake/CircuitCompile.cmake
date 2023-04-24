@@ -53,7 +53,9 @@ function(add_circuit name)
         endif()
         list(APPEND INCLUDE_DIRS_LIST "-I${include_dir}")
     endforeach()
-    list(APPEND INCLUDE_DIRS_LIST -I${CMAKE_SOURCE_DIR}/libs/stdlib/libcpp -I${CMAKE_SOURCE_DIR}/libs/stdlib/libc/include)
+    if (ZKLLVM_DEV_ENVIRONMENT)
+        list(APPEND INCLUDE_DIRS_LIST -I${CMAKE_SOURCE_DIR}/libs/stdlib/libcpp -I${CMAKE_SOURCE_DIR}/libs/stdlib/libc/include)
+    endif()
     list(REMOVE_DUPLICATES INCLUDE_DIRS_LIST)
 
     if(CIRCUIT_ASSEMBLY_OUTPUT)
@@ -64,8 +66,14 @@ function(add_circuit name)
         set(format_option -c)
     endif()
 
+    if (ZKLLVM_DEV_ENVIRONMENT)
+        set(CLANG $<TARGET_FILE:clang>)
+    else()
+        set(CLANG clang)
+    endif()
+
     add_custom_target(${name}
-                      COMMAND $<TARGET_FILE:clang> -target assigner -Xclang -no-opaque-pointers -Xclang -fpreserve-vec3-type -std=c++20
+                      COMMAND ${CLANG} -target assigner -Xclang -no-opaque-pointers -Xclang -fpreserve-vec3-type -std=c++20
                       -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 ${format_option} -o ${binary_name} ${CIRCUIT_SOURCES}
 
                       VERBATIM COMMAND_EXPAND_LISTS
