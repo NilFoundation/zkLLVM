@@ -13,6 +13,8 @@ cmake_policy(SET CMP0042 NEW)
 cmake_policy(SET CMP0028 NEW)
 cmake_policy(SET CMP0057 NEW)
 
+set(Boost_USE_STATIC_LIBS ON)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake"
      "${CMAKE_CURRENT_LIST_DIR}/cmake/packages"
      "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/share/modules/cmake")
@@ -40,6 +42,7 @@ option(CIRCUIT_ASSEMBLY_OUTPUT "Emit circuit IR as assembly file" FALSE)
 
 set(BUILD_WITH_TARGET_ARCHITECTURE "" CACHE STRING "Target build architecture")
 set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_LIST_DIR}/docs" CACHE STRING "Specify doxygen output directory")
+set(ZKLLVM_DEV_ENVIRONMENT TRUE)
 
 include(TargetArchitecture)
 include(CircuitCompile)
@@ -77,11 +80,50 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 add_subdirectory(examples)
 
 install(TARGETS assigner RUNTIME DESTINATION bin)
+install(FILES cmake/CircuitCompile.cmake DESTINATION share/zkllvm)
+
+find_program(GIT_EXE git)
+
+if(NOT ZKLLVM_VERSION)
+	execute_process(COMMAND ${GIT_EXE} describe --tags HEAD
+	    OUTPUT_VARIABLE DESCRIBE_OUTBUT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+	if (NOT ("${DESCRIBE_OUTBUT}" STREQUAL "${ZKLLVM_VERSION}"))
+		set(ZKLLVM_VERSION "${DESCRIBE_OUTBUT}")
+    endif()
+
+	if (NOT ZKLLVM_VERSION)
+        message (FATAL_ERROR
+            "Unable to retrive version from git or ${VERSION_FILE} file.")
+    endif()
+endif()
+
+# Remove preceding 'v' from tag
+string(REGEX REPLACE "^v" "" ZKLLVM_VERSION ${ZKLLVM_VERSION})
+# Split numbers
+string(REPLACE "-" "." ZKLLVM_VERSION_LIST ${ZKLLVM_VERSION})
+string(REPLACE "." ";" ZKLLVM_VERSION_LIST ${ZKLLVM_VERSION_LIST})
+
+LIST(LENGTH ZKLLVM_VERSION_LIST VERSION_LIST_LENGHT)
+
+LIST(GET ZKLLVM_VERSION_LIST 0 ZKLLVM_VERSION_MAJOR)
+LIST(GET ZKLLVM_VERSION_LIST 1 ZKLLVM_VERSION_MINOR)
+LIST(GET ZKLLVM_VERSION_LIST 2 ZKLLVM_VERSION_PATCH)
+if (VERSION_LIST_LENGHT GREATER 3)
+    LIST(GET ZKLLVM_VERSION_LIST 3 ZKLLVM_VERSION_INCREMENT)
+endif()
+
 
 set(CPACK_GENERATOR DEB)
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "=nil; Foundation")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "zkllvm-stdlib")
-set(CPACK_PACKAGE_VERSION "0.0.0-58")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "zkllvm-stdlib, libstdc++-11-dev")
+set(CPACK_PACKAGE_VERSION "${ZKLLVM_VERSION_MAJOR}.${ZKLLVM_VERSION_MINOR}.${ZKLLVM_VERSION_PATCH}")
+if (ZKLLVM_VERSION_INCREMENT)
+    STRING(APPEND CPACK_PACKAGE_VERSION "-${ZKLLVM_VERSION_INCREMENT}")
+endif()
+message(STATUS "CPACK_PACKAGE_VERSION=${CPACK_PACKAGE_VERSION}")
 
 include(CPack)
 
