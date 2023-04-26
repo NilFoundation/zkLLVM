@@ -1,0 +1,144 @@
+name: Make release
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        type: choice
+        description: Release type
+        options:
+        - major
+        - minor
+        - patch
+        default: minor
+
+jobs:
+  make-release:
+    runs-on: [ self-hosted, Linux, amd64 ]
+
+    env:
+      CONTAINER_TMP: /opt/
+      HOST_TMP: /home/runner/work/_temp/
+      DEBIAN_FRONTEND: noninteractive
+      BOOST_VERSION: "1.80.0"
+
+    container:
+      image: ubuntu:22.04
+      volumes:
+        - /home/runner/work/_temp/:/opt/
+
+    steps:
+      - name: Install dependencies
+        run: |
+          env && \
+          apt update && \
+          apt install -y \
+            build-essential \
+            libssl-dev \
+            cmake \
+            python3.10 \
+            python3-pip \
+            git \
+            curl \
+            unzip \
+            libicu-dev
+
+      - name: Print toolchain information
+        run: |
+          git --version
+          cc --version
+          cmake --version
+
+      - name: Checkout sources
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+
+      # Workaround: https://github.com/actions/checkout/issues/1169
+      - name: Mark directory as safe
+        run: |
+          git config --system --add safe.directory $PWD
+
+      - name: Install boost
+        uses: MarkusJx/install-boost@v2.4.1
+        id: install-boost
+        with:
+            # A list of supported versions can be found here:
+            # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
+            boost_version: ${{ env.BOOST_VERSION }}
+            boost_install_dir: ${{ env.CONTAINER_TMP }}
+            platform_version: 22.04
+            toolset: gcc
+            arch: x86
+      - name: Install aws tools
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          pip3 install mkrepo
+
+      - name: Compute release number
+        env:
+          RELEASE_TYPE: ${{ inputs.release_type }}
+        run: |
+          LATEST_TAG=`git describe --tags | cut -d'-' -f1 | tr -d v`
+          MAJOR=`echo $LATEST_TAG | cut -d'.' -f1`
+          MINOR=`echo $LATEST_TAG | cut -d'.' -f2`
+          PATCH=`echo $LATEST_TAG | cut -d'.' -f3`
+
+          case $RELEASE_TYPE in
+
+            major)
+              MAJOR=$((MAJOR+1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR+1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH+1))
+              ;;
+            *)
+              echo "Unknown release type"
+              exit 1
+              ;;
+          esac
+          echo "VERSION=$MAJOR.$MINOR.$PATCH" >> $GITHUB_ENV
+          echo "VERSION=$MAJOR.$MINOR.$PATCH"
+
+      - name: Configure CMake
+        env:
+          BOOST_ROOT: "${{ steps.install-boost.outputs.BOOST_ROOT }}"
+        run: |
+          cmake -G "Unix Makefiles" \
+            -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DZKLLVM_VERSION=${{ env.VERSION }} \
+            -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
+
+      - name: Build packages
+        run: |
+          # make -C build package stdlib_package -j$(nproc)
+          echo 1 >build/zkllvm-stdlib_0.0-1_all.deb
+          echo 2 >build/zkllvm_0.1.0_amd64.deb
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          name: "zkllvm-v${{ env.VERSION }}"
+          tag: "v${{ env.VERSION }}"
+          artifacts: "build/zkllvm_*.deb,build/zkllvm-stdlib_*.deb"
+
+      - name: Upload packages to repository
+        run: |
+          ZKLLVM_PACKAGE=`ls build/zkllvm_*.deb | cut -d'/' -f2`
+          STDLIB_PACKAGE=`ls build/zkllvm-stdlib_*.deb | cut -d'/' -f2`
+          POOL="ubuntu/pool/main/z/zkllvm"
+          aws s3api put-object --bucket deb.nil.foundation --key $POOL/$ZKLLVM_PACKAGE --body build/$ZKLLVM_PACKAGE
+          aws s3api put-object --bucket deb.nil.foundation --key $POOL/$STDLIB_PACKAGE --body build/$STDLIB_PACKAGE
+          mkrepo s3://deb.nil.foundation/ubuntu/
