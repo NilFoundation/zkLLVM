@@ -17,6 +17,7 @@ on:
 jobs:
   make-release:
     runs-on: [ self-hosted, Linux, amd64 ]
+    environment: prod
 
     env:
       CONTAINER_TMP: /opt/
@@ -43,6 +44,7 @@ jobs:
             git \
             curl \
             unzip \
+            zstd \
             libicu-dev
 
       - name: Print toolchain information
@@ -74,17 +76,11 @@ jobs:
             toolset: gcc
             arch: x86
       - name: Install aws tools
-        env:
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
           unzip awscliv2.zip
           ./aws/install
           pip3 install mkrepo
-          echo 2 > fille
-          aws s3api put-object --bucket deb.nil.foundation --key ubuntu/fille --body fille
 
       - name: Compute release number
         env:
@@ -129,9 +125,7 @@ jobs:
 
       - name: Build packages
         run: |
-          # make -C build package stdlib_package -j$(nproc)
-          echo 1 >build/zkllvm-stdlib_0.0-1_all.deb
-          echo 2 >build/zkllvm_0.1.0_amd64.deb
+          make -C build package stdlib_package -j$(nproc)
 
       - name: Create release
         uses: ncipollo/release-action@v1
@@ -141,6 +135,10 @@ jobs:
           artifacts: "build/zkllvm_*.deb,build/zkllvm-stdlib_*.deb"
 
       - name: Upload packages to repository
+        env:
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
           ZKLLVM_PACKAGE=`ls build/zkllvm_*.deb | cut -d'/' -f2`
           STDLIB_PACKAGE=`ls build/zkllvm-stdlib_*.deb | cut -d'/' -f2`
