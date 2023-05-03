@@ -93,7 +93,7 @@ jobs:
 
       - name: Build zkllvm
         run: |
-          make -C build assigner clang -j$(nproc)
+          make -C build assigner clang transpiler -j$(nproc)
 
       - name: Build examples
         run: |
