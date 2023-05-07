@@ -41,16 +41,21 @@ jobs:
       - name: Run brew install
         id: brew-install
         run: |
+          ls /usr/local/opt/icu4c/lib
           brew install \
             boost@1.76 \
-            cmake
+            cmake \
+            icu4c
+          # brew link icu4c --force
+          # export LDFLAGS="-L/usr/local/opt/icu4c/lib"
+          # export CPPFLAGS="-I/usr/local/opt/icu4c/include"
+          ls /usr/local/opt/icu4c/lib
 
       - name: Print toolchain information
         run: |
           git --version
           cc --version
           cmake --version
-          sysctl -a
 
       - name: Checkout sources
         uses: actions/checkout@v3
@@ -58,10 +63,10 @@ jobs:
           submodules: 'recursive'
           fetch-depth: 0
 
-      # - name: Enable ccache
-      #   uses: hendrikmuhs/ccache-action@v1.2
-      #   with:
-      #     key: ${{ github.job }}
+      - name: Enable ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}
 
 #      - name: Install boost
 #        uses: MarkusJx/install-boost@v2.4.1
@@ -78,31 +83,25 @@ jobs:
       - name: Configure CMake
         env:
           BOOST_ROOT: "/usr/local/Cellar/boost@1.76/1.76.0_3"
+          LDFLAGS: "-L/usr/local/opt/icu4c/lib"
+          CPPFLAGS: "-I/usr/local/opt/icu4c/include"
         run: |
           cmake -G "Unix Makefiles" \
             -B build \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_BUILD_TYPE=Release \
             -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
 
       - name: Build zkllvm
         run: |
-          make -C build avxtest -j$(sysctl -n hw.logicalcpu)
+          # export LDFLAGS="-L/usr/local/opt/icu4c/lib"
+          # export CPPFLAGS="-I/usr/local/opt/icu4c/include"
+          make -C build assigner  #clang -j$(sysctl -n hw.logicalcpu)
 
       - name: Build examples
         run: |
-          # make -C build circuit_examples -j$(nproc)
-          # ls -al ./build/examples
-          grep 1.cpp ./build/compile_commands.json
-
-      - name: Prepare lldb script
-        run: |
-          echo r >./build/ls.txt
-          echo bt >>./build/ls.txt
-          echo q >>./build/ls.txt
-          lldb --version
+          make -C build circuit_examples -j$(sysctl -n hw.logicalcpu)
 
       - name: Build circuits
         run: |
-          lldb -s ./build/ls.txt -- build/bin/assigner/avxtest
-          # make -C build arithmetics_example_run
+          make -C build run_examples -j$(sysctl -n hw.logicalcpu)

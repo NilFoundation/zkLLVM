@@ -1,14 +1,3 @@
-#---------------------------------------------------------------------------#
-# Copyright (c) 2018-2020 Mikhail Komarov <nemo@nil.foundation>
-#
-# Distributed under the Boost Software License, Version 1.0
-# See accompanying file LICENSE_1_0.txt or copy at
-# http://www.boost.org/LICENSE_1_0.txt
-#---------------------------------------------------------------------------#
-
-include(CheckCSourceCompiles)
-include(CheckCXXSourceCompiles)
-include(CheckCSourceRuns)
 include(CheckCXXSourceRuns)
 
 set(AVX_CODE "
@@ -73,36 +62,33 @@ int main()
 }
 ")
 
-macro(check_avx_lang lang type flags)
+macro(check_avx_type type flags)
     set(__FLAG_I 1)
     set(CMAKE_REQUIRED_FLAGS_SAVE ${CMAKE_REQUIRED_FLAGS})
     foreach(__FLAG ${flags})
-        if(NOT ${lang}_${type}_FOUND)
+        if(NOT CXX_${type}_FOUND)
             set(CMAKE_REQUIRED_FLAGS ${__FLAG})
-            check_c_source_runs("${${type}_CODE}" HAS_${type}_${__FLAG_I})
-            check_cxx_source_compiles("${${type}_CODE}" COMPPILES)
-            message(STATUS "CXXC=${COMPPILES}")
+            check_cxx_source_runs("${${type}_CODE}" HAS_${type}_${__FLAG_I})
             if(HAS_${type}_${__FLAG_I})
-                set(${lang}_${type}_FOUND TRUE CACHE BOOL "${lang} ${type} support")
-                set(${lang}_${type}_FLAGS "${__FLAG}" CACHE STRING "${lang} ${type} flags")
+                set(CXX_${type}_FOUND TRUE CACHE BOOL "${type} support")
+                set(CXX_${type}_FLAGS "${__FLAG}" CACHE STRING "${type} flags")
             endif()
             math(EXPR __FLAG_I "${__FLAG_I}+1")
         endif()
     endforeach()
     set(CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS_SAVE})
 
-    if(NOT ${lang}_${type}_FOUND)
-        set(${lang}_${type}_FOUND FALSE CACHE BOOL "${lang} ${type} support")
-        set(${lang}_${type}_FLAGS "" CACHE STRING "${lang} ${type} flags")
+    if(NOT CXX_${type}_FOUND)
+        set(CXX_${type}_FOUND FALSE CACHE BOOL "${type} support")
+        set(CXX_${type}_FLAGS "" CACHE STRING "${type} flags")
     endif()
 
-    mark_as_advanced(${lang}_${type}_FOUND ${lang}_${type}_FLAGS)
-    message(STATUS "${lang}_${type}_FOUND=${${lang}_${type}_FOUND}")
+    mark_as_advanced(CXX_${type}_FOUND CXX_${type}_FLAGS)
 
 endmacro()
 
 macro(check_avx)
-    check_avx_lang(CXX "AVX" "-mavx;/arch:AVX")
-    check_avx_lang(CXX "AVX2" "-mavx2 -mfma;/arch:AVX2")
-    check_avx_lang(CXX "AVX512" "-mavx512f -mfma;/arch:AVX512")
+    check_avx_type("AVX" "-mavx;/arch:AVX")
+    check_avx_type("AVX2" "-mavx2 -mfma;/arch:AVX2")
+    check_avx_type("AVX512" "-mavx512f -mfma;/arch:AVX512")
 endmacro()

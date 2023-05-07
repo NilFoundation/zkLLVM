@@ -101,21 +101,3 @@ elseif(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 
     add_dependencies(${CURRENT_PROJECT_NAME} boost)
 endif()
-
-add_executable(avxtest src/1.cpp)
-set_target_properties(avxtest PROPERTIES
-                      LINKER_LANGUAGE CXX
-                      EXPORT_NAME ${CURRENT_PROJECT_NAME}
-                      CXX_STANDARD 17
-                      CXX_STANDARD_REQUIRED TRUE)
-
-target_link_libraries(avxtest
-                      crypto3::random
-                      ${Boost_LIBRARIES})
-
-
-if(APPLE OR NOT ${CMAKE_TARGET_ARCHITECTURE} STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
-    set_target_properties(avxtest PROPERTIES
-                            XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${APPLE_CODE_SIGN_IDENTITY}"
-                            XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM}")
-endif()
