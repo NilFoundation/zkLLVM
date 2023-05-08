@@ -11,6 +11,7 @@ int main()
     b = _mm256_loadu_ps( src );
     c = _mm256_add_ps( a, b );
     _mm256_storeu_ps( dst, c );
+
     for( int i = 0; i < 8; i++ ){
         if( ( src[i] + src[i] ) != dst[i] ){
             return -1;
@@ -31,17 +32,20 @@ int main()
     b =  _mm256_loadu_si256( (__m256i*)src );
     c = _mm256_add_epi32( a, b );
     _mm256_storeu_si256( (__m256i*)dst, c );
+
     for( int i = 0; i < 8; i++ ){
-    if( ( src[i] + src[i] ) != dst[i] ){
-        return -1;
+        if( ( src[i] + src[i] ) != dst[i] ){
+            return -1;
+        }
     }
-    }
+
     return 0;
 }
 ")
 
 set(AVX512_CODE "
 #include <immintrin.h>
+
 int main()
 {
     __m512i a = {0};
