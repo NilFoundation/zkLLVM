@@ -43,18 +43,20 @@ jobs:
         run: |
           brew install \
             boost@1.76 \
-            cmake
+            cmake \
+            icu4c
 
       - name: Print toolchain information
         run: |
           git --version
           cc --version
-          cmake --version          
+          cmake --version
 
       - name: Checkout sources
         uses: actions/checkout@v3
         with:
           submodules: 'recursive'
+          fetch-depth: 0
 
       - name: Enable ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -76,6 +78,8 @@ jobs:
       - name: Configure CMake
         env:
           BOOST_ROOT: "/usr/local/Cellar/boost@1.76/1.76.0_3"
+          LDFLAGS: "-L/usr/local/opt/icu4c/lib"
+          CPPFLAGS: "-I/usr/local/opt/icu4c/include"
         run: |
           cmake -G "Unix Makefiles" \
             -B build \
@@ -85,17 +89,12 @@ jobs:
 
       - name: Build zkllvm
         run: |
-          make -C build assigner clang -j$(sysctl -n hw.logicalcpu)
+          make -C build assigner clang transpiler -j$(sysctl -n hw.logicalcpu)
 
       - name: Build examples
         run: |
-          make -C build circuit_examples -j$(nproc)
-          ls -al ./build/examples
+          make -C build circuit_examples -j$(sysctl -n hw.logicalcpu)
 
       - name: Build circuits
         run: |
-          build/bin/assigner/assigner \
-            -b build/examples/arithmetics_example.ll \
-            -i examples/arithmetics.inp \
-            -t assignment.tbl \
-            -c circuit.crct
+          make -C build run_examples -j$(sysctl -n hw.logicalcpu)
