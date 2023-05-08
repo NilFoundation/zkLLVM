@@ -51,7 +51,10 @@ jobs:
             cmake \
             python3.10 \
             git \
-            libicu-dev
+            libicu-dev \
+            curl \
+            pkg-config \
+            libssl-dev
 
       - name: Print toolchain information
         run: |
@@ -82,6 +85,11 @@ jobs:
             toolset: gcc
             arch: x86
 
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+          rustup show
+
       - name: Configure CMake
         env:
           BOOST_ROOT: "${{ steps.install-boost.outputs.BOOST_ROOT }}"
@@ -103,3 +111,9 @@ jobs:
       - name: Build circuits
         run: |
           make -C build run_examples -j$(nproc)
+
+      - name: Build rslang
+        # We need to build all LLVM libs before building Rust
+        run: |
+          make -C build -j$(nproc)
+          make -C build rslang -j$(nproc)
