@@ -90,7 +90,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup_init.sh
           chmod +x rustup_init.sh
           ./rustup_init.sh -y
-          source "$HOME/.cargo/env"
+          . "$HOME/.cargo/env"
           rustup show
 
       - name: Configure CMake
