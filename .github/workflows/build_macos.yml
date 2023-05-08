@@ -28,9 +28,6 @@ jobs:
   build-macos:
     runs-on: [ macos-11 ]
 
-#    env:
-#      BOOST_VERSION: "1.80.0"
-
     steps:
       - name: Install homebrew
         run: >
@@ -62,18 +59,6 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}
-
-#      - name: Install boost
-#        uses: MarkusJx/install-boost@v2.4.1
-#        id: install-boost
-#        with:
-#            # A list of supported versions can be found here:
-#            # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
-#            boost_version: ${{ env.BOOST_VERSION }}
-#            boost_install_dir: ${{ runner.temp }}
-#            platform_version: 11
-#            toolset: clang
-#            arch: x86
 
       - name: Configure CMake
         env:
