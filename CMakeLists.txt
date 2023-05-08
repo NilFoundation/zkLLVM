@@ -132,3 +132,11 @@ include(CPack)
 # Package for stdlib
 add_custom_target(stdlib_package
                   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR})
+
+# FIXME: this target has circifier:all target as a dep, we need to specify this somehow
+add_custom_target(rslang
+    COMMAND cargo b --release -p cargo
+    COMMAND export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/lib"
+    COMMAND ./x build --config src/bootstrap/defaults/config.zkllvm.toml library
+    COMMENT "Building rslang (it may take a while)..."
+    WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/libs/circifier/rslang")
