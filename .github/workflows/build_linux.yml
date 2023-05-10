@@ -100,7 +100,6 @@ jobs:
       - name: Build zkllvm
         run: |
           make -C build -j$(nproc)
-          ls -al build/libs/circifier/llvm/lib
 
       - name: Build examples
         run: |
@@ -112,9 +111,5 @@ jobs:
           make -C build run_examples -j$(nproc)
 
       - name: Build rslang
-        env:
-          LD_LIBRARY_PATH: "$LD_LIBRARY_PATH:build/libs/circifier/llvm/lib"
         run: |
-          echo $LD_LIBRARY_PATH
-          ls -al build/libs/circifier/llvm/lib
           make -C build rslang -j$(nproc)
