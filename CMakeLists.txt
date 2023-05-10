@@ -137,7 +137,7 @@ add_custom_target(stdlib_package
 add_custom_target(rslang
     COMMAND cargo b --release -p cargo
     COMMAND export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/lib"
-    COMMAND ./x build --stage 1 --config src/bootstrap/defaults/config.zkllvm.toml library
+    COMMAND ./x build --stage 1 --config src/bootstrap/defaults/config.zkllvm.toml
     COMMENT "Building rslang"
     USES_TERMINAL
     WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/libs/rslang")
