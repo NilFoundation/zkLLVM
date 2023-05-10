@@ -86,12 +86,10 @@ jobs:
             arch: x86
 
       - name: Install Rust
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup_init.sh
-          chmod +x rustup_init.sh
-          ./rustup_init.sh -y
-          . "$HOME/.cargo/env"
-          rustup show
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Print Rust toolchain information
+        run: rustup show
 
       - name: Configure CMake
         env:
