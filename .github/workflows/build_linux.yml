@@ -88,9 +88,6 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Print Rust toolchain information
-        run: rustup show
-
       - name: Configure CMake
         env:
           BOOST_ROOT: "${{ steps.install-boost.outputs.BOOST_ROOT }}"
