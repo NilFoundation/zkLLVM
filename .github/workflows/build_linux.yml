@@ -111,5 +111,7 @@ jobs:
           make -C build run_examples -j$(nproc)
 
       - name: Build rslang
+        env:
+          LD_LIBRARY_PATH: "$LD_LIBRARY_PATH:build/libs/circifier/llvm/lib"
         run: |
           make -C build rslang -j$(nproc)
