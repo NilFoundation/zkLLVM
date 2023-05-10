@@ -102,7 +102,7 @@ jobs:
 
       - name: Build zkllvm
         run: |
-          make -C build assigner clang transpiler -j$(nproc)
+          make -C build -j$(nproc)
 
       - name: Build examples
         run: |
@@ -114,7 +114,5 @@ jobs:
           make -C build run_examples -j$(nproc)
 
       - name: Build rslang
-        # We need to build all LLVM libs before building Rust
         run: |
-          make -C build -j$(nproc)
           make -C build rslang -j$(nproc)
