@@ -136,7 +136,7 @@ add_custom_target(stdlib_package
 # FIXME: this target has circifier:all target as a dep, we need to specify this somehow
 add_custom_target(rslang
     COMMAND cargo b --release -p cargo
-    COMMAND LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/lib" ./x build --stage 1 --config src/bootstrap/defaults/config.zkllvm.toml
+    COMMAND ./x build --stage 1 --config src/bootstrap/defaults/config.zkllvm.toml
     COMMENT "Building rslang"
     USES_TERMINAL
     WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/libs/rslang")
