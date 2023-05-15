@@ -135,7 +135,7 @@ add_custom_target(stdlib_package
 
 add_custom_target(rslang
     COMMAND cargo b --release -p cargo
-    COMMAND ./x build --stage 1 --config src/bootstrap/defaults/config.zkllvm.toml
+    COMMAND ./x build --stage 2 --config src/bootstrap/defaults/config.zkllvm.toml
     DEPENDS llvm-libraries llvm-config llvm-link FileCheck
     COMMENT "Building rslang"
     USES_TERMINAL
