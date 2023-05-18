@@ -74,3 +74,4 @@ add_example(pallas_curve_mul_add_example
             SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
             INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
 add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
+add_example(zkml_example SOURCES zkml.cpp INPUT zkml.inp)
