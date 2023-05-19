@@ -1,18 +1,18 @@
-[[circuit]] __zkllvm_curve_curve25519 verify_eddsa_signature (
-    __zkllvm_curve_curve25519 R,
+#include <nil/crypto3/algebra/fields/curve25519/base_field.hpp>
+#include <nil/crypto3/algebra/fields/curve25519/scalar_field.hpp>
+#include <nil/crypto3/algebra/curves/ed25519.hpp>
+
+using ed25519_element = typename nil::crypto3::algebra::curves::ed25519::template g1_type<>::value_type;
+
+[[circuit]] bool verify_eddsa_signature (
+    ed25519_element R,
     __zkllvm_field_curve25519_scalar s,
-    __zkllvm_curve_curve25519 pk,
-    __zkllvm_field_curve25519_base M) {
-        scalar_range(s); // 
-        check_ec(R); // 
-        check_ec(pk);
+    ed25519_element pk,
+    ed25519_element M) {
 
-        vector k_vec = sha512(Rx, Ry, pkx, pky, M);
-        var k = reduction(k_vec)
+        ed25519_element B = ed25519_element::one();
+        __zkllvm_field_curve25519_scalar k = __builtin_assigner_sha2_512_curve25519(R.data, pk.data, M.data);
 
-        return ((s*B) - (R + (pk*k)));
+        return (B*s - (R + (pk*k))).is_zero();
 
     }
-
-
-
