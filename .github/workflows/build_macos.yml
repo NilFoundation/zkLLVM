@@ -1,0 +1,85 @@
+name: build-macos
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '.github/workflows/*linux.yml'
+      - 'docs/**'
+      - '.clang-format'
+      - '.gitignore'
+      - 'README.md'
+  pull_request:
+    paths-ignore:
+      - '.github/workflows/*linux.yml'
+      - 'docs/**'
+      - '.clang-format'
+      - '.gitignore'
+      - 'README.md'
+concurrency:
+  group: ${{
+    ( github.ref == 'refs/heads/master' &&
+    format('{0}/{1}', github.run_id, github.run_attempt) )
+    ||
+    format('{0}/{1}', github.workflow, github.ref) }}
+  cancel-in-progress: true
+
+jobs:
+  build-macos:
+    runs-on: [ macos-11 ]
+
+    steps:
+      - name: Install homebrew
+        run: >
+          /bin/bash -c "$(curl -fsSL
+            https://raw.githubusercontent.com/Homebrew/install/master/install.sh
+          )"
+
+      - name: Run brew install
+        id: brew-install
+        run: |
+          brew install \
+            boost@1.76 \
+            cmake \
+            icu4c
+
+      - name: Print toolchain information
+        run: |
+          git --version
+          cc --version
+          cmake --version
+
+      - name: Checkout sources
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+
+      - name: Enable ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}
+
+      - name: Configure CMake
+        env:
+          BOOST_ROOT: "/usr/local/Cellar/boost@1.76/1.76.0_3"
+          LDFLAGS: "-L/usr/local/opt/icu4c/lib"
+          CPPFLAGS: "-I/usr/local/opt/icu4c/include"
+        run: |
+          cmake -G "Unix Makefiles" \
+            -B build \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
+
+      - name: Build zkllvm
+        run: |
+          make -C build assigner clang transpiler -j$(sysctl -n hw.logicalcpu)
+
+      - name: Build examples
+        run: |
+          make -C build circuit_examples -j$(sysctl -n hw.logicalcpu)
+
+      - name: Build circuits
+        run: |
+          make -C build run_examples -j$(sysctl -n hw.logicalcpu)

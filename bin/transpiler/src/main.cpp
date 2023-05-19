@@ -32,6 +32,7 @@
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/prover.hpp>
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/verifier.hpp>
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/params.hpp>
+#include <nil/crypto3/zk/snark/systems/plonk/placeholder/profiling.hpp>
 
 #include <nil/crypto3/math/polynomial/polynomial.hpp>
 #include <nil/crypto3/math/algorithms/calculate_domain_set.hpp>
@@ -64,147 +65,16 @@ bool read_buffer_from_file(std::ifstream &ifile, std::vector<std::uint8_t> &v) {
 
 template<typename ProfilingType, typename ConstraintSystemType, typename ColumnsRotationsType,
          typename ArithmetizationParams>
-void print_sol_file(std::ostream &os, ConstraintSystemType &constraint_system,
-                    ColumnsRotationsType &columns_rotations) {
-    os << "pragma solidity >=0.8.4;\n\n"
-       << "import \"../types.sol\";\n"
-       << "import \"../basic_marshalling.sol\";\n"
-       << "import \"../commitments/batched_lpc_verifier.sol\";\n"
-       << "import \"../interfaces/gate_argument.sol\";\n"
-       << "\n"
-       << "contract gate_argument_gen is IGateArgument {\n"
-       << "    uint256 constant WITNESSES_N = " << ArithmetizationParams::WitnessColumns << ";\n"
-       << "    uint256 constant GATES_N = " << constraint_system.gates().size() << ";\n"
-       << "\n"
-       << "    uint256 constant MODULUS_OFFSET = 0x0;\n"
-       << "    uint256 constant THETA_OFFSET = 0x20;\n"
-       << "    uint256 constant CONSTRAINT_EVAL_OFFSET = 0x40;\n"
-       << "    uint256 constant GATE_EVAL_OFFSET = 0x60;\n"
-       << "    uint256 constant WITNESS_EVALUATIONS_OFFSET = 0x80;\n"
-       << "    uint256 constant SELECTOR_EVALUATIONS_OFFSET = 0xa0;\n"
-       << "    uint256 constant EVAL_PROOF_WITNESS_OFFSET_OFFSET = 0xc0;\n"
-       << "    uint256 constant EVAL_PROOF_SELECTOR_OFFSET_OFFSET = 0xe0;\n"
-       << "    uint256 constant GATES_EVALUATION_OFFSET = 0x100;\n"
-       << "    uint256 constant THETA_ACC_OFFSET = 0x120;\n"
-       << "    uint256 constant SELECTOR_EVALUATIONS_OFFSET_OFFSET = 0x140;\n"
-       << "    uint256 constant OFFSET_OFFSET = 0x160;\n"
-       << "\n"
-       << "    function evaluate_gates_be(\n"
-       << "        bytes calldata blob,\n"
-       << "        types.gate_argument_local_vars memory gate_params,\n"
-       << "        types.arithmetization_params memory ar_params,\n"
-       << "        int256[][] memory columns_rotations\n"
-       << "    ) external pure returns (uint256 gates_evaluation) {\n"
-       << "\n"
-       << "        gate_params.offset = basic_marshalling.skip_length(\n"
-       << "            batched_lpc_verifier.skip_to_z(\n"
-       << "                blob,\n"
-       << "                gate_params.eval_proof_witness_offset\n"
-       << "            )\n"
-       << "        );\n"
-       << "        gate_params.witness_evaluations_offsets = new uint256[](WITNESSES_N);\n"
-       << "        for (uint256 i = 0; i < WITNESSES_N; i++) {\n"
-       << "            gate_params.witness_evaluations_offsets[i] = basic_marshalling\n"
-       << "                .get_i_uint256_ptr_from_vector(blob, gate_params.offset, 0);\n"
-       << "            gate_params.offset = basic_marshalling.skip_vector_of_uint256_be(\n"
-       << "                blob,\n"
-       << "                gate_params.offset\n"
-       << "            );\n"
-       << "        }\n"
-       << "        gate_params.selector_evaluations = new uint256[](GATES_N);\n"
-       << "        for (uint256 i = 0; i < GATES_N; i++) {\n"
-       << "            gate_params.selector_evaluations[i] = batched_lpc_verifier\n"
-       << "                .get_z_i_j_from_proof_be(\n"
-       << "                    blob,\n"
-       << "                    gate_params.eval_proof_selector_offset,\n"
-       << "                    i + ar_params.permutation_columns + ar_params.permutation_columns + "
-          "ar_params.constant_columns,\n"
-       << "                    0\n"
-       << "                );\n"
-       << "        }\n"
-       << "\n"
-       << "        uint256 t = 0;\n"
-       << "        assembly {\n"
-       << "            let modulus := mload(gate_params)\n"
-       << "            let theta_acc := 1\n"
-       << "            function get_eval_i_by_rotation_idx(idx, rot_idx, ptr) -> result {"
-       << "                result := calldataload(\n"
-       << "                    add(\n"
-       << "                        mload(add(add(ptr, 0x20), mul(0x20, idx))),\n"
-       << "                        mul(0x20, rot_idx)\n"
-       << "                    )\n"
-       << "                )\n"
-       << "            }\n"
-       << "\n"
-       << "            function get_selector_i(idx, ptr) -> result {\n"
-       << "                result := mload(add(add(ptr, 0x20), mul(0x20, idx)))\n"
-       << "            }\n"
-       << "            let x1 := add(gate_params, CONSTRAINT_EVAL_OFFSET)\n"
-       << "            let x2 := add(gate_params, WITNESS_EVALUATIONS_OFFSET)\n"
-       << "            let x3 := get_eval_i_by_rotation_idx(0,0,mload(x2))\n"
-       << "            let x4 := get_eval_i_by_rotation_idx(2,0,mload(x2))\n";
-
-    ProfilingType::process(os, constraint_system, columns_rotations);
-    os << "}\n}\n}" << std::endl;
-}
-
-template<typename ProfilingType, typename ConstraintSystemType, typename ColumnsRotationsType,
-         typename ArithmetizationParams>
 void print_sol_files(ConstraintSystemType &constraint_system, ColumnsRotationsType &columns_rotations,
-                     std::string out_folder_path = ".") {
+                     std::string out_folder_path = ".", bool optimize_gates = false) {
     ProfilingType::process_split(
         nil::blueprint::main_sol_file_template,
         nil::blueprint::gate_sol_file_template,
         constraint_system, 
         columns_rotations, 
-        out_folder_path
+        out_folder_path,
+        optimize_gates
     );
-}
-
-
-template<typename FRIParamsType, typename TableDescriptionType, typename ColumnsRotationsType,
-         typename ArithmetizationParams>
-void print_params(FRIParamsType &fri_params, TableDescriptionType table_description,
-                  ColumnsRotationsType &columns_rotations, std::string output_folder) {
-    std::ofstream out;
-
-    out.open(output_folder + "/circuit_params.json");
-    out << "{\"arithmetization_params\":[" << ArithmetizationParams::witness_columns << ","
-        << ArithmetizationParams::public_input_columns << "," << ArithmetizationParams::constant_columns << ","
-        << ArithmetizationParams::selector_columns << "]," << std::endl
-        << "\"columns_rotations\":[" << std::endl;
-    for (size_t i = 0; i < columns_rotations.size(); i++) {
-        if (i != 0)
-            out << "," << std::endl;
-        out << "[";
-        for (size_t j = 0; j < columns_rotations[i].size(); j++) {
-            if (j != 0)
-                out << ",";
-            out << columns_rotations[i][j];
-        }
-        out << "]";
-    }
-    out << "]," << std::endl;
-    out << "\"r\":" << fri_params.r << "," << std::endl;
-    out << "\"step_list\":[";
-    for (size_t i = 0; i < fri_params.step_list.size(); i++) {
-        if (i != 0)
-            out << ",";
-        out << fri_params.step_list[i];
-    }
-    out << "]," << std::endl;
-    out << "\"D_omegas\":[" << std::endl;
-    for (size_t i = 0; i < fri_params.D.size(); i++) {
-        if (i != 0)
-            out << "," << std::endl;
-        out << fri_params.D[i]->get_domain_element(1).data;
-    }
-    out << "]," << std::endl;
-    out << "\"rows_amount\":" << table_description.rows_amount << "," << std::endl;
-    out << "\"max_degree\":" << fri_params.max_degree << "," << std::endl;
-    out << "\"omega\":" << fri_params.D[0]->get_domain_element(1).data << std::endl;
-    out << "}" << std::endl;
-    out.close();
 }
 
 template<typename BlueprintFieldType, typename ArithmetizationParams, typename ColumnType>
@@ -353,7 +223,9 @@ int main(int argc, char *argv[]) {
             gen-gate-argument prepares gate argument and some placeholder params")
             ("input-folder-path,i", boost::program_options::value<std::string>(), "Input folder absolute path")
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
-            It'll be better to create an empty folder for output");
+            It'll be better to create an empty folder for output")
+            ("optimize-gates", "Put multiple sequental small gates into one .sol file")
+            ;
     // clang-format on
 
     boost::program_options::variables_map vm;
@@ -394,6 +266,11 @@ int main(int argc, char *argv[]) {
 
     if (vm.count("output-folder-path")) {
         output_folder_path = vm["output-folder-path"].as<std::string>();
+        boost::filesystem::path dir(output_folder_path);
+        if(boost::filesystem::create_directory(output_folder_path))
+        {
+            std::cerr<< "Directory Created: "<<output_folder_path<<std::endl;
+        }
     } else {
         std::cerr << "Invalid command line argument - output folder path is not specified" << std::endl;
         std::cout << options_desc << std::endl;
@@ -424,7 +301,7 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 5;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 20;
+    constexpr std::size_t SelectorColumns = 30;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -480,10 +357,11 @@ int main(int argc, char *argv[]) {
         table_description.witness_columns + table_description.public_input_columns + table_description.constant_columns;
 
     if (mode == "gen-gate-argument") {
+        bool optimize_gates = false;
+        if( vm.count("optimize-gates") )
+            optimize_gates = true;
         print_sol_files<ProfilingType, ConstraintSystemType, ColumnsRotationsType, ArithmetizationParams>(
-            constraint_system, columns_rotations, output_folder_path);
-        print_params<FRIParamsType, TableDescriptionType, ColumnsRotationsType, ArithmetizationParams>(
-            fri_params, table_description, columns_rotations, output_folder_path);
+            constraint_system, columns_rotations, output_folder_path, optimize_gates);
     }
 
     if (mode == "gen-test-proof") {
@@ -494,7 +372,11 @@ int main(int argc, char *argv[]) {
         typename nil::crypto3::zk::snark::placeholder_private_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type private_preprocessed_data =
             nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
-                constraint_system, assignment_table.private_table(), table_description, fri_params);
+                constraint_system, assignment_table.private_table(), table_description, fri_params
+            );
+            
+        nil::crypto3::zk::snark::print_placeholder_params<FRIScheme, TableDescriptionType, ColumnsRotationsType, ArithmetizationParams>(
+            fri_params, table_description, columns_rotations, output_folder_path+"/circuit_params.json");
 
         using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
         ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
