@@ -1,18 +1,24 @@
 #include <nil/crypto3/algebra/fields/curve25519/base_field.hpp>
 #include <nil/crypto3/algebra/fields/curve25519/scalar_field.hpp>
 #include <nil/crypto3/algebra/curves/ed25519.hpp>
+#include <nil/crypto3/algebra/curves/pallas.hpp>
 
-using ed25519_element = typename nil::crypto3::algebra::curves::ed25519::template g1_type<>::value_type;
+using namespace nil::crypto3::algebra::curves;
 
-[[circuit]] bool verify_eddsa_signature (
-    ed25519_element R,
-    __zkllvm_field_curve25519_scalar s,
-    ed25519_element pk,
-    ed25519_element M) {
+typedef __attribute__((ext_vector_type(4)))
+                typename pallas::base_field_type::value_type eddsa_message_block_type;
 
-        ed25519_element B = ed25519_element::one();
-        __zkllvm_field_curve25519_scalar k = __builtin_assigner_sha2_512_curve25519(R.data, pk.data, M.data);
+struct eddsa_signature_type {
+    typename ed25519::template g1_type<>::value_type R;
+    typename ed25519::scalar_field_type::value_type s;
+};
 
-        return (B*s - (R + (pk*k))).is_zero();
+[[circuit]] bool verify_eddsa_signature (eddsa_signature_type input, 
+    typename ed25519::template g1_type<>::value_type pk,
+    eddsa_message_block_type M) {
 
+        typename ed25519::template g1_type<>::value_type B = ed25519::template g1_type<>::value_type::one();
+        __zkllvm_field_curve25519_scalar k = __builtin_assigner_sha2_512_curve25519(input.R.data, pk.data, M);
+
+        return (B*input.s - (input.R + (pk*k))).is_zero();
     }
