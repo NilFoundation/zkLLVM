@@ -83,7 +83,7 @@ void print_circuit(const ConstraintSystemType &circuit, std::ostream &out = std:
 }
 
 template<typename CurveType>
-bool curve_dependent_main(std::string bytecode_file_name,
+int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
                           std::string assignment_table_file_name,
                           std::string circuit_file_name) {
@@ -98,19 +98,35 @@ bool curve_dependent_main(std::string bytecode_file_name,
     using ConstraintSystemType = zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
 
     std::vector<typename BlueprintFieldType::value_type> public_input;
-    auto fptr = std::fopen(public_input_file_name.c_str(), "r");
-    if (fptr == NULL) {
+    std::ifstream input_file(public_input_file_name.c_str());
+    if (!input_file.is_open()) {
         std::cerr << "Could not open the file - '" << public_input_file_name << "'" << std::endl;
         return EXIT_FAILURE;
     }
 
-    while (!std::feof(fptr)) {
+    boost::json::stream_parser p;
+    boost::json::error_code ec;
+    while (!input_file.eof()) {
         char input_string[256];
-        fscanf(fptr, "%s\n", input_string);
-        typename CurveType::base_field_type::extended_integral_type number(input_string);
-        assert(number < BlueprintFieldType::modulus && "input does not fit into BlueprintFieldType");
-        public_input.push_back(number);
+        input_file.read(input_string, sizeof(input_string) - 1);
+        input_string[input_file.gcount()] = '\0';
+        p.write(input_string, ec);
+        if (ec) {
+            std::cerr << "JSON parsing of public input failed" << std::endl;
+            return 1;
+        }
     }
+    p.finish(ec);
+    if (ec) {
+        std::cerr << "JSON parsing of public input failed" << std::endl;
+        return 1;
+    }
+    boost::json::value input_json_value = p.release();
+    if (!input_json_value.is_array()) {
+        std::cerr << "Array of arguments is expected in JSON file" << std::endl;
+        return 1;
+    }
+
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
 
     const char *llvm_arguments[2] = {"", "-opaque-pointers=0"};
@@ -121,7 +137,7 @@ bool curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    if (!parser_instance.evaluate(*module, public_input)) {
+    if (!parser_instance.evaluate(*module, input_json_value.as_array())) {
         return 1;
     }
 
