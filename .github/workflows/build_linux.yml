@@ -51,7 +51,10 @@ jobs:
             cmake \
             python3.10 \
             git \
-            libicu-dev
+            libicu-dev \
+            curl \
+            pkg-config \
+            libssl-dev
 
       - name: Print toolchain information
         run: |
@@ -82,6 +85,9 @@ jobs:
             toolset: gcc
             arch: x86
 
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Configure CMake
         env:
           BOOST_ROOT: "${{ steps.install-boost.outputs.BOOST_ROOT }}"
@@ -103,3 +109,8 @@ jobs:
       - name: Build circuits
         run: |
           make -C build run_examples -j$(nproc)
+
+      - name: Build rslang
+        run: |
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib"
+          make -C build rslang -j$(nproc)
