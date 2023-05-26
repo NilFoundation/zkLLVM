@@ -75,3 +75,4 @@ add_example(pallas_curve_mul_add_example
             INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
 add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
 add_example(transcript SOURCES placeholder_verifier/transcript.cpp INPUT placeholder_verifier/transcript.inp)
+add_example(class_polynomial SOURCES placeholder_verifier/class_polynomial.cpp INPUT placeholder_verifier/class_polynomial.inp)
