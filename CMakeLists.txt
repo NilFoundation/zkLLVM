@@ -132,3 +132,11 @@ include(CPack)
 # Package for stdlib
 add_custom_target(stdlib_package
                   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR})
+
+add_custom_target(rslang
+    COMMAND cargo b --release -p cargo
+    COMMAND ./x build --stage 2 --config src/bootstrap/defaults/config.zkllvm.toml
+    DEPENDS llvm-libraries llvm-config llvm-link FileCheck
+    COMMENT "Building rslang"
+    USES_TERMINAL
+    WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/libs/rslang")
