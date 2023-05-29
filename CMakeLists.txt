@@ -137,10 +137,50 @@ include(CPack)
 add_custom_target(stdlib_package
                   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR})
 
+option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
+option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
+
+set(RSLANG_BUILD_STAGE "2" CACHE STRING "Stage to build (see --stage)")
+
+list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
+list(APPEND RSLANG_BUILD_ARGS --target=${LLVM_HOST_TRIPLE},assigner-unknown-unknown)
+list(APPEND RSLANG_BUILD_ARGS --set target.${LLVM_HOST_TRIPLE}.llvm-config=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config)
+list(APPEND RSLANG_BUILD_ARGS --set target.${LLVM_HOST_TRIPLE}.llvm-filecheck=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/FileCheck)
+list(APPEND RSLANG_BUILD_ARGS --set target.${LLVM_HOST_TRIPLE}.llvm-has-rust-patches=false)
+list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.llvm-config=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config)
+list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.llvm-filecheck=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/FileCheck)
+list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.llvm-has-rust-patches=false)
+list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.linker=llvm-link)
+if(${BUILD_SHARED_LIBS})
+    list(APPEND RSLANG_BUILD_ARGS --enable-llvm-link-shared)
+endif()
+list(APPEND RSLANG_BUILD_ARGS --set build.cargo=${CMAKE_CURRENT_LIST_DIR}/libs/rslang/target/release/cargo)
+if(${RSLANG_BUILD_EXTENDED})
+    list(APPEND RSLANG_BUILD_ARGS --enable-extended)
+    if(RSLANG_BUILD_TOOLS)
+        list(APPEND RSLANG_BUILD_ARGS --tools=${RSLANG_BUILD_TOOLS})
+    endif()
+endif()
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    list(APPEND RSLANG_BUILD_ARGS --enable-debug)
+    list(APPEND RSLANG_BUILD_ARGS --enable-debug-assertions)
+    list(APPEND RSLANG_BUILD_ARGS --enable-debug-assertions-std)
+    list(APPEND RSLANG_BUILD_ARGS --debuginfo-level=2)
+endif()
+
+message("-- Configuring rslang")
+execute_process(COMMAND ./configure ${RSLANG_BUILD_ARGS}
+                RESULT_VARIABLE RSLANG_CONFIGURE_RESULT
+                WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+
+if(${RSLANG_CONFIGURE_RESULT})
+    message(FATAL_ERROR "Configuring rslang failed")
+endif()
+
 add_custom_target(rslang
                   COMMAND cargo b --release -p cargo
-                  COMMAND ./x build --stage 2 --config src/bootstrap/defaults/config.zkllvm.toml
+                  COMMAND ./x build --stage ${RSLANG_BUILD_STAGE}
                   DEPENDS llvm-libraries llvm-config llvm-link FileCheck
                   COMMENT "Building rslang"
                   USES_TERMINAL
-                  WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/libs/rslang")
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
