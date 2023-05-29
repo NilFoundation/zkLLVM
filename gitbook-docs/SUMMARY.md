@@ -21,6 +21,12 @@
 * [Builtin types/SDK](manual/builtin-types-sdk.md)
 * [Limitations](manual/limitations.md)
 
+## Tutorial
+* [First circuit with hashes](tutorials/01-hashes.md)
+* [EDDSA signature verification](tutorials/02-eddsa.md)
+* [Merkle tree commitment scheme](tutorials/03-merkle-tree.md)
+* [Constructing a zkBridge](tutorials/04-zkbridge.md)
+
 ## Misc
 
 * [Contributing](misc/contributing.md)
