@@ -6,6 +6,14 @@ First of all, let's define the structure of a Merkle tree. A Merkle tree is a bi
 
 As for the [first tutorial](01-hashes.md) of this serie, we will use `sha2-256` hash function as and `std::array` as a container for data blocks. We include the same headers as in the first tutorial and use the same namespace.
 
+{% hint style="info" %}
+zkLLVM supports `sha2-256`, `sha2-512` and `Poseidon` hash functions.
+{% endhint %}
+
+{% hint style="info" %}
+We use `std::array` as a container for data blocks, but we understand the necessity of supporting other containers. We are working on it. Extended support of `std` algorithms is one of our priorities.
+{% endhint %}
+
 ```cpp
 #include <nil/crypto3/hash/algorithm/hash.hpp>
 #include <nil/crypto3/hash/sha2.hpp>
@@ -75,5 +83,8 @@ using namespace nil::crypto3;
     return root;
 }
 ```
+{% hint style="info" %}
+Merkle tree is a very common data structure. In this tutorial you've learn how to construct it from scratch. Though, you don't need to do it every time. We have Merkle Tree algorithm in our Crypto3 library of optimized circuit-friendly algorithms.
+{% endhint %}
 
-We will need this Merkle Tree circuit in the next tutorial, so let's save it in the `merkle_tree.hpp` file.
+We will need this Merkle Tree circuit in the next tutorial when build a zkBridge.
