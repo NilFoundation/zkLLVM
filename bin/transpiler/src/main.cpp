@@ -314,7 +314,7 @@ int main(int argc, char *argv[]) {
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using value_marshalling_type =
         nil::crypto3::marshalling::types::plonk_constraint_system<TTypeBase, ConstraintSystemType>;
-    using ColumnsRotationsType = std::array<std::vector<int>, ArithmetizationParams::total_columns>;
+    using ColumnsRotationsType = std::array<std::set<int>, ArithmetizationParams::total_columns>;
     using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
 
     value_marshalling_type marshalled_data;
