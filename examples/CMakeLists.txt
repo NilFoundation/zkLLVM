@@ -61,6 +61,7 @@ add_example(poseidon_example SOURCES poseidon.cpp INPUT poseidon.inp)
 add_example(merkle_tree_poseidon_example SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp)
 add_example(merkle_tree_sha2_256_example SOURCES merkle_tree_sha2_256.cpp INPUT merkle_tree_sha2_256.inp)
 add_example(sha256_example SOURCES sha2_256.cpp INPUT sha2_256.inp)
+add_example(sha2_512_example SOURCES sha2_512.cpp INPUT sha2_512.inp)
 add_example(balance_example SOURCES balance.cpp INPUT balance.inp)
 add_example(memory_example SOURCES memory.cpp INPUT memory.inp)
 add_example(polynomial_example SOURCES polynomial.cpp INPUT polynomial.inp)
@@ -73,7 +74,8 @@ add_example(pallas_curve_multiplication_example
 add_example(pallas_curve_mul_add_example
             SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
             INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
-add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
+add_example(ed25519_field_addition SOURCES ed25519_field_addition.cpp INPUT ed25519_field_addition.inp)
 add_example(eddsa_signature_verification SOURCES eddsa_signature_verification.cpp INPUT eddsa_signature_verification.inp)
 add_example(zkbridge SOURCES zkbridge.cpp INPUT zkbridge.inp)
 add_example(check_belongs_ec SOURCES check_belongs_ec.cpp INPUT check_belongs_ec.inp)
+add_example(ed25519_curve_addition SOURCES ed25519_curve_addition.cpp INPUT ed25519_curve_addition.inp)

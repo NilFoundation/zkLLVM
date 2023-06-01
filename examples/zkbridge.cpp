@@ -38,10 +38,7 @@ struct block_data_type {
 bool is_same(typename hashes::sha2<256>::block_type block0,
     typename hashes::sha2<256>::block_type block1){
 
-    using field_value_type = typename pallas::base_field_type::value_type;
-    typename hashes::sha2<256>::block_type block_diff = block0-block1;
-
-    return block_diff[0] == field_value_type(0) && block_diff[1] == field_value_type(0);
+    return block0[0] == block1[0] && block0[1] == block1[1];
 }
 
 [[circuit]] bool verify_protocol_state_proof (
