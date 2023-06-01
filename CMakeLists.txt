@@ -170,12 +170,9 @@ endif()
 
 message("-- Configuring rslang")
 execute_process(COMMAND ./configure ${RSLANG_BUILD_ARGS}
-                RESULT_VARIABLE RSLANG_CONFIGURE_RESULT
+                COMMAND_ECHO STDOUT
+                COMMAND_ERROR_IS_FATAL ANY
                 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
-
-if(${RSLANG_CONFIGURE_RESULT})
-    message(FATAL_ERROR "Configuring rslang failed")
-endif()
 
 add_custom_target(rslang
                   COMMAND cargo b --release -p cargo
