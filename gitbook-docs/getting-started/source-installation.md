@@ -2,7 +2,7 @@
 description: Compile zkLLVM artifacts
 ---
 
-# Installation
+# Installation from sources
 
 ## Clone repository
 
