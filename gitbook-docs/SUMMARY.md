@@ -1,25 +1,33 @@
-# Overview
+## Overview
 
 * [What is zkLLVM](overview/what-is-zkllvm.md)
+* [Portal Overview](overview/portal-overview.md)
 
-## Guides
+## Getting Started
 
-* [Portal Overview](guides/portal-overview.md)
+### Installation
+* [Installation from source](getting-started/source-installation.md)
+* [Binary Installation](getting-started/binary-installation.md)
+
+### Starting first project
+* [zkLLVM template project](getting-started/zkllvm-template-project.md)
 * [Environment Setup](guides/environment-setup.md)
-* [Installation](guides/installation.md)
+
+## Circuit Development
+
+* [Writing Circuits](circuit-development/writing-circuits/README.md)
+* [Builtin Types](circuit-development/writing-circuits/builtin-types-sdk.md)
+* [Limitations](circuit-development/writing-circuits/limitations.md)
+
+* [Proof Generation](circuit-development/proof-generation.md)
+* [Proof Verification](circuit-development/proof-verifier.md)
+* [Full Circuit Generation pipeline](circuit-development/circuit-generation.md)
 
 ## Architecture
 
 * [Architecture](architecture/architecture.md)
 
-## Manual
-
-* [Getting Started](manual/getting-started/README.md)
-  * [Circuit Developer](manual/getting-started/circuit-generation.md)
-  * [Proof Producer](manual/getting-started/proof-generation.md)
-  * [Proof Verifier](manual/getting-started/proof-verifier.md)
-* [Builtin types/SDK](manual/builtin-types-sdk.md)
-* [Limitations](manual/limitations.md)
+## zkLLVM SDK
 
 ## Tutorial
 * [First circuit with hashes](tutorials/01-hashes.md)
