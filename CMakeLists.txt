@@ -142,7 +142,7 @@ option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
 
 set(RSLANG_BUILD_STAGE "2" CACHE STRING "Stage to build (see --stage)")
 
-execute_process(COMMAND bash -c "rustc -vV | awk -e '\$1 ~ /host:/ {printf \"%s\", \$2}'"
+execute_process(COMMAND bash -c "rustc -vV | gawk -e '\$1 ~ /host:/ {printf \"%s\", \$2}'"
                 OUTPUT_VARIABLE RUSTC_HOST_TRIPLE
                 COMMAND_ERROR_IS_FATAL ANY)
 message("-- rustc host triple: ${RUSTC_HOST_TRIPLE}")
