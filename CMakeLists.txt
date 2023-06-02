@@ -142,11 +142,16 @@ option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
 
 set(RSLANG_BUILD_STAGE "2" CACHE STRING "Stage to build (see --stage)")
 
+execute_process(COMMAND bash "-c" "rustc -vV | grep -zoP 'host: \\K.*'"
+                OUTPUT_VARIABLE RUSTC_HOST_TRIPLE
+                COMMAND_ERROR_IS_FATAL ANY)
+message("-- rustc host triple: ${RUSTC_HOST_TRIPLE}")
+
 list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
-list(APPEND RSLANG_BUILD_ARGS --target=${LLVM_HOST_TRIPLE},assigner-unknown-unknown)
-list(APPEND RSLANG_BUILD_ARGS --set target.${LLVM_HOST_TRIPLE}.llvm-config=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config)
-list(APPEND RSLANG_BUILD_ARGS --set target.${LLVM_HOST_TRIPLE}.llvm-filecheck=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/FileCheck)
-list(APPEND RSLANG_BUILD_ARGS --set target.${LLVM_HOST_TRIPLE}.llvm-has-rust-patches=false)
+list(APPEND RSLANG_BUILD_ARGS --target=${RUSTC_HOST_TRIPLE},assigner-unknown-unknown)
+list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-config=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config)
+list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-filecheck=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/FileCheck)
+list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-has-rust-patches=false)
 list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.llvm-config=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config)
 list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.llvm-filecheck=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/FileCheck)
 list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.llvm-has-rust-patches=false)
