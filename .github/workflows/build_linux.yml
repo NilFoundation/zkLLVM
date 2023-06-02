@@ -53,7 +53,7 @@ jobs:
             libicu-dev \
             curl \
             pkg-config \
-            libssl-dev
+            gawk
 
       - name: Print toolchain information
         run: |
