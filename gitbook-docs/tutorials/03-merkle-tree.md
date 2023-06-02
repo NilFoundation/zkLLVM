@@ -84,7 +84,7 @@ using namespace nil::crypto3;
 }
 ```
 {% hint style="info" %}
-Merkle tree is a very common data structure. In this tutorial you've learn how to construct it from scratch. Though, you don't need to do it every time. We have Merkle Tree algorithm in our Crypto3 library of optimized circuit-friendly algorithms.
+Merkle tree is a very common data structure. In this tutorial you've learn how to construct it from scratch. Though, you don't need to do it every time. We have Merkle Tree algorithm in our Crypto3 library of optimized circuit-friendly algorithms imlementations.
 {% endhint %}
 
 We will need this Merkle Tree circuit in the next tutorial when build a zkBridge.

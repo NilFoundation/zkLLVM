@@ -1,6 +1,6 @@
-# Table of contents
+# Overview
 
-* [zkLLVM](README.md)
+* [What is zkLLVM](overview/what-is-zkllvm.md)
 
 ## Guides
 

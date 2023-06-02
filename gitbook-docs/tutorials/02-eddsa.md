@@ -4,7 +4,7 @@ EDDSA signature plays a big role in the blockchain world. It is used in many pla
 
 In this tutorial we will show you how to implement EDDSA signature verification algorithm in the circuit form.
 
-EDDSA signature is based on ED25519 elliptic curve and its Galois field. So, following SDK headers need to be included in order to support circuit-friendly the curve and field arithmetic:
+EDDSA signature is based on ED25519 elliptic curve and its Galois field. So, following SDK headers need to be included in order to support circuit-friendly implementations of curves and fields arithmetic:
 
 ```cpp
 #include <nil/crypto3/algebra/fields/curve25519/base_field.hpp>
@@ -84,4 +84,28 @@ struct eddsa_signature_type {
 
         return (B*input.s - (input.R + (pk*k))).is_zero();
     }
+```
+{% hint style="info" %}
+You've learned how to implement EDDSA signature verification algorithm in the circuit form. Now you can directly take it from Crypto3 library and use it in your circuits.
+{% endhint %}
+
+# Using EDDSA signature verification implementation from Crypto3 library
+
+```cpp
+#include <nil/crypto3/pubkey/eddsa.hpp>
+
+typedef __attribute__((ext_vector_type(4)))
+                typename pallas::base_field_type::value_type eddsa_message_block_type;
+
+[[circuit]] int main (){
+
+    eddsa_message_block_type msg = {0, 1, 2, 3};
+
+    public_key<eddsa> pk;
+    typename eddsa::signature_type sig;
+
+    verify(msg, sig, pubkey);
+    return 0;
+}
+
 ```

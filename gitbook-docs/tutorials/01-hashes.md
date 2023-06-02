@@ -2,7 +2,11 @@
 
 Circuit development slightly differs from the usual software development. The main difference is that you only can use pure functions in your circuits. We will provide other recomendations for efficient circuit development in this tutorial and in the following ones.
 
-The good news is that many circuit-friendly algorithms already became part of the SDK and you can use them in your circuits speeding up the development process. In this tutorial we will show you how to use hashes in your circuits - in particular, we will use SHA2-256 hash function.
+The good news is that many circuit-friendly algorithms implementations already became part of the SDK and you can use them in your circuits speeding up the development process. In this tutorial we will show you how to use hashes in your circuits - in particular, we will use `sha2-256` hash function.
+
+{% hint style="info" %}
+zkLLVM SDK has `sha2-256`, `sha2-512` and `Poseidon` hash functions. Later we are going to add more hash functions such as `Pedersen` hash and `keccak`(`sha3`).
+{% endhint %}
 
 To use hashes in your C++ code, you need to include the following header:
 
@@ -30,7 +34,7 @@ using namespace nil::crypto3::hashes;
 
 We use namespace `nil::crypto3::hashes` to avoid writing `nil::crypto3::hashes::sha2<256>` every time we want to use `sha2-256` hash function. Instead we can just write `sha2<256>`.
 
-It's recomended to use fixed-size containers, since they reduce the number of constraints in the resulting circuit. In this example we use `std::array` with 64 elements. We are constanly working on optimizing circuit-friendly `std` algorithms, so other containers will be available as well soon.
+It's recomended to use fixed-size containers, since they reduce the number of constraints in the resulting circuit. In this example we use `std::array` with 64 elements. We are constanly working on optimizing `std` algorithms implementations for circuit form, so other containers will be available as well soon.
 
 Let's hash elements of the array one by one and return the result.
 
