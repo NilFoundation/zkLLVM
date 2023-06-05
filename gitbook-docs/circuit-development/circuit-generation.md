@@ -8,7 +8,7 @@ The best entry point to start the circuit development process is our [template r
 
 In case if you don't want to use Docker, you can install the compiler manually. It can be done by following the [installation](../getting-started/installation.md) guide.
 
-Once you've installed the compiler or built the Docker - you can start writing your circuit.
+Once you've installed the compiler or built the Docker image - you can start writing your circuit.
 
 ## Flow
 

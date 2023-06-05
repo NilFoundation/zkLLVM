@@ -5,13 +5,9 @@
 
 ## Getting Started
 
-### Installation
-* [Binary Installation](getting-started/binary-installation.md)
-* [Installation from source](getting-started/source-installation.md)
-
 ### Starting first project
+* [Installation](getting-started/installation.md)
 * [zkLLVM template project](getting-started/zkllvm-template-project.md)
-* [Environment Setup](getting-started/environment-setup.md)
 
 ## Circuit Development
 
