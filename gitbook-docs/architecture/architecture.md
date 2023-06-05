@@ -11,7 +11,7 @@ zkLLVM is designed to be adjustable for different use cases with modular and ext
 We are going split the assigner logic into two parts: one will be responsible for the assignment table generation and the other will be responsible for the constraints generation. The reason for this is that the constraints generation process can be don one time for the whole circuit, while the assignment table generation process should be done for each input.
 {% endhint %}
 
-There is also an SDKs layer upon the pipeline, which is responsible for the integration of the zkLLVM pipeline into the existing projects. It consist of the library full of circuit-friendly algorithms implementations and of some additional circuit development tools (tools are not fully implemented yet).
+There is also an SDKs layer upon the pipeline, which is responsible for the integration of the zkLLVM pipeline into the projects. It consist of the library full of circuit-friendly algorithms implementations and of some additional circuit development tools (tools are not fully implemented yet).
 
 ## Arithmetizations
 
