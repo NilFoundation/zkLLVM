@@ -21,6 +21,7 @@
 ## Architecture
 
 * [Architecture](architecture/architecture.md)
+* [Assigner Optimizations](architecture/assigner-optimizations.md
 
 ## zkLLVM SDK
 
