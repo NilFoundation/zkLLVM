@@ -1,6 +1,16 @@
 ---
-description: Compile zkLLVM artifacts
+description: Install zkLLVM toolchain
 ---
+
+# Binary Installation
+
+zkLLVM is distributed as a deb package, so you can install it using the following commands:
+
+```bash
+echo 'deb [trusted=yes]  http://deb.nil.foundation/ubuntu/ all main' >>/etc/apt/sources.list
+apt update
+apt install -y zkllvm cmake libboost-all-dev
+```
 
 # Installation from sources
 
@@ -13,7 +23,7 @@ git clone --recurse-submodules git@github.com:NilFoundation/zkllvm.git
 cd zkllvm
 ```
 
-## **Configure cmake**&#x20;
+## **Configure cmake**
 
 If you wish to generate IR (Intermediate representation) in binary format (\*.bc). This format is not compatible with the proof market currently.
 
@@ -53,7 +63,7 @@ ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/
 
 Where
 
-Inputs:&#x20;
+Inputs:
 
 * _**b**_: Binary representation of the circuit
 * _**i**_: Public inputs for the circuit

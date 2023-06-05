@@ -4,9 +4,11 @@ description: Generating circuit using zkLLVM
 
 # Circuit Developer
 
-Before progressing further, please ensure you have set up the [environment](../../guides/environment-setup.md) and followed the [installation](../../guides/installation.md) guide.
+The best entry point to start the circuit development process is our [template repository](). It contains a Dockerfile with all the dependencies installed. It also contains a sample circuit that you can use to get started.
 
+In case if you don't want to use Docker, you can install the compiler manually. It can be done by following the [installation](../getting-started/installation.md) guide.
 
+Once you've installed the compiler or built the Docker - you can start writing your circuit.
 
 ## Flow
 
