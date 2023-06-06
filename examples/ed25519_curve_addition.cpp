@@ -5,8 +5,8 @@
 using namespace nil::crypto3;
 using namespace nil::crypto3::algebra::curves;
 
-[[circuit]] typename ed25519::template g1_type<>::value_type curve_addition (
-    typename ed25519::template g1_type<>::value_type x, 
-    typename ed25519::template g1_type<>::value_type y) {
-    return x + y;
+[[circuit]] typename ed25519::template g1_type<>::value_type::data_type curve_addition (
+    typename ed25519::template g1_type<>::value_type::data_type x, 
+    typename ed25519::template g1_type<>::value_type::data_type y) {
+    return __builtin_assigner_curve25519_affine_addition(x, y);
 }
