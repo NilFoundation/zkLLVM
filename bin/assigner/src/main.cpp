@@ -53,6 +53,7 @@
 #include <nil/blueprint/utils/satisfiability_check.hpp>
 
 #include <llvm/Support/CommandLine.h>
+#include <llvm/Support/Signals.h>
 
 using namespace nil;
 using namespace nil::crypto3;
@@ -195,6 +196,8 @@ int curve_dependent_main(std::string bytecode_file_name,
 
 int main(int argc, char *argv[]) {
 
+    llvm::sys::PrintStackTraceOnErrorSignal(argv[0]);
+
     boost::program_options::options_description options_desc("zkLLVM assigner");
 
     // clang-format off
@@ -323,18 +326,15 @@ int main(int argc, char *argv[]) {
             break;
         }
         case 1: {
-            std::cerr << "command line argument -e vesta is not supported yet" << std::endl;
-            assert(1==0 && "vesta curve based circuits are not supported yet");
+            UNREACHABLE("vesta curve based circuits are not supported yet");
             break;
         }
         case 2: {
-            std::cerr << "command line argument -e ed25519 is not supported yet" << std::endl;
-            assert(1==0 && "ed25519 curve based circuits are not supported yet");
+            UNREACHABLE("ed25519 curve based circuits are not supported yet");
             break;
         }
         case 3: {
-            std::cerr << "command line argument -e bls12-381 is not supported yet" << std::endl;
-            assert(1==0 && "bls12-381 curve based circuits are not supported yet");
+            UNREACHABLE("bls12-381 curve based circuits are not supported yet");
             break;
         }
     };
