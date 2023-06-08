@@ -8,6 +8,10 @@ The zkLLVM project is under active development. The current limitations are list
 
 We are hardly working on removing these limitations, but for now, please keep them in mind when writing circuits. Our final goal is to make the zkLLVM compiler as close to standard C++ as possible.
 
+## Pure functions
+
+The main difference with the usual software development is that you only can use pure functions in your circuits. Because of its polynomial arithmetic nature circuit can't use file system, network, or any other side effects.
+
 ## Entry point
 
 The entry point of the project must be marked with `[[circuit]]` directive.
