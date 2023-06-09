@@ -75,6 +75,22 @@ cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -
 make -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)
 ```
 
+**4. Build the Rust toolchain**
+
+Make sure you have [`rustc`](https://www.rust-lang.org/tools/install) installed first.
+
+```bash
+make -C ${ZKLLVM_BUILD:-build} rslang -j$(nproc)
+```
+
+Note: if you want an advanced Rust compilation, you can build `zkllvm` first:
+
+```bash
+make -C ${ZKLLVM_BUILD:-build} -j$(nproc)
+```
+
+And then use Rust default build system `x.py`.
+
 ## Usage
 
 zkLLVM's workflow is as follows:
