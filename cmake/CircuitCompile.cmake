@@ -58,26 +58,45 @@ function(add_circuit name)
     endif()
     list(REMOVE_DUPLICATES INCLUDE_DIRS_LIST)
 
+    set(link_options "-opaque-pointers=0")
+
     if(CIRCUIT_ASSEMBLY_OUTPUT)
-        set(binary_name ${name}.ll)
+        set(extension ll)
         set(format_option -S)
+        list(APPEND link_options "-S")
     else()
-        set(binary_name ${name}.bc)
+        set(extension bc)
         set(format_option -c)
     endif()
 
     if (ZKLLVM_DEV_ENVIRONMENT)
         set(CLANG $<TARGET_FILE:clang>)
+        set(LINKER $<TARGET_FILE:llvm-link>)
     else()
         set(CLANG clang)
+        set(LINKER llvm-link)
     endif()
 
+    # Compile sources
+    set(compiler_outputs "")
+    add_custom_target(${name}_compile_sources)
+    foreach(source ${CIRCUIT_SOURCES})
+        get_filename_component(source_base_name ${source} NAME)
+        add_custom_target(${name}_${source_base_name}_${extension}
+                        COMMAND ${CLANG} -target assigner -Xclang -no-opaque-pointers -Xclang -fpreserve-vec3-type -std=c++20
+                        -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 ${format_option} -o ${source_base_name}.${extension} ${source}
+
+                        VERBATIM COMMAND_EXPAND_LISTS
+
+                        SOURCES ${source})
+        add_dependencies(${name}_compile_sources ${name}_${source_base_name}_${extension})
+        list(APPEND compiler_outputs "${source_base_name}.${extension}")
+    endforeach()
+
+    # Link sources
     add_custom_target(${name}
-                      COMMAND ${CLANG} -target assigner -Xclang -no-opaque-pointers -Xclang -fpreserve-vec3-type -std=c++20
-                      -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 ${format_option} -o ${binary_name} ${CIRCUIT_SOURCES}
-
-                      VERBATIM COMMAND_EXPAND_LISTS
-
-                      SOURCES ${CIRCUIT_SOURCES})
-    set_target_properties(${name} PROPERTIES OUTPUT_NAME ${binary_name})
+                      COMMAND ${LINKER} ${link_options} -o ${name}.${extension} ${compiler_outputs}
+                      DEPENDS ${name}_compile_sources
+                      VERBATIM COMMAND_EXPAND_LISTS)
+    set_target_properties(${name} PROPERTIES OUTPUT_NAME ${name}.${extension})
 endfunction(add_circuit)
