@@ -44,7 +44,7 @@ Languages currently supported are:
 On Debian systems, everything except Boost can be installed with the following command:
 
 ```
-sudo apt install build-essential libssl-dev cmake clang-12 git
+sudo apt install build-essential libssl-dev cmake clang-12 git curl pkg-config gawk
 ```
 
 #### 1. Clone the repository
