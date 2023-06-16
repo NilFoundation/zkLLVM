@@ -39,13 +39,13 @@ jobs:
             build-essential \
             libssl-dev \
             cmake \
-            python3.10 \
-            python3-pip \
             git \
             curl \
             unzip \
             zstd \
-            libicu-dev
+            libicu-dev \
+            pkg-config \
+            gawk
 
       - name: Print toolchain information
         run: |
@@ -75,6 +75,15 @@ jobs:
             platform_version: 22.04
             toolset: gcc
             arch: x86
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Install aws tools
         run: |
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
