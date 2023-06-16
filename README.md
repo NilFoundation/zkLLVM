@@ -40,6 +40,7 @@ Languages currently supported are:
 * [Boost](https://www.boost.org/) >= 1.76.0
 * [CMake](https://cmake.org/) >= 3.5
 * [Clang](https://clang.llvm.org/) >= 12.0
+* [Python](https://www.python.org/) >= 3.7
 
 On Debian systems, everything except Boost can be installed with the following command:
 
@@ -77,7 +78,7 @@ make -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)
 
 **4. Build the Rust toolchain**
 
-Make sure you have [`rustc`](https://www.rust-lang.org/tools/install) installed first.
+Make sure you have [`rustc`](https://www.rust-lang.org/tools/install) with `cargo` installed first.
 
 ```bash
 make -C ${ZKLLVM_BUILD:-build} rslang -j$(nproc)
