@@ -41,8 +41,7 @@ jobs:
           brew install \
             boost@1.76 \
             cmake \
-            icu4c \
-            gawk
+            icu4c
 
       - name: Print toolchain information
         run: |
