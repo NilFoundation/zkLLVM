@@ -142,10 +142,19 @@ option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
 
 set(RSLANG_BUILD_STAGE "2" CACHE STRING "Stage to build (see --stage)")
 
-execute_process(COMMAND bash -c "rustc -vV | gawk -e '\$1 ~ /host:/ {printf \"%s\", \$2}'"
-                OUTPUT_VARIABLE RUSTC_HOST_TRIPLE
-                COMMAND_ERROR_IS_FATAL ANY)
-message("-- rustc host triple: ${RUSTC_HOST_TRIPLE}")
+execute_process(COMMAND sh -c "(uname -r) 2> /dev/null"
+                RESULT_VARIABLE UNAME_RELEASE_RESULT
+                OUTPUT_VARIABLE UNAME_RELEASE
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+if( NOT UNAME_RELEASE_RESULT EQUAL 0 )
+    message(FATAL_ERROR "Failed to execute `(uname -r) 2> /dev/null`")
+endif( NOT UNAME_RELEASE_RESULT EQUAL 0 )
+
+message(STATUS "Uname release: ${UNAME_RELEASE}")
+
+string(REGEX REPLACE "${UNAME_RELEASE}$" "" RUSTC_HOST_TRIPLE "${LLVM_HOST_TRIPLE}")
+message(STATUS "Rust host triple: ${RUSTC_HOST_TRIPLE}")
 
 list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
 list(APPEND RSLANG_BUILD_ARGS --target=${RUSTC_HOST_TRIPLE},assigner-unknown-unknown)
@@ -173,9 +182,8 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     list(APPEND RSLANG_BUILD_ARGS --debuginfo-level=2)
 endif()
 
-message("-- Configuring rslang")
+message(STATUS "Configuring rslang")
 execute_process(COMMAND ./configure ${RSLANG_BUILD_ARGS}
-                COMMAND_ECHO STDOUT
                 COMMAND_ERROR_IS_FATAL ANY
                 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
 
