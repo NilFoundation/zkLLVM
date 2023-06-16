@@ -64,9 +64,9 @@ add_example(sha256_example SOURCES sha2_256.cpp INPUT sha2_256.inp)
 add_example(balance_example SOURCES balance.cpp INPUT balance.inp)
 add_example(memory_example SOURCES memory.cpp INPUT memory.inp)
 add_example(polynomial_example SOURCES polynomial.cpp INPUT polynomial.inp)
-#add_example(pallas_curve_addition_example
-#            SOURCES pallas_curve_examples/pallas_curve_add.cpp
-#            INPUT pallas_curve_examples/pallas_curve_add.inp)
+add_example(pallas_curve_addition_example
+           SOURCES pallas_curve_examples/pallas_curve_add.cpp
+           INPUT pallas_curve_examples/pallas_curve_add.inp)
 #add_example(pallas_curve_multiplication_example
 #            SOURCES pallas_curve_examples/pallas_curve_mul.cpp
 #            INPUT pallas_curve_examples/pallas_curve_mul.inp)
@@ -74,3 +74,4 @@ add_example(polynomial_example SOURCES polynomial.cpp INPUT polynomial.inp)
 #            SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
 #            INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
 add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
+add_example(strlen_example SOURCES strlen.cpp INPUT strlen.inp)
