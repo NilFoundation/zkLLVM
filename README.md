@@ -92,6 +92,58 @@ make -C ${ZKLLVM_BUILD:-build} -j$(nproc)
 
 And then use Rust default build system `x.py`.
 
+## Pre-built binaries
+
+### Rust toolchain
+
+You can install `rslang` as another toolchain in `rustup` or as a standalone application.
+
+#### **Supported platforms**
+
+* x86-64 GNU/Linux
+
+#### **Prerequisites**
+
+* Python 3.7+
+
+#### **Installation with `rustup`**
+
+1. Install `rustup` (if needed)
+
+[Official](https://www.rust-lang.org/tools/install) Rust installation:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+If you don't want to install default Rust toolchain (which you actually don't need to use `rslang`), you can pass additional arguments during installation as follows:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+```
+
+2. Install `rslang`
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSfL https://github.com/NilFoundation/zkllvm-rslang/releases/download/v0.0.1-beta/rslang-init.sh | sh
+```
+
+This downloads pre-built `rslang` and installes it as a toolchain in your `rustup`.
+
+Now you can use toolchain called `zkllvm` to compile with `rslang`:
+
+```bash
+cargo +zkllvm -V
+```
+
+#### **Stanalone installation**
+
+You need to pass `PATH` to desired installation directory.
+
+```bash
+curl -Ls https://github.com/NilFoundation/zkllvm-rslang/releases/download/v0.0.1-beta/rslang-init.sh | sh -s -- --no-rustup --prefix PATH
+```
+
 ## Usage
 
 zkLLVM's workflow is as follows:
