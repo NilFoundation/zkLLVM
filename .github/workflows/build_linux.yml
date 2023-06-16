@@ -52,8 +52,7 @@ jobs:
             git \
             libicu-dev \
             curl \
-            pkg-config \
-            gawk
+            pkg-config
 
       - name: Print toolchain information
         run: |

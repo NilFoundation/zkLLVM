@@ -44,8 +44,7 @@ jobs:
             unzip \
             zstd \
             libicu-dev \
-            pkg-config \
-            gawk
+            pkg-config
 
       - name: Print toolchain information
         run: |
