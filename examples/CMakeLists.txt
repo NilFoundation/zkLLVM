@@ -57,6 +57,7 @@ function(add_example example_target)
 endfunction()
 
 add_example(arithmetics_example SOURCES arithmetics.cpp INPUT arithmetics.inp)
+add_example(integral_arithmetics_example SOURCES integral_arithmetics.cpp INPUT integral_arithmetics.inp)
 add_example(poseidon_example SOURCES poseidon.cpp INPUT poseidon.inp)
 add_example(merkle_tree_poseidon_example SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp)
 add_example(merkle_tree_sha2_256_example SOURCES merkle_tree_sha2_256.cpp INPUT merkle_tree_sha2_256.inp)
