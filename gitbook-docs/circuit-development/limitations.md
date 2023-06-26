@@ -17,13 +17,17 @@ The main difference with the usual software development is that you only can use
 The entry point of the project must be marked with `[[circuit]]` directive.
 There can only be a single `[[circuit]]` directive in a project, but a circuit function can call other functions.
 
+In case you are compiling C code, the entry point can be marked with `__attribute__((circuit))` directive.
+
 You can link a couple of source files together to create a single circuit.
 
 ## Missing type
 
-Following C++ standard types are not supported:
-* `string`
+Following C++ standard types are not currently supported:
+* `std::string` (only the C-like strings `char*` are supported)
 * `float` , `double` (will be added in an upcoming release)
+
+These types are expected to be added in the future releases. But avoid using them for now. The operations with these types are not circuit-friendly for zkSNARKs/STARKs, so we are working on a special implementation for them.
 
 ## Standard library support
 

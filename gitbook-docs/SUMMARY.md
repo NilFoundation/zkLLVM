@@ -18,10 +18,13 @@
 * [Proof Generation](circuit-development/proof-generation.md)
 * [Proof Verification](circuit-development/proof-verifier.md)
 
+* [Tools](circuit-development/tools.md)
+* [Effective circuit development](circuit-development/optimizations.md)
+
 ## Architecture
 
 * [Architecture](architecture/architecture.md)
-* [Assigner Optimizations](architecture/assigner-optimizations.md
+* [Assigner Optimizations](architecture/assigner-optimizations.md)
 
 ## zkLLVM SDK
 
@@ -30,6 +33,10 @@
 * [EDDSA signature verification](tutorials/02-eddsa.md)
 * [Merkle tree commitment scheme](tutorials/03-merkle-tree.md)
 * [Constructing a zkBridge](tutorials/04-zkbridge.md)
+
+## Architecture design example
+
+* [zk-Application circuit development](design-example/zk-app-development.md)
 
 ## Misc
 
