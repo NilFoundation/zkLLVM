@@ -195,3 +195,20 @@ ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/
 make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(sysctl -n hw.logicalcpu)
 ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas
 ```
+
+### Validating the circuit
+
+You can also run the `assigner` with `--check` flag to validate the satisfiability of the circuit. If the circuit is satisfiable, the `assigner` will output the satisfying assignment in the `assignment.tbl` file. If there is an error, the `assigner` will output the error message and throw an exception via `std::abort`.
+
+#### Linux 
+
+```bash
+make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(nproc) 
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas --check
+```
+
+#### macOS
+```bash
+make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(sysctl -n hw.logicalcpu)
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas --check
+```
