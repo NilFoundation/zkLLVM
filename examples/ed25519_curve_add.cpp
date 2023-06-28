@@ -1,4 +1,4 @@
-[[circuit]] __zkllvm_field_curve25519_base curve_operations(__zkllvm_field_curve25519_base a,
-                                                            __zkllvm_field_curve25519_base b) {
+[[circuit]] __zkllvm_curve_curve25519 field_operations(__zkllvm_curve_curve25519 a,
+                                                            __zkllvm_curve_curve25519 b) {
     return a + b;
 }
