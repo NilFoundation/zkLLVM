@@ -104,14 +104,18 @@ jobs:
         run: |
           make -C build assigner clang transpiler -j$(nproc)
 
-      - name: Build examples
+      - name: Build IR of the examples
         run: |
           make -C build circuit_examples -j$(nproc)
           ls -al ./build/examples
 
-      - name: Build circuits
+      - name: Build circuit and assigner of the examples
         run: |
-          make -C build run_examples -j$(nproc)
+          make -C build assign_examples -j$(nproc)
+
+      - name: Build proof for the circuit of the examples
+        run: |
+          make -C build proof_examples -j$(nproc)
 
       - name: Build rslang
         run: |
