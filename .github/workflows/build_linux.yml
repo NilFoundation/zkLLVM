@@ -115,7 +115,7 @@ jobs:
 
       - name: Build proof for the circuit of the examples
         run: |
-          make -C build proof_examples -j$(nproc)
+          make -C build prove_examples -j$(nproc)
 
       - name: Build rslang
         run: |
