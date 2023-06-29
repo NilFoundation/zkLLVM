@@ -37,6 +37,7 @@
 #include <nil/crypto3/math/polynomial/polynomial.hpp>
 #include <nil/crypto3/math/algorithms/calculate_domain_set.hpp>
 
+#include <nil/blueprint/asserts.hpp>
 #include <nil/blueprint/transpiler/minimized_profiling_plonk_circuit.hpp>
 #include <nil/blueprint/transpiler/public_input.hpp>
 
@@ -222,11 +223,12 @@ int main(int argc, char *argv[]) {
             ("mode,m", boost::program_options::value<std::string>(), "Transpiler mode (gen-test-proof, gen-gate-argument).\
             gen-test-proof prepares gate argument, placeholder params and sample proof for testing.\
             gen-gate-argument prepares gate argument and some placeholder params")
-            ("input-folder-path,i", boost::program_options::value<std::string>(), "Input folder absolute path")
+            ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
+            ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table input file")
+            ("circuit,c", boost::program_options::value<std::string>(), "Circuit input file")
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
             ("optimize-gates", "Put multiple sequental small gates into one .sol file")
-            ("public-input-path,p", boost::program_options::value<std::string>(), "Public input file path")            
             ;
     // clang-format on
 
@@ -241,9 +243,10 @@ int main(int argc, char *argv[]) {
     }
 
     std::string mode;
-    std::string input_folder_path;
+    std::string assignment_table_file_name;
+    std::string circuit_file_name;
     std::string output_folder_path;
-    std::string public_input_path;
+    std::string public_input;
     
     if (vm.count("mode")) {
         mode = vm["mode"].as<std::string>();
@@ -259,10 +262,18 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (vm.count("input-folder-path")) {
-        input_folder_path = vm["input-folder-path"].as<std::string>();
+    if (vm.count("assignment-table")) {
+        assignment_table_file_name = vm["assignment-table"].as<std::string>();
     } else {
-        std::cerr << "Invalid command line argument - input folder path is not specified" << std::endl;
+        std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    if (vm.count("circuit")) {
+        circuit_file_name = vm["circuit"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
     }
@@ -280,21 +291,15 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::string ifile_path;
-    std::string iassignment_path;
-
-    ifile_path = input_folder_path + "/circuit.crct";
-    iassignment_path = input_folder_path + "/assignment.tbl";
-
     std::ifstream ifile;
-    ifile.open(ifile_path);
+    ifile.open(circuit_file_name);
     if (!ifile.is_open()) {
-        std::cout << "Cannot find input file " << ifile_path << std::endl;
+        std::cout << "Cannot find input file " << circuit_file_name << std::endl;
         return 1;
     }
     std::vector<std::uint8_t> v;
     if (!read_buffer_from_file(ifile, v)) {
-        std::cout << "Cannot parse input file " << ifile_path << std::endl;
+        std::cout << "Cannot parse input file " << circuit_file_name << std::endl;
         return 1;
     }
     ifile.close();
@@ -320,16 +325,16 @@ int main(int argc, char *argv[]) {
     using ColumnsRotationsType = std::array<std::set<int>, ArithmetizationParams::total_columns>;
     using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
 
-    if( vm.count("public-input-path") ){
-        public_input_path = vm["public-input-path"].as<std::string>();
-        if( !boost::filesystem::exists(public_input_path) ){
+    if( vm.count("public-input") ){
+        public_input = vm["public-input"].as<std::string>();
+        if( !boost::filesystem::exists(public_input) ){
             std::cerr << "Invalid command line argument - public input file does not exist" << std::endl;
             return 1;
         }
 
         std::ofstream pfile;
         pfile.open(output_folder_path+"/public_input.json");
-        pfile << nil::blueprint::convert_numeric_public_input_to_json<BlueprintFieldType>(public_input_path);
+        pfile << nil::blueprint::convert_numeric_public_input_to_json<BlueprintFieldType>(public_input);
         pfile.close();
     }
 
@@ -346,9 +351,9 @@ int main(int argc, char *argv[]) {
         nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
 
     std::ifstream iassignment;
-    iassignment.open(iassignment_path);
+    iassignment.open(assignment_table_file_name);
     if (!iassignment) {
-        std::cout << "Cannot open " << iassignment_path << std::endl;
+        std::cout << "Cannot open " << assignment_table_file_name << std::endl;
         return 1;
     }
     TableAssignmentType assignment_table;
@@ -399,22 +404,19 @@ int main(int argc, char *argv[]) {
             public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
             fri_params);
 
-        bool verifier_res =
+        bool verification_result =
             nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
                 public_preprocessed_data, proof, constraint_system, fri_params);
+        
 
-        if (verifier_res) {
-            auto filled_placeholder_proof =
-                nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
-            proof_print<Endianness, ProofType>(proof, output_folder_path + "/proof.bin");
-            std::cout << "Proof is verified" << std::endl;
-            iassignment.close();
-            return 0;
-        } else {
-            std::cout << "Proof is not verified" << std::endl;
-            iassignment.close();
-            return 1;
-        }
+        ASSERT_MSG(verification_result, "Proof is not verified" );
+
+        auto filled_placeholder_proof =
+            nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
+        proof_print<Endianness, ProofType>(proof, output_folder_path + "/proof.bin");
+        std::cout << "Proof is verified" << std::endl;
+        iassignment.close();
+        return 0;
     }
 
     return 0;
