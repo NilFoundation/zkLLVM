@@ -87,4 +87,4 @@ jobs:
 
       - name: Build proof for the circuit of the examples
         run: |
-          make -C build proof_examples -j$(sysctl -n hw.logicalcpu)
+          make -C build prove_examples -j$(sysctl -n hw.logicalcpu)
