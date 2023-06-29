@@ -1,5 +1,6 @@
 add_custom_target(circuit_examples)
-add_custom_target(run_examples)
+add_custom_target(assign_examples)
+add_custom_target(proof_examples)
 
 function(add_example example_target)
     set(prefix ARG)
@@ -48,12 +49,20 @@ function(add_example example_target)
     else()
         set(binary_name ${example_target}.bc)
     endif()
-    add_custom_target(${example_target}_run
+    
+    add_custom_target(${example_target}_assign
                       COMMAND $<TARGET_FILE:assigner> -b ${binary_name} -i ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_INPUT} -c circuit_${example_target}.crct -t assignment_${example_target}.tbl -e pallas
                       DEPENDS ${example_target} ${ARG_INPUT} $<TARGET_FILE:assigner>
                       COMMAND_EXPAND_LISTS
                       VERBATIM)
-    add_dependencies(run_examples ${example_target}_run)
+    add_dependencies(assign_examples ${example_target}_assign)
+
+    add_custom_target(${example_target}_proof
+                      COMMAND $<TARGET_FILE:transpiler> -m gen-test-proof -i ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_INPUT} -c circuit_${example_target}.crct -t assignment_${example_target}.tbl -o .
+                      DEPENDS ${example_target} ${ARG_INPUT} $<TARGET_FILE:transpiler>
+                      COMMAND_EXPAND_LISTS
+                      VERBATIM)
+    add_dependencies(proof_examples ${example_target}_proof)
 endfunction()
 
 add_example(arithmetics_example SOURCES arithmetics.cpp INPUT arithmetics.inp)
