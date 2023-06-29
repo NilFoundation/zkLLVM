@@ -38,6 +38,7 @@
 #include <nil/crypto3/math/algorithms/calculate_domain_set.hpp>
 
 #include <nil/blueprint/transpiler/minimized_profiling_plonk_circuit.hpp>
+#include <nil/blueprint/transpiler/public_input.hpp>
 
 bool read_buffer_from_file(std::ifstream &ifile, std::vector<std::uint8_t> &v) {
     char c;
@@ -225,6 +226,7 @@ int main(int argc, char *argv[]) {
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
             ("optimize-gates", "Put multiple sequental small gates into one .sol file")
+            ("public-input-path,p", boost::program_options::value<std::string>(), "Public input file path")            
             ;
     // clang-format on
 
@@ -241,6 +243,7 @@ int main(int argc, char *argv[]) {
     std::string mode;
     std::string input_folder_path;
     std::string output_folder_path;
+    std::string public_input_path;
     
     if (vm.count("mode")) {
         mode = vm["mode"].as<std::string>();
@@ -316,6 +319,19 @@ int main(int argc, char *argv[]) {
         nil::crypto3::marshalling::types::plonk_constraint_system<TTypeBase, ConstraintSystemType>;
     using ColumnsRotationsType = std::array<std::set<int>, ArithmetizationParams::total_columns>;
     using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
+
+    if( vm.count("public-input-path") ){
+        public_input_path = vm["public-input-path"].as<std::string>();
+        if( !boost::filesystem::exists(public_input_path) ){
+            std::cerr << "Invalid command line argument - public input file does not exist" << std::endl;
+            return 1;
+        }
+
+        std::ofstream pfile;
+        pfile.open(output_folder_path+"/public_input.json");
+        pfile << nil::blueprint::convert_numeric_public_input_to_json<BlueprintFieldType>(public_input_path);
+        pfile.close();
+    }
 
     value_marshalling_type marshalled_data;
     TableDescriptionType table_description;

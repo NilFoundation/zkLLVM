@@ -57,6 +57,7 @@ function(add_example example_target)
 endfunction()
 
 add_example(arithmetics_example SOURCES arithmetics.cpp INPUT arithmetics.inp)
+add_example(integer_arithmetics_example SOURCES integer_arithmetics.cpp INPUT integer_arithmetics.inp)
 add_example(poseidon_example SOURCES poseidon.cpp INPUT poseidon.inp)
 add_example(merkle_tree_poseidon_example SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp)
 add_example(merkle_tree_sha2_256_example SOURCES merkle_tree_sha2_256.cpp INPUT merkle_tree_sha2_256.inp)
@@ -66,16 +67,17 @@ add_example(balance_example SOURCES balance.cpp INPUT balance.inp)
 add_example(memory_example SOURCES memory.cpp INPUT memory.inp)
 add_example(polynomial_example SOURCES polynomial.cpp INPUT polynomial.inp)
 add_example(pallas_curve_addition_example
-            SOURCES pallas_curve_examples/pallas_curve_add.cpp
-            INPUT pallas_curve_examples/pallas_curve_add.inp)
+           SOURCES pallas_curve_examples/pallas_curve_add.cpp
+           INPUT pallas_curve_examples/pallas_curve_add.inp)
 add_example(pallas_curve_multiplication_example
             SOURCES pallas_curve_examples/pallas_curve_mul.cpp
             INPUT pallas_curve_examples/pallas_curve_mul.inp)
 add_example(pallas_curve_mul_add_example
             SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
             INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
-add_example(ed25519_field_addition SOURCES ed25519_field_addition.cpp INPUT ed25519_field_addition.inp)
+add_example(ed25519_field_add SOURCES ed25519_field_add.cpp INPUT ed25519_field_add.inp)
 add_example(eddsa_signature_verification SOURCES eddsa_signature_verification.cpp INPUT eddsa_signature_verification.inp)
 add_example(zkbridge SOURCES zkbridge.cpp INPUT zkbridge.inp)
 add_example(check_belongs_ec SOURCES check_belongs_ec.cpp INPUT check_belongs_ec.inp)
-add_example(ed25519_curve_addition SOURCES ed25519_curve_addition.cpp INPUT ed25519_curve_addition.inp)
+add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
+add_example(strlen_example SOURCES strlen.cpp INPUT strlen.inp)
