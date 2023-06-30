@@ -32,3 +32,16 @@ These types are expected to be added in the future releases. But avoid using the
 ## Standard library support
 
 We are working on adding support for the standard library. Currently, we only support `std::array` container type and its algorithm. The next one to be added is `std::vector`.
+
+## Entry function input types
+
+The entry function currently can only accept the following types as arguments:
+
+* string (for C-like strings char*)
+* int (for integer values)
+* field (for field elements)
+* curve (for curve elements)
+* array (for std::array of integer, field or curve elements)
+* vector (for std::vector of integer, field or curve elements)
+
+More about the input format can be found [here](input.md).

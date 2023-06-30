@@ -14,6 +14,7 @@
 * [Full Circuit Generation pipeline](circuit-development/circuit-generation.md)
 * [Builtin Types](circuit-development/builtin-types-sdk.md)
 * [Limitations](circuit-development/limitations.md)
+* [Input format for circuits](circuit-development/input.md)
 
 * [Proof Generation](circuit-development/proof-generation.md)
 * [Proof Verification](circuit-development/proof-verifier.md)
