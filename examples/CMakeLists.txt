@@ -51,7 +51,7 @@ function(add_example example_target)
     endif()
     
     add_custom_target(${example_target}_assign
-                      COMMAND $<TARGET_FILE:assigner> -b ${binary_name} -i ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_INPUT} -c circuit_${example_target}.crct -t assignment_${example_target}.tbl -e pallas
+                      COMMAND $<TARGET_FILE:assigner> -b ${binary_name} -i ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_INPUT} -c circuit_${example_target}.crct -t assignment_${example_target}.tbl -e pallas --check
                       DEPENDS ${example_target} ${ARG_INPUT} $<TARGET_FILE:assigner>
                       COMMAND_EXPAND_LISTS
                       VERBATIM)

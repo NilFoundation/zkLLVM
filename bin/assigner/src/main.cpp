@@ -48,6 +48,7 @@
 #include <nil/crypto3/marshalling/zk/types/plonk/constraint_system.hpp>
 
 #include <nil/blueprint/parser.hpp>
+#include <nil/blueprint/asserts.hpp>
 #include <nil/blueprint/transpiler/table_profiling.hpp>
 #include <nil/blueprint/utils/satisfiability_check.hpp>
 
@@ -86,7 +87,8 @@ template<typename CurveType>
 int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
                           std::string assignment_table_file_name,
-                          std::string circuit_file_name) {
+                          std::string circuit_file_name,
+                          bool check_validity) {
     using BlueprintFieldType = typename CurveType::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 5;
@@ -163,7 +165,12 @@ int curve_dependent_main(std::string bytecode_file_name,
     print_circuit<nil::marshalling::option::big_endian, ConstraintSystemType>(parser_instance.bp, ocircuit);
     ocircuit.close();
 
-    return !nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignmnt);
+    if (check_validity){
+        bool is_satisfied = nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignmnt);
+        ASSERT_MSG(is_satisfied, "The circuit is not satisfied" );
+    }
+
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -177,7 +184,8 @@ int main(int argc, char *argv[]) {
             ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
-            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)");
+            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)")
+            ("check", "Check satisfiability of the generated circuit");
     // clang-format on
 
     boost::program_options::variables_map vm;
@@ -251,7 +259,7 @@ int main(int argc, char *argv[]) {
 
     switch (curve_options[elliptic_curve]) {
         case 0: {
-            return curve_dependent_main<typename algebra::curves::pallas>(bytecode_file_name, public_input_file_name, assignment_table_file_name, circuit_file_name);
+            return curve_dependent_main<typename algebra::curves::pallas>(bytecode_file_name, public_input_file_name, assignment_table_file_name, circuit_file_name, vm.count("check"));
             break;
         }
         case 1: {
