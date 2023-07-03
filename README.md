@@ -186,14 +186,14 @@ Users can generate & inspect intermediate artifacts such as execution trace by r
 #### Linux 
 
 ```bash
-make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(nproc) 
-${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas
+make -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(nproc) 
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_example.bc -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas
 ```
 
 #### macOS
 ```bash
-make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(sysctl -n hw.logicalcpu)
-${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas
+make -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(sysctl -n hw.logicalcpu)
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_example.bc -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas
 ```
 
 ### Validating the circuit
@@ -203,12 +203,12 @@ You can also run the `assigner` with `--check` flag to validate the satisfiabili
 #### Linux 
 
 ```bash
-make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(nproc) 
-${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas --check
+make -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(nproc) 
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_example.bc -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas --check
 ```
 
 #### macOS
 ```bash
-make -C ${ZKLLVM_BUILD:-build} circuit_examples -j$(sysctl -n hw.logicalcpu)
-${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/arithmetics_example.bc -i examples/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas --check
+make -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(sysctl -n hw.logicalcpu)
+${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_example.bc -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas --check
 ```
