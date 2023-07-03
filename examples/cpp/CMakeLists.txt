@@ -1,6 +1,6 @@
-add_custom_target(circuit_examples)
-add_custom_target(assign_examples)
-add_custom_target(prove_examples)
+add_custom_target(cpp_circuit_examples)
+add_custom_target(assign_cpp_examples)
+add_custom_target(prove_cpp_examples)
 
 function(add_example example_target)
     set(prefix ARG)
@@ -42,7 +42,7 @@ function(add_example example_target)
                 crypto3::zk
 
                 ${Boost_LIBRARIES})
-    add_dependencies(circuit_examples "${example_target}")
+    add_dependencies(cpp_circuit_examples "${example_target}")
 
     if (CIRCUIT_ASSEMBLY_OUTPUT)
         set(binary_name ${example_target}.ll)
@@ -55,33 +55,33 @@ function(add_example example_target)
                       DEPENDS ${example_target} ${ARG_INPUT} $<TARGET_FILE:assigner>
                       COMMAND_EXPAND_LISTS
                       VERBATIM)
-    add_dependencies(assign_examples ${example_target}_assign)
+    add_dependencies(assign_cpp_examples ${example_target}_assign)
 
     add_custom_target(${example_target}_prove
                       COMMAND $<TARGET_FILE:transpiler> -m gen-test-proof -i ${INPUTS_DIR}/${ARG_INPUT} -c circuit_${example_target}.crct -t assignment_${example_target}.tbl -o .
                       DEPENDS ${example_target} ${ARG_INPUT} $<TARGET_FILE:transpiler>
                       COMMAND_EXPAND_LISTS
                       VERBATIM)
-    add_dependencies(prove_examples ${example_target}_prove)
+    add_dependencies(prove_cpp_examples ${example_target}_prove)
 endfunction()
 
-add_example(arithmetics_example SOURCES arithmetics.cpp INPUT arithmetics.inp)
-add_example(integer_arithmetics_example SOURCES integer_arithmetics.cpp INPUT integer_arithmetics.inp)
-add_example(poseidon_example SOURCES poseidon.cpp INPUT poseidon.inp)
-add_example(merkle_tree_poseidon_example SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp)
-add_example(merkle_tree_sha2_256_example SOURCES merkle_tree_sha2_256.cpp INPUT merkle_tree_sha2_256.inp)
-add_example(sha256_example SOURCES sha2_256.cpp INPUT sha2_256.inp)
-add_example(balance_example SOURCES balance.cpp INPUT balance.inp)
-add_example(memory_example SOURCES memory.cpp INPUT memory.inp)
-add_example(polynomial_example SOURCES polynomial.cpp INPUT polynomial.inp)
-add_example(pallas_curve_addition_example
+add_example(arithmetics_cpp_example SOURCES arithmetics.cpp INPUT arithmetics.inp)
+add_example(integer_arithmetics_cpp_example SOURCES integer_arithmetics.cpp INPUT integer_arithmetics.inp)
+add_example(poseidon_cpp_example SOURCES poseidon.cpp INPUT poseidon.inp)
+add_example(merkle_tree_poseidon_cpp_example SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp)
+add_example(merkle_tree_sha2_256_cpp_example SOURCES merkle_tree_sha2_256.cpp INPUT merkle_tree_sha2_256.inp)
+add_example(sha256_cpp_example SOURCES sha2_256.cpp INPUT sha2_256.inp)
+add_example(balance_cpp_example SOURCES balance.cpp INPUT balance.inp)
+add_example(memory_cpp_example SOURCES memory.cpp INPUT memory.inp)
+add_example(polynomial_cpp_example SOURCES polynomial.cpp INPUT polynomial.inp)
+add_example(pallas_curve_addition_cpp_example
            SOURCES pallas_curve_examples/pallas_curve_add.cpp
            INPUT pallas_curve_examples/pallas_curve_add.inp)
-#add_example(pallas_curve_multiplication_example
+#add_example(pallas_curve_multiplication_cpp_example
 #            SOURCES pallas_curve_examples/pallas_curve_mul.cpp
 #            INPUT pallas_curve_examples/pallas_curve_mul.inp)
-#add_example(pallas_curve_mul_add_example
+#add_example(pallas_curve_mul_add_cpp_example
 #            SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
 #            INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
-add_example(ed25519_curve_add SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
-add_example(strlen_example SOURCES strlen.cpp INPUT strlen.inp)
+add_example(ed25519_curve_add_cpp SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
+add_example(strlen_cpp_example SOURCES strlen.cpp INPUT strlen.inp)
