@@ -54,7 +54,8 @@ Let's hash elements of the array one by one and return the result:
 
 using namespace nil::crypto3::hashes;
 
-[[circuit]] typename sha2<256>::block_type sha256_example( std::array<block_data_type, 64> input_blocks) {
+[[circuit]] typename sha2<256>::block_type sha256_example(
+        std::array<block_data_type, 64> input_blocks) {
     
     typename sha2<256>::block_type result = input_blocks[0];
     for (int i = 1; i < input_blocks.size(); i++) {
