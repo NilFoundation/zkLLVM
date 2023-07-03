@@ -1,4 +1,4 @@
-add_custom_target(cpp_circuit_examples)
+add_custom_target(circuit_cpp_examples)
 add_custom_target(assign_cpp_examples)
 add_custom_target(prove_cpp_examples)
 
@@ -42,14 +42,14 @@ function(add_example example_target)
                 crypto3::zk
 
                 ${Boost_LIBRARIES})
-    add_dependencies(cpp_circuit_examples "${example_target}")
+    add_dependencies(circuit_cpp_examples "${example_target}")
 
     if (CIRCUIT_ASSEMBLY_OUTPUT)
         set(binary_name ${example_target}.ll)
     else()
         set(binary_name ${example_target}.bc)
     endif()
-    
+
     add_custom_target(${example_target}_assign
                       COMMAND $<TARGET_FILE:assigner> -b ${binary_name} -i ${INPUTS_DIR}/${ARG_INPUT} -c circuit_${example_target}.crct -t assignment_${example_target}.tbl -e pallas --check
                       DEPENDS ${example_target} ${ARG_INPUT} $<TARGET_FILE:assigner>
