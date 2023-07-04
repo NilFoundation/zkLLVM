@@ -11,7 +11,7 @@ endfunction()
 function(gen_proof target input)
     add_custom_target(${target}_prove
                       COMMAND $<TARGET_FILE:transpiler> -m gen-test-proof -i ${INPUTS_DIR}/${input} -c circuit_${target}.crct -t assignment_${target}.tbl -o .
-                      DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:transpiler>
+                      DEPENDS ${target}_assign $<TARGET_FILE:transpiler>
                       COMMAND_EXPAND_LISTS
                       VERBATIM)
 endfunction()
