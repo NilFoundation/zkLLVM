@@ -50,18 +50,10 @@ function(add_example example_target)
         set(binary_name ${example_target}.bc)
     endif()
 
-    add_custom_target(${example_target}_assign
-                      COMMAND $<TARGET_FILE:assigner> -b ${binary_name} -i ${INPUTS_DIR}/${ARG_INPUT} -c circuit_${example_target}.crct -t assignment_${example_target}.tbl -e pallas --check
-                      DEPENDS ${example_target} ${ARG_INPUT} $<TARGET_FILE:assigner>
-                      COMMAND_EXPAND_LISTS
-                      VERBATIM)
+    assign_ir(${example_target} ${binary_name} ${ARG_INPUT})
     add_dependencies(assign_cpp_examples ${example_target}_assign)
 
-    add_custom_target(${example_target}_prove
-                      COMMAND $<TARGET_FILE:transpiler> -m gen-test-proof -i ${INPUTS_DIR}/${ARG_INPUT} -c circuit_${example_target}.crct -t assignment_${example_target}.tbl -o .
-                      DEPENDS ${example_target} ${ARG_INPUT} $<TARGET_FILE:transpiler>
-                      COMMAND_EXPAND_LISTS
-                      VERBATIM)
+    gen_proof(${example_target} ${ARG_INPUT})
     add_dependencies(prove_cpp_examples ${example_target}_prove)
 endfunction()
 
