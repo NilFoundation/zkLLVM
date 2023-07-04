@@ -76,10 +76,15 @@ jobs:
         run: |
           make -C build assigner clang transpiler -j$(sysctl -n hw.logicalcpu)
 
-      - name: Build examples
+      - name: Build IR of the examples
         run: |
           make -C build circuit_examples -j$(sysctl -n hw.logicalcpu)
+          ls -al ./build/examples
 
-      - name: Build circuits
+      - name: Build circuit and assigner of the examples
         run: |
-          make -C build run_examples -j$(sysctl -n hw.logicalcpu)
+          make -C build assign_examples -j$(sysctl -n hw.logicalcpu)
+
+      - name: Build proof for the circuit of the examples
+        run: |
+          make -C build prove_examples -j$(sysctl -n hw.logicalcpu)
