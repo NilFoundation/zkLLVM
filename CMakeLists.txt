@@ -140,7 +140,7 @@ add_custom_target(stdlib_package
 option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
 option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
 
-set(RSLANG_BUILD_STAGE "2" CACHE STRING "Stage to build (see --stage)")
+set(RSLANG_BUILD_STAGE "1" CACHE STRING "Stage to build (see --stage)")
 
 execute_process(COMMAND sh -c "(uname -r) 2> /dev/null"
                 RESULT_VARIABLE UNAME_RELEASE_RESULT
