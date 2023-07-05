@@ -168,7 +168,8 @@ list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.linker=llvm-
 if(${BUILD_SHARED_LIBS})
     list(APPEND RSLANG_BUILD_ARGS --enable-llvm-link-shared)
 endif()
-list(APPEND RSLANG_BUILD_ARGS --set build.cargo=${CMAKE_CURRENT_LIST_DIR}/libs/rslang/target/release/cargo)
+list(APPEND RSLANG_BUILD_ARGS --set build.build-dir=${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/build)
+list(APPEND RSLANG_BUILD_ARGS --set build.cargo=${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target/release/cargo)
 if(${RSLANG_BUILD_EXTENDED})
     list(APPEND RSLANG_BUILD_ARGS --enable-extended)
     if(RSLANG_BUILD_TOOLS)
@@ -187,10 +188,15 @@ execute_process(COMMAND ./configure ${RSLANG_BUILD_ARGS}
                 COMMAND_ERROR_IS_FATAL ANY
                 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
 
+add_custom_target(cargo
+                  COMMAND cargo build --release --target-dir ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target --package cargo
+                  COMMENT "Building cargo"
+                  USES_TERMINAL
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+
 add_custom_target(rslang
-                  COMMAND cargo b --release -p cargo
                   COMMAND ./x build --stage ${RSLANG_BUILD_STAGE}
-                  DEPENDS llvm-libraries llvm-config llvm-link FileCheck
+                  DEPENDS llvm-libraries llvm-config llvm-link FileCheck cargo
                   COMMENT "Building rslang"
                   USES_TERMINAL
                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
