@@ -180,7 +180,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     list(APPEND RSLANG_BUILD_ARGS --enable-debug)
     list(APPEND RSLANG_BUILD_ARGS --enable-debug-assertions)
     list(APPEND RSLANG_BUILD_ARGS --enable-debug-assertions-std)
-    list(APPEND RSLANG_BUILD_ARGS --debuginfo-level=2)
+    list(APPEND RSLANG_BUILD_ARGS --debuginfo-level=1)
 endif()
 
 message(STATUS "Configuring rslang")
