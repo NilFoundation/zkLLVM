@@ -62,7 +62,7 @@ jobs:
 
       - name: Configure CMake
         env:
-          BOOST_ROOT: "/usr/local/Cellar/boost@1.76/1.76.0_3"
+          BOOST_ROOT: "/usr/local/opt/boost@1.76"
           LDFLAGS: "-L/usr/local/opt/icu4c/lib"
           CPPFLAGS: "-I/usr/local/opt/icu4c/include"
         run: |
