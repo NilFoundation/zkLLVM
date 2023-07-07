@@ -17,3 +17,4 @@ function(gen_proof target input)
 endfunction()
 
 add_subdirectory(cpp)
+add_subdirectory(rust)
