@@ -122,3 +122,16 @@ jobs:
         run: |
           export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib"
           make -C build rslang -j$(nproc)
+
+      - name: Build IR of the Rust examples
+        run: |
+          make -C build circuit_rust_examples -j$(nproc)
+          ls -al ./build/examples/rust/target/assigner-unknown-unknown/release/examples
+
+      - name: Build circuit and assigner of the Rust examples
+        run: |
+          make -C build assign_rust_examples -j$(nproc)
+
+      - name: Build proof for the circuit of the Rust examples
+        run: |
+          make -C build prove_rust_examples -j$(nproc)
