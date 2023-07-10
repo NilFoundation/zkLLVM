@@ -120,7 +120,7 @@ jobs:
 
       - name: Build rslang
         run: |
-          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib" >> $GITHUB_ENV
           make -C build rslang -j$(nproc)
 
       - name: Build IR of the Rust examples
