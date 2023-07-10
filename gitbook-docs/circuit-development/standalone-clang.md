@@ -15,4 +15,4 @@ llvm-link -opaque-pointers=0 -o output.ll input1.ll input2.ll … inputX.ll
 ```
 `output.ll` could be used further as an input for llvm-link. So you can link some intermediate targets first, and then use them for creating the final circuit.
 The expected result that could be passed to `assigner` is a single `.ll` file that must contain exactly one function with `[[circuit]]` attribute, which is considered as an entry point of the circuit.
-In case if you are going to use cmake as a build system, you could reuse our module [CircuitCompile.cmake](b).
+In case if you are going to use cmake as a build system, you could reuse our module [CircuitCompile.cmake](https://github.com/NilFoundation/zkllvm/blob/master/cmake/CircuitCompile.cmake).
