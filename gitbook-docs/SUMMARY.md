@@ -21,6 +21,7 @@
 
 * [Tools](circuit-development/tools.md)
 * [Effective circuit development](circuit-development/optimizations.md)
+* [Standard library](circuit-development/standalone-clang.md)
 
 ## Architecture
 
