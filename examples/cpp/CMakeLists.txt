@@ -75,6 +75,7 @@ add_example(pallas_curve_multiplication_cpp_example
 #add_example(pallas_curve_mul_add_cpp_example
 #            SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
 #            INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
-#add_example(ed25519_curve_add_cpp SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
+add_example(ed25519_curve_add_cpp SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
+add_example(ed25519_curve_mul_cpp SOURCES ed25519_curve_mul.cpp INPUT ed25519_curve_mul.inp)
 add_example(ed25519_field_add_cpp SOURCES ed25519_field_add.cpp INPUT ed25519_field_add.inp)
 add_example(strlen_cpp_example SOURCES strlen.cpp INPUT strlen.inp)
