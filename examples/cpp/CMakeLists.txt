@@ -78,3 +78,4 @@ add_example(pallas_curve_multiplication_cpp_example
 #add_example(ed25519_curve_add_cpp SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
 add_example(ed25519_field_add_cpp SOURCES ed25519_field_add.cpp INPUT ed25519_field_add.inp)
 add_example(strlen_cpp_example SOURCES strlen.cpp INPUT strlen.inp)
+add_example(balances_tree_cpp_example SOURCES balances_tree.cpp INPUT balances_tree.inp)
