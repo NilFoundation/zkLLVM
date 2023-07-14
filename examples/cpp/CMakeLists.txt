@@ -69,9 +69,9 @@ add_example(polynomial_cpp_example SOURCES polynomial.cpp INPUT polynomial.inp)
 add_example(pallas_curve_addition_cpp_example
            SOURCES pallas_curve_examples/pallas_curve_add.cpp
            INPUT pallas_curve_examples/pallas_curve_add.inp)
-#add_example(pallas_curve_multiplication_cpp_example
-#            SOURCES pallas_curve_examples/pallas_curve_mul.cpp
-#            INPUT pallas_curve_examples/pallas_curve_mul.inp)
+add_example(pallas_curve_multiplication_cpp_example
+            SOURCES pallas_curve_examples/pallas_curve_mul.cpp
+            INPUT pallas_curve_examples/pallas_curve_mul.inp)
 #add_example(pallas_curve_mul_add_cpp_example
 #            SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
 #            INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
