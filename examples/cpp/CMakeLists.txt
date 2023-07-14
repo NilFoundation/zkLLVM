@@ -96,3 +96,7 @@ add_example_with_proving(strlen_cpp_example SOURCES strlen.cpp INPUT strlen.inp)
 
 #Balances tree example is too big to be proven in a reasonable time
 add_example_without_proving(balances_tree_cpp_example SOURCES balances_tree.cpp INPUT balances_tree.inp)
+
+add_example_without_proving(sha2_512_cpp SOURCES sha2_512.cpp INPUT sha2_512.inp)
+# add_example_without_proving(eddsa_signature_verification_cpp SOURCES eddsa_signature_verification.cpp INPUT eddsa_signature_verification.inp)
+# add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp)
