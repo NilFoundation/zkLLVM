@@ -1,9 +1,10 @@
 #include <nil/crypto3/hash/algorithm/hash.hpp>
 #include <nil/crypto3/hash/sha2.hpp>
+#include <cstdint>
 
 using namespace nil::crypto3;
 
-constexpr std::size_t validators_amount_log2 = 20;
+constexpr std::size_t validators_amount_log2 = 6;
 constexpr std::size_t validators_per_leaf_log2 = 2;
 
 const std::array<typename hashes::sha2<256>::block_type, 39> precomputed_zero_hashes = {{
@@ -47,8 +48,8 @@ const std::array<typename hashes::sha2<256>::block_type, 39> precomputed_zero_ha
 {0xf7210d4f8e7e1039790e7bf4efa20755_cppui255, 0x5a10a6db1dd4b95da313aaa88b88fe76_cppui255},
 {0xad21b516cbc645ffe34ab5de1c8aef8c_cppui255, 0xd4e7f8d2b51e8e1456adc7563cda206f_cppui255}
 }};
-
-constexpr std::array<unsigned long long, 39> precomputed_powers_of_two = {{
+// The more precomputed powers of two are uncommented, the more RAM is used during circuit generation phase.
+constexpr std::array<unsigned long long, 11> precomputed_powers_of_two = {{
 1,
 2,
 4,
@@ -60,34 +61,34 @@ constexpr std::array<unsigned long long, 39> precomputed_powers_of_two = {{
 256,
 512,
 1024,
-2048,
-4096,
-8192,
-16384,
-32768,
-65536,
-131072,
-262144,
-524288,
-1048576,
-2097152,
-4194304,
-8388608,
-16777216,
-33554432,
-67108864,
-134217728,
-268435456,
-536870912,
-1073741824,
-2147483648,
-4294967296,
-8589934592,
-17179869184,
-34359738368,
-68719476736,
-137438953472,
-274877906944
+// 2048,
+// 4096,
+// 8192,
+// 16384,
+// 32768,
+// 65536,
+// 131072,
+// 262144,
+// 524288,
+// 1048576,
+// 2097152,
+// 4194304,
+// 8388608,
+// 16777216,
+// 33554432,
+// 67108864,
+// 134217728,
+// 268435456,
+// 536870912,
+// 1073741824,
+// 2147483648,
+// 4294967296,
+// 8589934592,
+// 17179869184,
+// 34359738368,
+// 68719476736,
+// 137438953472,
+// 274877906944
 }};
 
 bool is_same(typename hashes::sha2<256>::block_type block0,
@@ -111,7 +112,7 @@ typename hashes::sha2<256>::block_type hash_layer(std::array<typename hashes::sh
 }
 
 [[circuit]] bool balance_tree(
-    [[private]] std::array<unsigned long long, precomputed_powers_of_two[validators_amount_log2]> validator_balances,
+    [[private]] std::array<int64_t, precomputed_powers_of_two[validators_amount_log2]> validator_balances,
     typename hashes::sha2<256>::block_type expected_root,
     unsigned long long expected_total_balance) {
     
@@ -148,7 +149,7 @@ typename hashes::sha2<256>::block_type hash_layer(std::array<typename hashes::sh
 
     typename hashes::sha2<256>::block_type non_zero_balances_subtree_root = hash_layer<potentially_non_zero_leaves_amount>(potentially_non_zero_leaves);
 
-    constexpr std::size_t leaves_total_amount_log2 = precomputed_powers_of_two.size();
+    constexpr std::size_t leaves_total_amount_log2 = precomputed_powers_of_two.size() - 1;
     constexpr std::size_t layer_with_zero_balance_subtrees_roots_size_log2 = leaves_total_amount_log2 - potentially_non_zero_leaves_amount_log2;
     constexpr std::size_t layer_with_zero_balance_subtrees_roots_size = precomputed_powers_of_two[layer_with_zero_balance_subtrees_roots_size_log2];
 
