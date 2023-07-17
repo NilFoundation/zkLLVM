@@ -75,7 +75,8 @@ void print_sol_files(ConstraintSystemType &constraint_system, ColumnsRotationsTy
         constraint_system, 
         columns_rotations, 
         out_folder_path,
-        optimize_gates
+        optimize_gates,
+        generate_yul
     );
 }
 
