@@ -331,11 +331,7 @@ int main(int argc, char *argv[]) {
             std::cerr << "Invalid command line argument - public input file does not exist" << std::endl;
             return 1;
         }
-
-        std::ofstream pfile;
-        pfile.open(output_folder_path+"/public_input.json");
-        pfile << nil::blueprint::convert_numeric_public_input_to_json<BlueprintFieldType>(public_input);
-        pfile.close();
+        boost::filesystem::copy(public_input, output_folder_path+"/public_input.json", boost::filesystem::copy_options::overwrite_existing);
     }
 
     value_marshalling_type marshalled_data;
