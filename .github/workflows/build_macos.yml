@@ -41,7 +41,8 @@ jobs:
           brew install \
             boost@1.76 \
             cmake \
-            icu4c
+            icu4c \
+            spdlog
 
       - name: Print toolchain information
         run: |
