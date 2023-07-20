@@ -88,7 +88,8 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
                           std::string assignment_table_file_name,
                           std::string circuit_file_name,
-                          bool check_validity) {
+                          bool check_validity,
+                          bool verbose) {
     using BlueprintFieldType = typename CurveType::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 5;
@@ -129,7 +130,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance;
+    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance(verbose);
 
     const char *llvm_arguments[2] = {"", "-opaque-pointers=0"};
     llvm::cl::ParseCommandLineOptions(2, llvm_arguments);
@@ -185,7 +186,8 @@ int main(int argc, char *argv[]) {
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)")
-            ("check", "Check satisfiability of the generated circuit");
+            ("check", "Check satisfiability of the generated circuit")
+            ("verbose", "Print detailed log");
     // clang-format on
 
     boost::program_options::variables_map vm;
@@ -259,7 +261,12 @@ int main(int argc, char *argv[]) {
 
     switch (curve_options[elliptic_curve]) {
         case 0: {
-            return curve_dependent_main<typename algebra::curves::pallas>(bytecode_file_name, public_input_file_name, assignment_table_file_name, circuit_file_name, vm.count("check"));
+            return curve_dependent_main<typename algebra::curves::pallas>(bytecode_file_name,
+                                                                          public_input_file_name,
+                                                                          assignment_table_file_name,
+                                                                          circuit_file_name,
+                                                                          vm.count("check"),
+                                                                          vm.count("verbose"));
             break;
         }
         case 1: {
