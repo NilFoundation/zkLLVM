@@ -68,7 +68,7 @@ bool read_buffer_from_file(std::ifstream &ifile, std::vector<std::uint8_t> &v) {
 template<typename ProfilingType, typename ConstraintSystemType, typename ColumnsRotationsType,
          typename ArithmetizationParams>
 void print_sol_files(ConstraintSystemType &constraint_system, ColumnsRotationsType &columns_rotations,
-                     std::string out_folder_path = ".", bool optimize_gates = false, bool generate_yul = true) {
+                     std::string out_folder_path = ".", bool optimize_gates = false, bool generate_asm = true) {
     ProfilingType::process_split(
         nil::blueprint::main_sol_file_template,
         nil::blueprint::gate_sol_file_template,
@@ -76,7 +76,7 @@ void print_sol_files(ConstraintSystemType &constraint_system, ColumnsRotationsTy
         columns_rotations, 
         out_folder_path,
         optimize_gates,
-        generate_yul
+        generate_asm
     );
 }
 
@@ -230,7 +230,7 @@ int main(int argc, char *argv[]) {
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
             ("optimize-gates", "Put multiple sequental small gates into one .sol file")
-            ("no-yul", "Skip optimised yul code generation")
+            ("no-asm", "Skip optimised assembly/yul code generation")
             ;
     // clang-format on
 
@@ -249,7 +249,7 @@ int main(int argc, char *argv[]) {
     std::string circuit_file_name;
     std::string output_folder_path;
     std::string public_input;
-    bool generate_yul = true;
+    bool generate_asm = true;
     
     if (vm.count("mode")) {
         mode = vm["mode"].as<std::string>();
@@ -386,12 +386,12 @@ int main(int argc, char *argv[]) {
         bool optimize_gates = false;
         if( vm.count("optimize-gates") )
             optimize_gates = true;
-        if(vm.count("no-yul")){
-            generate_yul = false ;
+        if(vm.count("no-asm")){
+            generate_asm = false ;
         }
 
         print_sol_files<ProfilingType, ConstraintSystemType, ColumnsRotationsType, ArithmetizationParams>(
-            constraint_system, columns_rotations, output_folder_path, optimize_gates, generate_yul);
+            constraint_system, columns_rotations, output_folder_path, optimize_gates, generate_asm);
     }
 
 
