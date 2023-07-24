@@ -71,8 +71,7 @@ if(BUILD_TESTS)
     cm_find_package(Boost COMPONENTS REQUIRED unit_test_framework)
 endif()
 
-add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3")
-add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3/marshalling")
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3")
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/blueprint")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/assigner")
@@ -86,6 +85,7 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 add_subdirectory(examples)
 
 install(TARGETS assigner RUNTIME DESTINATION bin)
+install(TARGETS transpiler RUNTIME DESTINATION bin)
 install(FILES cmake/CircuitCompile.cmake DESTINATION share/zkllvm)
 
 find_program(GIT_EXE git)
@@ -140,7 +140,7 @@ add_custom_target(stdlib_package
 option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
 option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
 
-set(RSLANG_BUILD_STAGE "2" CACHE STRING "Stage to build (see --stage)")
+set(RSLANG_BUILD_STAGE "1" CACHE STRING "Stage to build (see --stage)")
 
 execute_process(COMMAND sh -c "(uname -r) 2> /dev/null"
                 RESULT_VARIABLE UNAME_RELEASE_RESULT
@@ -168,7 +168,8 @@ list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.linker=llvm-
 if(${BUILD_SHARED_LIBS})
     list(APPEND RSLANG_BUILD_ARGS --enable-llvm-link-shared)
 endif()
-list(APPEND RSLANG_BUILD_ARGS --set build.cargo=${CMAKE_CURRENT_LIST_DIR}/libs/rslang/target/release/cargo)
+list(APPEND RSLANG_BUILD_ARGS --set build.build-dir=${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/build)
+list(APPEND RSLANG_BUILD_ARGS --set build.cargo=${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target/release/cargo)
 if(${RSLANG_BUILD_EXTENDED})
     list(APPEND RSLANG_BUILD_ARGS --enable-extended)
     if(RSLANG_BUILD_TOOLS)
@@ -179,7 +180,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     list(APPEND RSLANG_BUILD_ARGS --enable-debug)
     list(APPEND RSLANG_BUILD_ARGS --enable-debug-assertions)
     list(APPEND RSLANG_BUILD_ARGS --enable-debug-assertions-std)
-    list(APPEND RSLANG_BUILD_ARGS --debuginfo-level=2)
+    list(APPEND RSLANG_BUILD_ARGS --debuginfo-level=1)
 endif()
 
 message(STATUS "Configuring rslang")
@@ -187,10 +188,15 @@ execute_process(COMMAND ./configure ${RSLANG_BUILD_ARGS}
                 COMMAND_ERROR_IS_FATAL ANY
                 WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
 
+add_custom_target(cargo
+                  COMMAND cargo build --release --target-dir ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target --package cargo
+                  COMMENT "Building cargo"
+                  USES_TERMINAL
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+
 add_custom_target(rslang
-                  COMMAND cargo b --release -p cargo
                   COMMAND ./x build --stage ${RSLANG_BUILD_STAGE}
-                  DEPENDS llvm-libraries llvm-config llvm-link FileCheck
+                  DEPENDS llvm-libraries llvm-config llvm-link FileCheck cargo
                   COMMENT "Building rslang"
                   USES_TERMINAL
                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)

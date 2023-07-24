@@ -221,9 +221,10 @@ int main(int argc, char *argv[]) {
     // clang-format off
     options_desc.add_options()("help,h", "Display help message")
             ("version,v", "Display version")
-            ("mode,m", boost::program_options::value<std::string>(), "Transpiler mode (gen-test-proof, gen-gate-argument).\
-            gen-test-proof prepares gate argument, placeholder params and sample proof for testing.\
-            gen-gate-argument prepares gate argument and some placeholder params")
+            ("mode,m", boost::program_options::value<std::string>(), "Transpiler mode (gen-circuit-params, gen-gate-argument, gen-test-proof).\
+            gen-gate-argument prepares gate argument and some placeholder params.\
+            gen-circuit-params prepares circuit parameters for verification.\
+            gen-test-proof prepares gate argument, placeholder params and sample proof for local testing.")
             ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table input file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit input file")
@@ -259,7 +260,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (mode != "gen-test-proof" && mode != "gen-gate-argument") {
+    if (!(mode == "gen-test-proof" || mode == "gen-gate-argument" || mode == "gen-circuit-params")) {
         std::cerr << "Invalid mode specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -336,11 +337,7 @@ int main(int argc, char *argv[]) {
             std::cerr << "Invalid command line argument - public input file does not exist" << std::endl;
             return 1;
         }
-
-        std::ofstream pfile;
-        pfile.open(output_folder_path+"/public_input.json");
-        pfile << nil::blueprint::convert_numeric_public_input_to_json<BlueprintFieldType>(public_input);
-        pfile.close();
+        boost::filesystem::copy(public_input, output_folder_path+"/public_input.json", boost::filesystem::copy_options::overwrite_existing);
     }
 
     value_marshalling_type marshalled_data;
@@ -394,6 +391,10 @@ int main(int argc, char *argv[]) {
             constraint_system, columns_rotations, output_folder_path, optimize_gates, generate_asm);
     }
 
+    if ((mode == "gen-circuit-params") || (mode == "gen-test-proof")) {
+        nil::crypto3::zk::snark::print_placeholder_params<FRIScheme, TableDescriptionType, ColumnsRotationsType, ArithmetizationParams>(
+            fri_params, table_description, columns_rotations, output_folder_path+"/circuit_params.json");
+    }
 
     if (mode == "gen-test-proof") {
         typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
@@ -405,9 +406,6 @@ int main(int argc, char *argv[]) {
             nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
                 constraint_system, assignment_table.private_table(), table_description, fri_params
             );
-            
-        nil::crypto3::zk::snark::print_placeholder_params<FRIScheme, TableDescriptionType, ColumnsRotationsType, ArithmetizationParams>(
-            fri_params, table_description, columns_rotations, output_folder_path+"/circuit_params.json");
 
         using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
         ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
