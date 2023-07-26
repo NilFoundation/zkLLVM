@@ -40,6 +40,7 @@
 #include <nil/blueprint/asserts.hpp>
 #include <nil/blueprint/transpiler/minimized_profiling_plonk_circuit.hpp>
 #include <nil/blueprint/transpiler/public_input.hpp>
+#include <nil/blueprint/transpiler/table_profiling.hpp>
 
 bool read_buffer_from_file(std::ifstream &ifile, std::vector<std::uint8_t> &v) {
     char c;
@@ -77,70 +78,6 @@ void print_sol_files(ConstraintSystemType &constraint_system, ColumnsRotationsTy
         out_folder_path,
         optimize_gates
     );
-}
-
-template<typename BlueprintFieldType, typename ArithmetizationParams, typename ColumnType>
-std::tuple<std::size_t, std::size_t,
-           nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>>
-    load_assignment_table(std::istream &istr) {
-    using PrivateTableType =
-        nil::crypto3::zk::snark::plonk_private_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
-    using PublicTableType =
-        nil::crypto3::zk::snark::plonk_public_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
-    using TableAssignmentType =
-        nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
-    std::size_t usable_rows;
-    std::size_t rows_amount;
-
-    typename PrivateTableType::witnesses_container_type witness;
-    typename PublicTableType::public_input_container_type public_input;
-    typename PublicTableType::constant_container_type constant;
-    typename PublicTableType::selector_container_type selector;
-
-    istr >> usable_rows;
-    istr >> rows_amount;
-
-    for (size_t i = 0; i < witness.size(); i++) {    // witnesses.size() == ArithmetizationParams.WitnessColumns
-        ColumnType column;
-        typename BlueprintFieldType::integral_type num;
-        for (size_t j = 0; j < rows_amount; j++) {
-            istr >> num;
-            column.push_back(typename BlueprintFieldType::value_type(num));
-        }
-        witness[i] = column;
-    }
-
-    for (size_t i = 0; i < public_input.size(); i++) {    // witnesses.size() == ArithmetizationParams.WitnessColumns
-        ColumnType column;
-        typename BlueprintFieldType::integral_type num;
-        for (size_t j = 0; j < rows_amount; j++) {
-            istr >> num;
-            column.push_back(typename BlueprintFieldType::value_type(num));
-        }
-        public_input[i] = column;
-    }
-
-    for (size_t i = 0; i < constant.size(); i++) {    // witnesses.size() == ArithmetizationParams.WitnessColumns
-        ColumnType column;
-        typename BlueprintFieldType::integral_type num;
-        for (size_t j = 0; j < rows_amount; j++) {
-            istr >> num;
-            column.push_back(typename BlueprintFieldType::value_type(num));
-        }
-        constant[i] = column;
-    }
-    for (size_t i = 0; i < selector.size(); i++) {    // witnesses.size() == ArithmetizationParams.WitnessColumns
-        ColumnType column;
-        typename BlueprintFieldType::integral_type num;
-        for (size_t j = 0; j < rows_amount; j++) {
-            istr >> num;
-            column.push_back(typename BlueprintFieldType::value_type(num));
-        }
-        selector[i] = column;
-    }
-    return std::make_tuple(
-        usable_rows, rows_amount,
-        TableAssignmentType(PrivateTableType(witness), PublicTableType(public_input, constant, selector)));
 }
 
 inline std::vector<std::size_t> generate_random_step_list(const std::size_t r, const int max_step) {
@@ -344,7 +281,7 @@ int main(int argc, char *argv[]) {
             marshalled_data);
 
     using ColumnType = nil::crypto3::zk::snark::plonk_column<BlueprintFieldType>;
-    using TableAssignmentType =
+    using AssignmentTableType =
         nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
 
     std::ifstream iassignment;
@@ -353,9 +290,9 @@ int main(int argc, char *argv[]) {
         std::cout << "Cannot open " << assignment_table_file_name << std::endl;
         return 1;
     }
-    TableAssignmentType assignment_table;
+    AssignmentTableType assignment_table;
     std::tie(table_description.usable_rows_amount, table_description.rows_amount, assignment_table) =
-        load_assignment_table<BlueprintFieldType, ArithmetizationParams, ColumnType>(iassignment);
+        nil::blueprint::load_assignment_table<BlueprintFieldType, ArithmetizationParams, ColumnType>(iassignment);
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
     const std::size_t Lambda = 2;
