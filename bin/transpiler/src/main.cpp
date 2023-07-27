@@ -167,6 +167,7 @@ int main(int argc, char *argv[]) {
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
             ("optimize-gates", "Put multiple sequental small gates into one .sol file")
+            ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
             ;
     // clang-format on
 
@@ -325,32 +326,44 @@ int main(int argc, char *argv[]) {
     }
 
     if (mode == "gen-test-proof") {
+        std::cout << "Preprocessing public data..." << std::endl;
         typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
             nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
                 constraint_system, assignment_table.public_table(), table_description, fri_params, permutation_size);
+        std::cout << "Preprocessing private data..." << std::endl;
         typename nil::crypto3::zk::snark::placeholder_private_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type private_preprocessed_data =
             nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
                 constraint_system, assignment_table.private_table(), table_description, fri_params
             );
 
+        std::cout << "Generating proof..." << std::endl;
         using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
         ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
             public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
             fri_params);
+        std::cout << "Proof generated" << std::endl;
 
-        bool verification_result =
-            nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                public_preprocessed_data, proof, constraint_system, fri_params);
-        
+        if( !vm.count("skip-verification") ) {
+            std::cout << "Verifying proof..." << std::endl;
+            bool verification_result =
+                nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
+                    public_preprocessed_data, proof, constraint_system, fri_params);
+            
 
-        ASSERT_MSG(verification_result, "Proof is not verified" );
+            ASSERT_MSG(verification_result, "Proof is not verified" );
+            std::cout << "Proof is verified" << std::endl;
+        } else {
+            std::cout << "Proof verification skipped" << std::endl;
+        }
 
+        std::string proof_path = output_folder_path + "/proof.bin";
+        std::cout << "Writing proof to" << proof_path << "..." << std::endl;
         auto filled_placeholder_proof =
             nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
-        proof_print<Endianness, ProofType>(proof, output_folder_path + "/proof.bin");
-        std::cout << "Proof is verified" << std::endl;
+        proof_print<Endianness, ProofType>(proof, proof_path);
+        std::cout << "Proof written" << std::endl;
         iassignment.close();
         return 0;
     }
