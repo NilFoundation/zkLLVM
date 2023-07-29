@@ -15,10 +15,5 @@ typedef __attribute__((ext_vector_type(4)))
 
         __zkllvm_field_curve25519_scalar k = __builtin_assigner_sha2_512_curve25519(input_R, pk, M);
 
-        if ((B*input_s - (input_R + (pk*k)) ) == B) { // TODO replace with .is_zero()
-            return true;
-        }
-        else{
-            return false;
-        }
+        return (B*input_s - (input_R + (pk*k))).is_zero()
     }
