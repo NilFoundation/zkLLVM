@@ -14,7 +14,7 @@ endif()
 
 cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
 
-                       ${CMAKE_WORKSPACE_NAME}::zk
+                       crypto3::zk
 
                        ${Boost_LIBRARIES})
 
@@ -52,4 +52,5 @@ set(TESTS_NAMES
 
 foreach(TEST_NAME ${TESTS_NAMES})
     define_zkllvm_test(${TEST_NAME})
+    # add here similar function https://github.com/NilFoundation/zkllvm/blob/181-add-tests/examples/cpp/CMakeLists.txt#L5
 endforeach()
