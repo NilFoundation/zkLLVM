@@ -19,7 +19,7 @@ function(add_rust_example example_target)
                         ${ARGN})
 
     add_custom_target(${example_target}
-                      RUSTC=${RUSTC} ${CARGO} rustc --target-dir ${TARGET_DIR} --target ${TARGET} --example ${ARG_EXAMPLE_NAME} --release -- -C link-dead-code
+                      RUSTC=${RUSTC} ${CARGO} build --target-dir ${TARGET_DIR} --target ${TARGET} --example ${ARG_EXAMPLE_NAME} --release
                       DEPENDS rslang
                       USES_TERMINAL
                       VERBATIM
