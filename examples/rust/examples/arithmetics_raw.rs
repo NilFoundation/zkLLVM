@@ -5,16 +5,7 @@
 type PallasBase = __zkllvm_field_pallas_base;
 
 fn pow(a: PallasBase, n: u32) -> PallasBase {
-    if n == 0 {
-        return 1g;
-    }
-    let mut res = 1g;
-    let mut i = 0;
-    while i < n {
-        res *= a;
-        i += 1;
-    }
-    res
+    (0..n).fold(1g, |acc, _| acc * a)
 }
 
 #[circuit]
