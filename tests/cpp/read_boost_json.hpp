@@ -30,6 +30,7 @@
 
 
 boost::json::value read_boost_json (std::string input_file_name) {
+    std::cout << "read json boost" << "\n";
 
     std::ifstream input_file(input_file_name.c_str());
     if (!input_file.is_open()) {
@@ -71,6 +72,10 @@ boost::json::value read_boost_json (std::string input_file_name) {
 
 template<typename BlueprintFieldType>
 typename BlueprintFieldType::value_type parse_native_scalar(const boost::json::value &json_value) {
+    std::cout << "parse_native_scalar" << "\n";
+
+    std::cout << json_value << "\n";
+
     const std::size_t buflen = 256;
     char buf[buflen];
     std::size_t numlen = 0;
@@ -107,6 +112,8 @@ typename BlueprintFieldType::value_type parse_native_scalar(const boost::json::v
 
 template<typename BlueprintFieldType>
 std::vector<typename BlueprintFieldType::value_type> read_fields(std::string input_file_name) {
+    std::cout << "read_fields" << "\n";
+
 
     boost::json::value input_json_value = read_boost_json (input_file_name);
 
@@ -122,7 +129,7 @@ std::vector<typename BlueprintFieldType::value_type> read_fields(std::string inp
             assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
         }
 
-        res.push_back(parse_native_scalar<BlueprintFieldType>(current_value));
+        res.push_back(parse_native_scalar<BlueprintFieldType>(current_value.at("field")));
     }
     return res;
 }

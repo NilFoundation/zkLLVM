@@ -20,7 +20,7 @@ cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
 
 
 macro(define_zkllvm_test test)
-    string(REPLACE "/" "_" full_test_name zkllvm_${test}_test)
+    string(REPLACE "/" "_" full_test_name ${test})
 
     cm_test(NAME ${full_test_name} SOURCES ${test}.cpp)
 
@@ -44,13 +44,91 @@ macro(define_zkllvm_test test)
     elseif(target_type STREQUAL "STATIC_LIB")
 
     endif()
+    message("full_test_name: ${full_test_name}")
 endmacro()
 
 set(TESTS_NAMES
     "algebra/fields/native_pallas_field_add"
     )
 
+function(add_test_circuit_assign example_target)
+    set(prefix ARG)
+    set(noValues "")
+    set(singleValues INPUT)
+    set(multiValues SOURCES)
+    cmake_parse_arguments(${prefix}
+                        "${noValues}"
+                        "${singleValues}"
+                        "${multiValues}"
+                        ${ARGN})
+    add_circuit(${example_target}
+                SOURCES ${ARG_SOURCES}
+
+                LINK_LIBRARIES
+                crypto3::algebra
+                crypto3::block
+                crypto3::blueprint
+                crypto3::codec
+                crypto3::containers
+                crypto3::hash
+                crypto3::kdf
+                crypto3::mac
+                marshalling::core
+                marshalling::crypto3_algebra
+                marshalling::crypto3_multiprecision
+                marshalling::crypto3_zk
+                crypto3::math
+                crypto3::modes
+                crypto3::multiprecision
+                crypto3::passhash
+                crypto3::pbkdf
+                crypto3::threshold
+                crypto3::pkpad
+                crypto3::pubkey
+                crypto3::random
+                crypto3::stream
+                crypto3::vdf
+                crypto3::zk
+
+                ${Boost_LIBRARIES})
+    add_dependencies(circuit_cpp_examples "${example_target}")
+
+    if (CIRCUIT_ASSEMBLY_OUTPUT)
+        set(binary_name ${example_target}.ll)
+    else()
+        set(binary_name ${example_target}.bc)
+    endif()
+
+    assign_ir(${example_target} ${binary_name} ${ARG_INPUT})
+    add_dependencies(assign_cpp_examples ${example_target}_assign)
+endfunction()
+
+function(add_test_run_no_circuit example_target)
+    set(prefix ARG)
+    set(noValues "")
+    set(singleValues INPUT)
+    set(multiValues SOURCES)
+    cmake_parse_arguments(${prefix}
+                        "${noValues}"
+                        "${singleValues}"
+                        "${multiValues}"
+                        ${ARGN})
+    add_dependencies(circuit_cpp_examples "${example_target}")
+
+#    assign_ir(${example_target} ${binary_name} ${ARG_INPUT})
+    run_test_no_circuit(${example_target} ${ARG_INPUT})
+#    add_dependencies(assign_cpp_examples ${example_target}_assign)
+endfunction()
+
+
+
+add_test_circuit_assign(native_pallas_field_add SOURCES algebra/fields/native_pallas_field_add.cpp INPUT algebra/fields/native_pallas_field_add0.inp)
+add_test_run_no_circuit(algebra_fields_native_pallas_field_add SOURCES algebra/fields/native_pallas_field_add.cpp INPUT algebra/fields/native_pallas_field_add0.inp)
+
+
 foreach(TEST_NAME ${TESTS_NAMES})
     define_zkllvm_test(${TEST_NAME})
+    message("test name: " ${TEST_NAME})
+    # add_test_circuit_assign(${TEST_NAME})
     # add here similar function https://github.com/NilFoundation/zkllvm/blob/181-add-tests/examples/cpp/CMakeLists.txt#L5
 endforeach()
