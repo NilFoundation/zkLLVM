@@ -12,7 +12,7 @@ function(add_circuit name)
     set(prefix ARG)
     set(noValues "")
     set(singleValues)
-    set(multiValues SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES)
+    set(multiValues SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES COMPILER_OPTIONS)
     cmake_parse_arguments(${prefix}
                           "${noValues}"
                           "${singleValues}"
@@ -83,8 +83,8 @@ function(add_circuit name)
     foreach(source ${CIRCUIT_SOURCES})
         get_filename_component(source_base_name ${source} NAME)
         add_custom_target(${name}_${source_base_name}_${extension}
-                        COMMAND ${CLANG} -target assigner -Xclang -no-opaque-pointers -Xclang -fpreserve-vec3-type -std=c++20
-                        -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 ${format_option} -o ${source_base_name}.${extension} ${source}
+                        COMMAND ${CLANG} -target assigner -Xclang -no-opaque-pointers -Xclang -fpreserve-vec3-type
+                        -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 ${format_option} ${ARG_COMPILER_OPTIONS}  -o ${source_base_name}.${extension} ${source}
 
                         VERBATIM COMMAND_EXPAND_LISTS
 

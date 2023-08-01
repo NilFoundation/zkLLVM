@@ -6,7 +6,7 @@ function(add_example_without_proving example_target)
     set(prefix ARG)
     set(noValues "")
     set(singleValues INPUT)
-    set(multiValues SOURCES)
+    set(multiValues SOURCES COMPILER_OPTIONS)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
                         "${singleValues}"
@@ -14,6 +14,7 @@ function(add_example_without_proving example_target)
                         ${ARGN})
     add_circuit(${example_target}
                 SOURCES ${ARG_SOURCES}
+                COMPILER_OPTIONS ${ARG_COMPILER_OPTIONS}
 
                 LINK_LIBRARIES
                 crypto3::algebra
@@ -64,7 +65,7 @@ function(add_example_with_proving example_target)
                         "${singleValues}"
                         "${multiValues}"
                         ${ARGN})
-    
+
     add_example_without_proving(${example_target} ${ARGN})
 
     gen_proof(${example_target} ${ARG_INPUT})
@@ -79,7 +80,7 @@ add_example_with_proving(merkle_tree_sha2_256_cpp_example SOURCES merkle_tree_sh
 add_example_with_proving(sha256_cpp_example SOURCES sha2_256.cpp INPUT sha2_256.inp)
 add_example_with_proving(balance_cpp_example SOURCES balance.cpp INPUT balance.inp)
 add_example_with_proving(memory_cpp_example SOURCES memory.cpp INPUT memory.inp)
-add_example_with_proving(polynomial_cpp_example SOURCES polynomial.cpp INPUT polynomial.inp)
+add_example_with_proving(polynomial_cpp_example SOURCES polynomial.cpp INPUT polynomial.inp COMPILER_OPTIONS -std=c++20)
 add_example_with_proving(pallas_curve_addition_cpp_example
            SOURCES pallas_curve_examples/pallas_curve_add.cpp
            INPUT pallas_curve_examples/pallas_curve_add.inp)

@@ -85,6 +85,8 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
 add_subdirectory(examples)
 
+add_subdirectory(libs/stdlib)
+
 install(TARGETS assigner RUNTIME DESTINATION bin)
 install(TARGETS transpiler RUNTIME DESTINATION bin)
 install(FILES cmake/CircuitCompile.cmake DESTINATION share/zkllvm)
