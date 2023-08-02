@@ -37,7 +37,6 @@ option(BUILD_SHARED_LIBS "Build shared library" TRUE)
 option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
 option(BUILD_WITH_BOOST_STATIC_LIBS "Build using Boost static libraries" TRUE)
 option(BUILD_TESTS "Build unit tests" FALSE)
-option(ZKLLVM_BUILD_TESTS "Build zkLLVM unit tests" FALSE)
 option(BUILD_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
 option(CIRCUIT_ASSEMBLY_OUTPUT "Emit circuit IR as assembly file" FALSE)
 
@@ -68,7 +67,7 @@ else()
     target_architecture(CMAKE_TARGET_ARCHITECTURE)
 endif()
 
-if(ZKLLVM_BUILD_TESTS)
+if(BUILD_TESTS)
     cm_find_package(Boost COMPONENTS REQUIRED unit_test_framework)
 endif()
 
@@ -84,7 +83,7 @@ set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
 add_subdirectory(examples)
-if(ZKLLVM_BUILD_TESTS)
+if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
