@@ -20,9 +20,11 @@ cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
 
 
 macro(define_zkllvm_test test)
-    string(REPLACE "/" "_" full_test_name ${test})
+    string(REPLACE "/" "_" full_test_name ${test}_non_circuit)
 
     cm_test(NAME ${full_test_name} SOURCES ${test}.cpp)
+    message("test: ${test}")
+    message("full_test_name: ${full_test_name}")
 
     target_include_directories(${full_test_name} PRIVATE
                                "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -48,7 +50,7 @@ macro(define_zkllvm_test test)
 endmacro()
 
 set(TESTS_NAMES
-    "algebra/fields/native_pallas_field_add"
+    "algebra/fields/pallas_add"
     )
 
 function(add_test_circuit_assign example_target)
@@ -122,8 +124,8 @@ endfunction()
 
 
 
-add_test_circuit_assign(native_pallas_field_add SOURCES algebra/fields/native_pallas_field_add.cpp INPUT algebra/fields/native_pallas_field_add0.inp)
-add_test_run_no_circuit(algebra_fields_native_pallas_field_add SOURCES algebra/fields/native_pallas_field_add.cpp INPUT algebra/fields/native_pallas_field_add0.inp)
+add_test_circuit_assign(algebra_fields_pallas_add SOURCES algebra/fields/pallas_add.cpp INPUT algebra/fields/pallas_add0.inp)
+add_test_run_no_circuit(algebra_fields_pallas_add_non_circuit SOURCES algebra/fields/pallas_add.cpp INPUT algebra/fields/pallas_add0.inp)
 
 
 foreach(TEST_NAME ${TESTS_NAMES})
