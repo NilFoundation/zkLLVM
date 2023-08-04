@@ -86,16 +86,23 @@ add_example_with_proving(pallas_curve_addition_cpp_example
 add_example_with_proving(pallas_curve_multiplication_cpp_example
             SOURCES pallas_curve_examples/pallas_curve_mul.cpp
             INPUT pallas_curve_examples/pallas_curve_mul.inp)
-#add_example_with_proving(pallas_curve_mul_add_cpp_example
-#            SOURCES pallas_curve_examples/pallas_curve_mul_add.cpp
-#            INPUT pallas_curve_examples/pallas_curve_mul_add.inp)
 add_example_with_proving(ed25519_curve_add_cpp SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp)
 add_example_with_proving(ed25519_curve_mul_cpp SOURCES ed25519_curve_mul.cpp INPUT ed25519_curve_mul.inp)
 add_example_with_proving(ed25519_field_add_cpp SOURCES ed25519_field_add.cpp INPUT ed25519_field_add.inp)
 add_example_with_proving(strlen_cpp_example SOURCES strlen.cpp INPUT strlen.inp)
 add_example_with_proving(sha2_512_cpp SOURCES sha2_512.cpp INPUT sha2_512.inp)
-add_example_with_proving(uint_remainder SOURCES bit_operations/uint_remainder.cpp INPUT bit_operations/uint_remainder.inp)
-add_example_with_proving(uint_division SOURCES bit_operations/uint_division.cpp INPUT bit_operations/uint_division.inp)
+
+add_example_with_proving(uint_remainder_cpp SOURCES bit_operations/uint_remainder.cpp INPUT bit_operations/uint_remainder.inp)
+add_example_with_proving(uint_division_cpp SOURCES bit_operations/uint_division.cpp INPUT bit_operations/uint_division.inp)
+add_example_with_proving(uint_shift_left SOURCES bit_operations/shift_left.cpp INPUT bit_operations/shift_left.inp)
+add_example_with_proving(uint_shift_right SOURCES bit_operations/shift_right.cpp INPUT bit_operations/shift_right.inp)
+
+# add_example_with_proving(compare_neq_cpp SOURCES compare/neq.cpp INPUT compare/neq.inp)
+add_example_with_proving(compare_eq_cpp SOURCES compare/eq.cpp INPUT compare/eq.inp)
+add_example_with_proving(compare_grequal_cpp SOURCES compare/grequal.cpp INPUT compare/grequal.inp)
+add_example_with_proving(compare_lequal_cpp SOURCES compare/lequal.cpp INPUT compare/lequal.inp)
+add_example_with_proving(compare_greater_than_cpp SOURCES compare/greater_than.cpp INPUT compare/greater_than.inp)
+add_example_with_proving(compare_less_than_cpp SOURCES compare/less_than.cpp INPUT compare/less_than.inp)
 
 #Balances tree example is too big to be proven in a reasonable time
 add_example_without_proving(balances_tree_cpp_example SOURCES balances_tree.cpp INPUT balances_tree.inp)
