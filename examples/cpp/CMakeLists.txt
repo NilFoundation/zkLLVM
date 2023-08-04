@@ -64,7 +64,7 @@ function(add_example_with_proving example_target)
                         "${singleValues}"
                         "${multiValues}"
                         ${ARGN})
-    
+
     add_example_without_proving(${example_target} ${ARGN})
 
     gen_proof(${example_target} ${ARG_INPUT})
@@ -94,12 +94,14 @@ add_example_with_proving(ed25519_curve_mul_cpp SOURCES ed25519_curve_mul.cpp INP
 add_example_with_proving(ed25519_field_add_cpp SOURCES ed25519_field_add.cpp INPUT ed25519_field_add.inp)
 add_example_with_proving(strlen_cpp_example SOURCES strlen.cpp INPUT strlen.inp)
 add_example_with_proving(sha2_512_cpp SOURCES sha2_512.cpp INPUT sha2_512.inp)
+add_example_with_proving(uint_remainder SOURCES bit_operations/uint_remainder.cpp INPUT bit_operations/uint_remainder.inp)
+add_example_with_proving(uint_division SOURCES bit_operations/uint_division.cpp INPUT bit_operations/uint_division.inp)
 
 #Balances tree example is too big to be proven in a reasonable time
 add_example_without_proving(balances_tree_cpp_example SOURCES balances_tree.cpp INPUT balances_tree.inp)
 
 #Empty component for assigner testing
-add_example_without_proving(zkbridge_input_reading_test SOURCES sha2_512.cpp INPUT sha2_512.inp)
+add_example_without_proving(zkbridge_input_reading_test SOURCES zkbridge_input_reading_test.cpp INPUT zkbridge_input_reading_test.inp)
 
 # add_example_without_proving(eddsa_signature_verification_cpp SOURCES eddsa_signature_verification.cpp INPUT eddsa_signature_verification.inp)
 # add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp)
