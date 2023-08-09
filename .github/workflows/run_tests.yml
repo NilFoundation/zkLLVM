@@ -60,7 +60,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        path: [ libs/zk/test, libs/- target: marshalling/zk/test ]
         include: 
           - target: crypto3_zk_commitment_fold_polynomial_test
             path: libs/zk/test
