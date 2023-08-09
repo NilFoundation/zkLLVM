@@ -75,21 +75,21 @@ jobs:
             path: libs/zk/test
           - target: crypto3_zk_commitment_r1cs_gg_ppzksnark_mpc_test
             path: libs/zk/test
-          - target: marshalling_fri_commitment_test,
+          - target: marshalling_fri_commitment_test
             path: libs/marshalling/zk/test
-          - target: marshalling_lpc_commitment_test,
+          - target: marshalling_lpc_commitment_test
             path: libs/marshalling/zk/test
-          - target: marshalling_placeholder_common_data_test,
+          - target: marshalling_placeholder_common_data_test
             path: libs/marshalling/zk/test
-          - target: marshalling_placeholder_proof_test,
+          - target: marshalling_placeholder_proof_test
             path: libs/marshalling/zk/test
-          - target: marshalling_sparse_vector_test,
+          - target: marshalling_sparse_vector_test
             path: libs/marshalling/zk/test
-          - target: marshalling_plonk_constraint_system_test,
+          - target: marshalling_plonk_constraint_system_test
             path: libs/marshalling/zk/test
-          - target: marshalling_r1cs_gg_ppzksnark_primary_input_test,
+          - target: marshalling_r1cs_gg_ppzksnark_primary_input_test
             path: libs/marshalling/zk/test
-          - target: marshalling_r1cs_gg_ppzksnark_proof_test,
+          - target: marshalling_r1cs_gg_ppzksnark_proof_test
             path: libs/marshalling/zk/test
           - target: marshalling_r1cs_gg_ppzksnark_verification_key_test
             path: libs/marshalling/zk/test
