@@ -30,19 +30,15 @@ jobs:
           submodules: recursive
 
       - name: Checkout zk
-        uses: actions/checkout@v3
-        with:
-          repository: "NilFoundation/zk#7f37982"
-          path: ./libs/zk
-          submodules: recursive
+        working-directory: ./libs/zk
+        run:
+          git checkout origin/162-github-actions
 
       - name: Checkout zk-marshalling
-        uses: actions/checkout@v3
-        with:
-          repository: "NilFoundation/crypto3-zk-marshalling#f9f3da9"
-          path: ./libs/marshalling/zk
-          submodules: recursive
-  
+        working-directory: ./libs/marshalling-zk
+        run:
+          git checkout origin/43-remove-blueprint-dependency
+
       - name: Cmake and build
         env:
           CMAKE_ARGS: "
