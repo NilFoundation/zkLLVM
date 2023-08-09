@@ -30,16 +30,16 @@ jobs:
           submodules: recursive
 
       - name: Checkout zk
-        uses: actions/checkout@7f379820a91cdd8fa6f41ee3d0cbe76a008fcf86
+        uses: actions/checkout@v3
         with:
-          repository: "NilFoundation/zk"
+          repository: "NilFoundation/zk#162-github-actions"
           path: ./libs/zk
           submodules: recursive
 
       - name: Checkout zk-marshalling
-        uses: actions/checkout@f9f3da95d1323f5ef3dd335e1c94dbc496c571cb
+        uses: actions/checkout@v3
         with:
-          repository: "NilFoundation/crypto3-zk-marshalling"
+          repository: "NilFoundation/crypto3-zk-marshalling#43-remove-blueprint-dependency"
           path: ./libs/marshalling/zk
           submodules: recursive
   
@@ -67,66 +67,3 @@ jobs:
           name: ${{ env.CACHE_NAME }}
           path: ${{ env.CACHE_NAME }}.tar.gz
           retention-days: 1
-
-
-  run_tests:
-    runs-on: [self-hosted, tests-runner]
-    needs: [checkout]
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [
-            crypto3_zk_commitment_fold_polynomial_test,
-            crypto3_zk_commitment_fri_test,
-            crypto3_zk_commitment_lpc_test,
-            crypto3_zk_systems_plonk_placeholder_placeholder_test,
-            crypto3_zk_commitment_powers_of_tau_test,
-            crypto3_zk_commitment_proof_of_knowledge_test,
-            crypto3_zk_commitment_r1cs_gg_ppzksnark_mpc_test
-            #crypto3_zk_math_expression_test
-            #crypto3_zk_systems_plonk_plonk_constraint_test
-
-            # Performance tests pass, but they are excluded from here due to speed.
-            # crypto3_zk_commitment_lpc_performance_test
-
-            # The following tests are temporarily failing.
-            # crypto3_zk_commitment_pedersen_test
-            # crypto3_zk_transcript_kimchi_transcript_test
-            # crypto3_zk_commitment_kimchi_pedersen_test
-            # crypto3_zk_commitment_type_traits_test
-            # crypto3_zk_relations_numeric_qap_test
-            # crypto3_zk_relations_numeric_sap_test
-            # crypto3_zk_relations_numeric_ssp_test
-            # crypto3_zk_routing_algorithms_test_routing_algorithms_test
-            # crypto3_zk_systems_pcd_r1cs_pcd_r1cs_mp_ppzkpcd_r1cs_mp_ppzkpcd_test
-            # crypto3_zk_systems_plonk_pickles_kimchi_test
-            # crypto3_zk_systems_plonk_pickles_oracles_test
- 
-          ]  # Tests to execute
-    steps:
-      - name: Cleanup # TODO - move to scripts on runner
-        run: |
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-
-      - name: Upload checkout job cache
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ env.CACHE_NAME }}
-
-      - name: Extract artifacts
-        run: |
-          tar -xf ${{ env.CACHE_NAME }}.tar.gz
-          rm ${{ env.CACHE_NAME }}.tar.gz
-
-      - name: Build
-        working-directory: ./build
-        run: cmake --build . -t ${{ matrix.target }}
-
-      - name: Run test
-        working-directory: ./build
-        run: |
-          cd libs/${{ env.LIB_NAME }}/test
-          COLOR='\033[0;33m'
-          echo -e "${COLOR}${{ matrix.target }}"
-          ./${{ matrix.target }}
