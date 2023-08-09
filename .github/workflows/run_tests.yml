@@ -75,6 +75,10 @@ jobs:
             path: libs/zk/test
           - target: crypto3_zk_commitment_r1cs_gg_ppzksnark_mpc_test
             path: libs/zk/test
+          - target:  crypto3_zk_math_expression_test
+            path: libs/zk/test
+          - target:  crypto3_zk_systems_plonk_plonk_constraint_test
+            path: libs/zk/test
           - target: marshalling_fri_commitment_test
             path: libs/marshalling/zk/test
           - target: marshalling_lpc_commitment_test
