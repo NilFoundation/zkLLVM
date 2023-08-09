@@ -83,6 +83,9 @@ set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
 add_subdirectory(examples)
+if(BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
 
 install(TARGETS assigner RUNTIME DESTINATION bin)
 install(TARGETS transpiler RUNTIME DESTINATION bin)
@@ -157,8 +160,6 @@ string(REGEX REPLACE "${UNAME_RELEASE}$" "" RUSTC_HOST_TRIPLE "${LLVM_HOST_TRIPL
 message(STATUS "Rust host triple: ${RUSTC_HOST_TRIPLE}")
 
 list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
-list(APPEND RSLANG_BUILD_ARGS --release-channel=stable)
-list(APPEND RSLANG_BUILD_ARGS "--release-description=zkLLVM ${ZKLLVM_VERSION_MAJOR}.${ZKLLVM_VERSION_MINOR}.${ZKLLVM_VERSION_PATCH}")
 list(APPEND RSLANG_BUILD_ARGS --target=${RUSTC_HOST_TRIPLE},assigner-unknown-unknown)
 list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-config=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config)
 list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-filecheck=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/FileCheck)
