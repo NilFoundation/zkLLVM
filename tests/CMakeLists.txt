@@ -10,7 +10,7 @@ function(assign_ir target binary_name input)
                       VERBATIM)
 endfunction()
 
-function(run_test_no_circuit target input_name)
+function(run_expected_res_calculation target input_name)
    add_custom_target(${target}_run
    COMMAND $<TARGET_FILE:${target}> ${INPUTS_DIR}/${input_name}
    DEPENDS ${target} ${INPUTS_DIR}/${input}
