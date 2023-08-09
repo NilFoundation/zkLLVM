@@ -76,7 +76,7 @@ jobs:
             path: libs/zk/test
           - target: crypto3_zk_commitment_r1cs_gg_ppzksnark_mpc_test
             path: libs/zk/test
-            
+
     steps:
       - name: Cleanup # TODO - move to scripts on runner
         run: |
@@ -95,12 +95,12 @@ jobs:
 
       - name: Build
         working-directory: ./build
-        run: cmake --build . -t ${{ matrix.target }}.target
+        run: cmake --build . -t ${{ matrix.target }}
 
 #      - name: Run test
 #        working-directory: ./build
 #        run: |
-#          cd libs/${{ env.LIB_NAME }}/test
+#          cd ${{ matrix.path }}
 #          COLOR='\033[0;33m'
 #          echo -e "${COLOR}${{ matrix.target }}"
 #          ./${{ matrix.target }}
