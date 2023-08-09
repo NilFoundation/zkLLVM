@@ -32,14 +32,14 @@ jobs:
       - name: Checkout zk
         uses: actions/checkout@v3
         with:
-          repository: "NilFoundation/zk#162-github-actions"
+          repository: "NilFoundation/zk#7f37982"
           path: ./libs/zk
           submodules: recursive
 
       - name: Checkout zk-marshalling
         uses: actions/checkout@v3
         with:
-          repository: "NilFoundation/crypto3-zk-marshalling#43-remove-blueprint-dependency"
+          repository: "NilFoundation/crypto3-zk-marshalling#f9f3da9"
           path: ./libs/marshalling/zk
           submodules: recursive
   
