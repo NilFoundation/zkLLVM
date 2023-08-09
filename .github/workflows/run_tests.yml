@@ -60,34 +60,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [
-            {path:libs/zk/test, target:crypto3_zk_commitment_fold_polynomial_test},
-            {path:libs/zk/test, crypto3_zk_commitment_fri_test},
-            {path:libs/zk/test, crypto3_zk_commitment_lpc_test},
-            {path:libs/zk/test, crypto3_zk_systems_plonk_placeholder_placeholder_test},
-            {path:libs/zk/test, crypto3_zk_commitment_powers_of_tau_test},
-            {path:libs/zk/test, crypto3_zk_commitment_proof_of_knowledge_test},
-            {path:libs/zk/test, crypto3_zk_commitment_r1cs_gg_ppzksnark_mpc_test}
-            #crypto3_zk_math_expression_test
-            #crypto3_zk_systems_plonk_plonk_constraint_test
-
-            # Performance tests pass, but they are excluded from here due to speed.
-            # crypto3_zk_commitment_lpc_performance_test
-
-            # The following tests are temporarily failing.
-            # crypto3_zk_commitment_pedersen_test
-            # crypto3_zk_transcript_kimchi_transcript_test
-            # crypto3_zk_commitment_kimchi_pedersen_test
-            # crypto3_zk_commitment_type_traits_test
-            # crypto3_zk_relations_numeric_qap_test
-            # crypto3_zk_relations_numeric_sap_test
-            # crypto3_zk_relations_numeric_ssp_test
-            # crypto3_zk_routing_algorithms_test_routing_algorithms_test
-            # crypto3_zk_systems_pcd_r1cs_pcd_r1cs_mp_ppzkpcd_r1cs_mp_ppzkpcd_test
-            # crypto3_zk_systems_plonk_pickles_kimchi_test
-            # crypto3_zk_systems_plonk_pickles_oracles_test
-  
-          ]  # Tests to execute
+        path: [ libs/zk/test, libs/marshalling/zk/test ]
+        include: 
+          - target: crypto3_zk_commitment_fold_polynomial_test
+            path: libs/zk/test
+          - target: crypto3_zk_commitment_fri_test
+            path: libs/zk/test
+          - target: crypto3_zk_commitment_lpc_test
+            path: libs/zk/test
+          - target: crypto3_zk_systems_plonk_placeholder_placeholder_test
+            path: libs/zk/test
+          - target: crypto3_zk_commitment_powers_of_tau_test
+            path: libs/zk/test
+          - target: crypto3_zk_commitment_proof_of_knowledge_test
+            path: libs/zk/test
+          - target: crypto3_zk_commitment_r1cs_gg_ppzksnark_mpc_test
+            path: libs/zk/test
+            
     steps:
       - name: Cleanup # TODO - move to scripts on runner
         run: |
