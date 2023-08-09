@@ -5,15 +5,13 @@
 
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 
-#include <nil/crypto3/algebra/curves/pallas.hpp>
-
 using namespace nil::crypto3::algebra::curves;
 
 [[circuit]] typename pallas::base_field_type::value_type
-    pallas_field_add(typename pallas::base_field_type::value_type a,
+    pallas_field_mul(typename pallas::base_field_type::value_type a,
                         typename pallas::base_field_type::value_type b) {
 
-    typename pallas::base_field_type::value_type c = a + b;
+    typename pallas::base_field_type::value_type c = a * b;
 
     #ifndef __ZKLLVM__
     std::cout << c.data <<std::endl;
@@ -42,7 +40,7 @@ int main (int argc, char *argv[]){
         std::cerr << "addition circuit accepts " << input_size << " field elements" << "\n";
         assert(false && "input file does not match circuit signature");
     } else{
-        pallas_field_add(input_vec[0], input_vec[1]);
+        pallas_field_mul(input_vec[0], input_vec[1]);
         return 0;
     }
 }

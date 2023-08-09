@@ -99,7 +99,8 @@ jobs:
           cmake -G "Unix Makefiles" \
             -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
+            -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE \
+            -DBUILD_TESTS=TRUE .
 
       - name: Build zkllvm
         run: |
@@ -113,6 +114,11 @@ jobs:
       - name: Build circuit and assigner of the C++ examples
         run: |
           make -C build assign_cpp_examples -j$(nproc)
+
+      - name: Build and run tests
+        run: |
+          chmod +x ./tests/test_script_linux.sh
+          ./tests/test_script_linux.sh
 
       - name: Build proof for the circuit of the C++ examples
         run: |

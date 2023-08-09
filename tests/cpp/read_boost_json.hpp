@@ -17,20 +17,9 @@
 #include <boost/program_options.hpp>
 
 #include <nil/crypto3/algebra/curves/pallas.hpp>
-// #include <nil/crypto3/algebra/fields/arithmetic_params/pallas.hpp>
-
-// #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
-// #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
-
-// #include <ios>
-
-// #include <nil/crypto3/marshalling/zk/types/plonk/constraint_system.hpp>
-
-// #include <llvm/Support/CommandLine.h>
 
 
 boost::json::value read_boost_json (std::string input_file_name) {
-    std::cout << "read json boost" << "\n";
 
     std::ifstream input_file(input_file_name.c_str());
     if (!input_file.is_open()) {
@@ -72,9 +61,6 @@ boost::json::value read_boost_json (std::string input_file_name) {
 
 template<typename BlueprintFieldType>
 typename BlueprintFieldType::value_type parse_native_scalar(const boost::json::value &json_value) {
-    std::cout << "parse_native_scalar" << "\n";
-
-    std::cout << json_value << "\n";
 
     const std::size_t buflen = 256;
     char buf[buflen];
@@ -112,8 +98,6 @@ typename BlueprintFieldType::value_type parse_native_scalar(const boost::json::v
 
 template<typename BlueprintFieldType>
 std::vector<typename BlueprintFieldType::value_type> read_fields(std::string input_file_name) {
-    std::cout << "read_fields" << "\n";
-
 
     boost::json::value input_json_value = read_boost_json (input_file_name);
 
@@ -130,6 +114,41 @@ std::vector<typename BlueprintFieldType::value_type> read_fields(std::string inp
         }
 
         res.push_back(parse_native_scalar<BlueprintFieldType>(current_value.at("field")));
+    }
+    return res;
+}
+
+template<typename BlueprintFieldType>
+std::vector<typename BlueprintFieldType::value_type> read_curves(std::string input_file_name) {
+
+    boost::json::value input_json_value = read_boost_json (input_file_name);
+
+    std::vector<typename BlueprintFieldType::value_type> res;
+
+    for (std::size_t i = 0; i < input_json_value.as_array().size(); i++) {
+        const boost::json::object &current_value = input_json_value.as_array()[i].as_object();
+        if (current_value.size() != 2)
+            assert(false && "Curve length must be 2");
+        if(!current_value.contains("curve"))
+            assert(false && "json value must contain \"curve\"");
+        if (!current_value.at("curve").is_array()) {
+            assert(false && "curve element must be array of length 2");
+        }
+        else {
+            if(current_value.at("curve").as_array().size() != 2) {
+                assert(false && "curve element must be array of length 2");
+            }
+            else {
+                for (std::size_t i = 0; i < 2; i++) {
+                    if (current_value.at("curve").as_array()[i].is_double()) {
+                        assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
+                    }
+                    else {
+                        res.push_back(parse_native_scalar<BlueprintFieldType>(current_value.at("curve").as_array()[i]));
+                    }
+                }
+            }
+        }
     }
     return res;
 }
