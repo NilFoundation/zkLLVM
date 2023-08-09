@@ -30,13 +30,15 @@ jobs:
           submodules: recursive
 
       - name: Checkout zk
-        working-directory: ./libs/zk
-        run:
+        working-directory: .
+        run: |
+          cd libs/zk
           git checkout origin/162-github-actions
 
       - name: Checkout zk-marshalling
-        working-directory: ./libs/marshalling-zk
-        run:
+        working-directory: .
+        run: |
+          cd libs/zk-marshalling
           git checkout origin/43-remove-blueprint-dependency
 
       - name: Cmake and build
