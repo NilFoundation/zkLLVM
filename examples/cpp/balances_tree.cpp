@@ -115,7 +115,7 @@ typename hashes::sha2<256>::block_type hash_layer(std::array<typename hashes::sh
     [[private]] std::array<int64_t, precomputed_powers_of_two[validators_amount_log2]> validator_balances,
     typename hashes::sha2<256>::block_type expected_root,
     unsigned long long expected_total_balance) {
-    
+
     constexpr std::size_t validators_amount = precomputed_powers_of_two[validators_amount_log2];
     constexpr std::size_t potentially_non_zero_leaves_amount_log2 = validators_amount_log2 - validators_per_leaf_log2;
     constexpr std::size_t potentially_non_zero_leaves_amount = precomputed_powers_of_two[potentially_non_zero_leaves_amount_log2];
@@ -124,20 +124,32 @@ typename hashes::sha2<256>::block_type hash_layer(std::array<typename hashes::sh
     for (std::size_t i = 0; i < potentially_non_zero_leaves_amount; i++) {
         // MSB first
         typedef __zkllvm_field_pallas_base __attribute__((ext_vector_type(64))) decomposed_int64_type;
+        typedef __zkllvm_field_pallas_base __attribute__((ext_vector_type(128))) decomposed_int128_type;
 
         decomposed_int64_type first_balance_in_block_bits =
             __builtin_assigner_bit_decomposition64(validator_balances[4*i]);
         decomposed_int64_type second_balance_in_block_bits =
             __builtin_assigner_bit_decomposition64(validator_balances[4*i+1]);
+        decomposed_int128_type first_composition_input;
+        for (std::size_t j = 0; j < 64; j++) {
+            first_composition_input[j] =       first_balance_in_block_bits[j];
+            first_composition_input[j + 64] = second_balance_in_block_bits[j];
+        }
+
         decomposed_int64_type third_balance_in_block_bits =
             __builtin_assigner_bit_decomposition64(validator_balances[4*i+2]);
         decomposed_int64_type fourth_balance_in_block_bits =
             __builtin_assigner_bit_decomposition64(validator_balances[4*i+3]);
+        decomposed_int128_type second_composition_input;
+        for (std::size_t j = 0; j < 64; j++) {
+            second_composition_input[j] =       third_balance_in_block_bits[j];
+            second_composition_input[j + 64] = fourth_balance_in_block_bits[j];
+        }
 
-        typename algebra::curves::pallas::base_field_type::value_type first_block = __builtin_assigner_bit_composition128(
-            first_balance_in_block_bits, second_balance_in_block_bits);
-        typename algebra::curves::pallas::base_field_type::value_type second_block = __builtin_assigner_bit_composition128(
-            third_balance_in_block_bits, fourth_balance_in_block_bits);
+        typename algebra::curves::pallas::base_field_type::value_type first_block =
+            __builtin_assigner_bit_composition128(first_composition_input);
+        typename algebra::curves::pallas::base_field_type::value_type second_block =
+            __builtin_assigner_bit_composition128(second_composition_input);
 
         potentially_non_zero_leaves[i] = {first_block, second_block};
     }

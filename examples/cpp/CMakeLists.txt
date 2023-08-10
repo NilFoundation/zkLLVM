@@ -96,6 +96,8 @@ add_example_with_proving(uint_remainder_cpp SOURCES bit_operations/uint_remainde
 add_example_with_proving(uint_division_cpp SOURCES bit_operations/uint_division.cpp INPUT bit_operations/uint_division.inp)
 add_example_with_proving(uint_shift_left SOURCES bit_operations/shift_left.cpp INPUT bit_operations/shift_left.inp)
 add_example_with_proving(uint_shift_right SOURCES bit_operations/shift_right.cpp INPUT bit_operations/shift_right.inp)
+add_example_with_proving(uint_bit_decomposition SOURCES bit_operations/bit_decomposition.cpp INPUT bit_operations/bit_decomposition.inp)
+add_example_with_proving(uint_bit_composition SOURCES bit_operations/bit_composition.cpp INPUT bit_operations/bit_composition.inp)
 
 # add_example_with_proving(compare_neq_cpp SOURCES compare/neq.cpp INPUT compare/neq.inp)
 # add_example_with_proving(compare_eq_cpp SOURCES compare/eq.cpp INPUT compare/eq.inp)
