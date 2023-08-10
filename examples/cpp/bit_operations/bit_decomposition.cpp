@@ -6,7 +6,8 @@ typedef __attribute__((ext_vector_type(64)))
                 typename pallas::base_field_type::value_type decomposed_type;
 
 
-[[circuit]] decomposed_type remainder(uint64_t input) {
+[[circuit]] decomposed_type decompose(uint64_t input) {
 
-    return __builtin_assigner_bit_decomposition64(input);
+    bool is_msb = true;
+    return __builtin_assigner_bit_decomposition64(input, is_msb);
 }
