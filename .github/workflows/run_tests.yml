@@ -1,0 +1,126 @@
+name: Run tests
+
+on:
+  # Let's run it on any commit
+  [push]
+  # Triggers the workflow on pull request events but only for the master branch
+  #pull_request:
+  #  branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  #workflow_dispatch:
+
+env:
+  SUITE_REPO: "NilFoundation/crypto3"
+  CACHE_NAME: "checkout-job-cache"
+
+jobs:
+  checkout:
+    runs-on: [self-hosted, tests-runner]
+    steps:
+      - name: Cleanup # TODO - move to scripts on runner
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+
+      - name: Checkout suite
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.SUITE_REPO }}
+          submodules: recursive
+
+      - name: Cmake and build
+        env:
+          CMAKE_ARGS: "
+            -DCMAKE_BUILD_TYPE=Debug
+            -DBUILD_SHARED_LIBS=FALSE
+            -DBUILD_TESTS=TRUE
+            -DZK_PLACEHOLDER_PROFILING=TRUE
+            "
+        run: |
+          mkdir build
+          cd build
+          cmake ${{ env.CMAKE_ARGS }} ..
+
+      - name: Archive build results
+        run: |
+          touch ${{ env.CACHE_NAME }}.tar.gz
+          tar -czf ${{ env.CACHE_NAME }}.tar.gz --exclude=${{ env.CACHE_NAME }}.tar.gz .
+
+      - name: Cache archived job output
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.CACHE_NAME }}
+          path: ${{ env.CACHE_NAME }}.tar.gz
+          retention-days: 1
+
+  run_tests:
+    runs-on: [self-hosted, tests-runner]
+    needs: [checkout]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: 
+          - target: crypto3_zk_commitment_fold_polynomial_test
+            path: libs/zk/test
+          - target: crypto3_zk_commitment_fri_test
+            path: libs/zk/test
+          - target: crypto3_zk_commitment_lpc_test
+            path: libs/zk/test
+          - target: crypto3_zk_systems_plonk_placeholder_placeholder_test
+            path: libs/zk/test
+          - target: crypto3_zk_commitment_powers_of_tau_test
+            path: libs/zk/test
+          - target: crypto3_zk_commitment_proof_of_knowledge_test
+            path: libs/zk/test
+          - target: crypto3_zk_commitment_r1cs_gg_ppzksnark_mpc_test
+            path: libs/zk/test
+          - target:  crypto3_zk_math_expression_test
+            path: libs/zk/test
+          - target:  crypto3_zk_systems_plonk_plonk_constraint_test
+            path: libs/zk/test
+          - target: marshalling_fri_commitment_test
+            path: libs/marshalling/zk/test
+          - target: marshalling_lpc_commitment_test
+            path: libs/marshalling/zk/test
+          - target: marshalling_placeholder_common_data_test
+            path: libs/marshalling/zk/test
+          - target: marshalling_placeholder_proof_test
+            path: libs/marshalling/zk/test
+          - target: marshalling_sparse_vector_test
+            path: libs/marshalling/zk/test
+          - target: marshalling_plonk_constraint_system_test
+            path: libs/marshalling/zk/test
+          - target: marshalling_r1cs_gg_ppzksnark_primary_input_test
+            path: libs/marshalling/zk/test
+          - target: marshalling_r1cs_gg_ppzksnark_proof_test
+            path: libs/marshalling/zk/test
+          - target: marshalling_r1cs_gg_ppzksnark_verification_key_test
+            path: libs/marshalling/zk/test
+    steps:
+      - name: Cleanup # TODO - move to scripts on runner
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+
+      - name: Upload checkout job cache
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.CACHE_NAME }}
+
+      - name: Extract artifacts
+        run: |
+          tar -xf ${{ env.CACHE_NAME }}.tar.gz
+          rm ${{ env.CACHE_NAME }}.tar.gz
+
+      - name: Build
+        working-directory: ./build
+        run: cmake --build . -t ${{ matrix.target }}
+
+#      - name: Run test
+#        working-directory: ./build
+#        run: |
+#          cd ${{ matrix.path }}
+#          COLOR='\033[0;33m'
+#          echo -e "${COLOR}${{ matrix.target }}"
+#          ./${{ matrix.target }}
