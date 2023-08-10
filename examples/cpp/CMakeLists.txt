@@ -83,6 +83,7 @@ add_example_with_proving(integer_arithmetics_cpp_example SOURCES integer_arithme
 add_example_with_proving(poseidon_cpp_example SOURCES poseidon.cpp INPUT poseidon.inp)
 add_example_with_proving(merkle_tree_poseidon_cpp_example SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp)
 add_example_with_proving(merkle_tree_sha2_256_cpp_example SOURCES merkle_tree_sha2_256.cpp INPUT merkle_tree_sha2_256.inp)
+add_example_with_proving(validate_merkle_path_sha2_256_cpp_example SOURCES validate_merkle_path_sha2_256.cpp INPUT validate_merkle_path_sha2_256.inp)
 add_example_with_proving(sha256_cpp_example SOURCES sha2_256.cpp INPUT sha2_256.inp)
 add_example_with_proving(balance_cpp_example SOURCES balance.cpp INPUT balance.inp)
 add_example_with_proving(memory_cpp_example SOURCES memory.cpp INPUT memory.inp)
