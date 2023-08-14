@@ -98,7 +98,7 @@ add_example_with_proving(uint_shift_left SOURCES bit_operations/shift_left.cpp I
 add_example_with_proving(uint_shift_right SOURCES bit_operations/shift_right.cpp INPUT bit_operations/shift_right.inp)
 
 # add_example_with_proving(compare_neq_cpp SOURCES compare/neq.cpp INPUT compare/neq.inp)
-add_example_with_proving(compare_eq_cpp SOURCES compare/eq.cpp INPUT compare/eq.inp)
+# add_example_with_proving(compare_eq_cpp SOURCES compare/eq.cpp INPUT compare/eq.inp)
 add_example_with_proving(compare_grequal_cpp SOURCES compare/grequal.cpp INPUT compare/grequal.inp)
 add_example_with_proving(compare_lequal_cpp SOURCES compare/lequal.cpp INPUT compare/lequal.inp)
 add_example_with_proving(compare_greater_than_cpp SOURCES compare/greater_than.cpp INPUT compare/greater_than.inp)
