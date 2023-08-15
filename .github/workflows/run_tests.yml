@@ -117,10 +117,10 @@ jobs:
         working-directory: ./build
         run: cmake --build . -t ${{ matrix.target }}
 
-#      - name: Run test
-#        working-directory: ./build
-#        run: |
-#          cd ${{ matrix.path }}
-#          COLOR='\033[0;33m'
-#          echo -e "${COLOR}${{ matrix.target }}"
-#          ./${{ matrix.target }}
+      - name: Run test
+        working-directory: ./build
+        run: |
+          cd ${{ matrix.path }}
+          COLOR='\033[0;33m'
+          echo -e "${COLOR}${{ matrix.target }}"
+          ./${{ matrix.target }}
