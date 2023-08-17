@@ -103,10 +103,20 @@ jobs:
             path: libs/algebra/test
           - target: algebra_hash_to_curve_test
             path: libs/algebra/test
-          - target: algebra_matrix_compile_test
-            path: libs/algebra/test
           - target: algebra_pairing_test
             path: libs/algebra/test
+          - target: math_expression_test
+            path: libs/math/test
+          - target: math_lagrange_interpolation_test
+            path: libs/math/test
+          - target: math_polynomial_test
+            path: libs/math/test
+          - target: math_polynomial_dfs_test
+            path: libs/math/test
+          - target: math_polynomial_arithmetic_test
+            path: libs/math/test
+          - target: math_polynomial_view_test
+            path: libs/math/test
     steps:
       - name: Cleanup # TODO - move to scripts on runner
         run: |
