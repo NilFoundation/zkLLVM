@@ -97,6 +97,16 @@ jobs:
             path: libs/marshalling/zk/test
           - target: marshalling_r1cs_gg_ppzksnark_verification_key_test
             path: libs/marshalling/zk/test
+          - target: algebra_curves_test
+            path: libs/algebra/test
+          - target: algebra_fields_test
+            path: libs/algebra/test
+          - target: algebra_hash_to_curve_test
+            path: libs/algebra/test
+          - target: algebra_matrix_compile_test
+            path: libs/algebra/test
+          - target: algebra_pairing_test
+            path: libs/algebra/test
     steps:
       - name: Cleanup # TODO - move to scripts on runner
         run: |
