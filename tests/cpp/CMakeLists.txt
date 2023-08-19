@@ -159,6 +159,10 @@ set(TESTS_NAMES
     "algebra/fields/native_pallas_arithmetics/sub"
     "algebra/integers/shift/left"
     "algebra/integers/shift/right"
+    "algebra/integers/comparison/greater"
+    "algebra/integers/comparison/grequal"
+    "algebra/integers/comparison/lequal"
+    "algebra/integers/comparison/less"
     )
 
 file(REMOVE ../tests_list.txt)
