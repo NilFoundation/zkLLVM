@@ -10,9 +10,9 @@ function(assign_ir target binary_name input)
                       VERBATIM)
 endfunction()
 
-function(run_expected_res_calculation target input_name)
-   add_custom_target(${target}_run
-   COMMAND $<TARGET_FILE:${target}> ${INPUTS_DIR}/${input_name}
+function(run_expected_res_calculation target input_path input_name)
+   add_custom_target(${target}_run_${input_name}
+   COMMAND $<TARGET_FILE:${target}> ${INPUTS_DIR}/${input_path}/${input_name}.inp
    DEPENDS ${target} ${INPUTS_DIR}/${input}
    COMMAND_EXPAND_LISTS
    VERBATIM)
