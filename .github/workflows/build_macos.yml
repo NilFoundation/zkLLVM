@@ -51,6 +51,8 @@ jobs:
           cc --version
           cmake --version
           bash --version
+          which -a bash
+          echo PATH: $PATH
 
       - name: Checkout sources
         uses: actions/checkout@v3

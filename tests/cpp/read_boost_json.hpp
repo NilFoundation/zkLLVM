@@ -118,6 +118,42 @@ std::vector<typename BlueprintFieldType::value_type> read_fields(std::string inp
     return res;
 }
 
+std::vector<uint32_t> read_uint32_t(std::string input_file_name) {
+
+    boost::json::value input_json_value = read_boost_json (input_file_name);
+
+    std::vector<uint32_t> res;
+
+    for (std::size_t i = 0; i < input_json_value.as_array().size(); i++) {
+        const boost::json::object &current_value = input_json_value.as_array()[i].as_object();
+        if (current_value.size() != 1)
+            assert(false && "field length must be 1");
+        if(!current_value.contains("int"))
+            assert(false && "json value must contain \"int\"");
+        if (current_value.at("int").is_double()) {
+            assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
+        }
+
+        uint32_t current_res;
+
+        switch (current_value.at("int").kind()) {
+            case boost::json::kind::int64:
+                current_res = current_value.at("int").as_int64();
+                break;
+            case boost::json::kind::uint64:
+                current_res = current_value.at("int").as_int64();
+                break;
+            default: {
+                std::cerr << "wrong kind of input value: " << current_value.at("int").kind() << "\n";
+                std::abort();
+            }
+        }
+
+        res.push_back(current_res);
+    }
+    return res;
+}
+
 template<typename BlueprintFieldType>
 std::vector<typename BlueprintFieldType::value_type> read_curves(std::string input_file_name) {
 

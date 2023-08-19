@@ -23,29 +23,17 @@ macro(define_zkllvm_test test)
     string(REPLACE "/" "_" test_name ${test})
     string(REPLACE "/" "_" full_test_name ${test}_calculate_expected_res)
 
-    message(cm_test(NAME ${full_test_name} SOURCES ${test}.cpp))
     cm_test(NAME ${full_test_name} SOURCES ${test}.cpp)
 
-    message("")
-    message(test: ${test})
     get_filename_component(PARENT_PATH "${test}" DIRECTORY)
-    message("Parent path: ${PARENT_PATH}")
-    message(test_name: ${test_name})
-    message(full_test_name: ${full_test_name})
-    message(INPUTS_DIR: ${INPUTS_DIR})
-    message("")
 
     set(inplisdir "${INPUTS_DIR}/${PARENT_PATH}")
     message(inplisdir: "${inplisdir}")
     file(GLOB inplist "${inplisdir}/*")
     foreach(full_inp_file ${inplist})
-        message("${full_inp_file}")
         get_filename_component(curr_inp_name ${full_inp_file} NAME_WE)
         get_filename_component(curr_inp_file ${full_inp_file} NAME)
-        message(curr_inp_name: ${curr_inp_name})
-        message(run_expected_res_calculation(${full_test_name} ${PARENT_PATH} ${curr_inp_name}))
-                run_expected_res_calculation(${full_test_name} ${PARENT_PATH} ${curr_inp_name})
-        message(add_test_circuit_assign(${test_name}_${curr_inp_name} SOURCES ${test}.cpp INPUT ${PARENT_PATH}/${curr_inp_file}))
+        run_expected_res_calculation(${full_test_name} ${PARENT_PATH} ${curr_inp_name})
         add_test_circuit_assign(${test_name}_${curr_inp_name} SOURCES ${test}.cpp INPUT ${PARENT_PATH}/${curr_inp_file})
     endforeach()
     message(end inplist)
@@ -169,6 +157,8 @@ set(TESTS_NAMES
     "algebra/fields/native_pallas_arithmetics/add"
     "algebra/fields/native_pallas_arithmetics/mul"
     "algebra/fields/native_pallas_arithmetics/sub"
+    "algebra/integers/shift/left"
+    "algebra/integers/shift/right"
     )
 
 file(REMOVE ../tests_list.txt)
