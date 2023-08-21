@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 readarray test_examples < tests/tests_list.txt
 exit_code=0
