@@ -159,10 +159,15 @@ set(TESTS_NAMES
     "algebra/fields/native_pallas_arithmetics/sub"
     "algebra/integers/shift/left"
     "algebra/integers/shift/right"
-    "algebra/integers/comparison/greater"
-    "algebra/integers/comparison/grequal"
-    "algebra/integers/comparison/lequal"
-    "algebra/integers/comparison/less"
+    "algebra/fields/comparison/greater"
+    "algebra/fields/comparison/grequal"
+    "algebra/fields/comparison/lequal"
+    "algebra/fields/comparison/less"
+    # "algebra/fields/comparison/equal"
+    # "algebra/fields/comparison/not_equal"
+    "algebra/integers/division/udiv"
+    "algebra/integers/division/urem"
+    "algebra/fields/native_pallas_arithmetics/loop"
     )
 
 file(REMOVE ../tests_list.txt)
