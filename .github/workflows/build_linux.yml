@@ -118,12 +118,12 @@ jobs:
       - name: Build tests
         run: |
           chmod +x ./tests/build_tests.sh
-          ./tests/build_tests.sh make -j$(nproc)
+          bash ./tests/build_tests.sh make -j$(nproc)
 
       - name: Run tests
         run: |
           chmod +x ./tests/run_tests.sh
-          ./tests/run_tests.sh make -j$(nproc)
+          bash ./tests/run_tests.sh make -j$(nproc)
 
       - name: Build proof for the circuit of the C++ examples
         run: |

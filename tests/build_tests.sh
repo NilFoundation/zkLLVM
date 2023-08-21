@@ -1,5 +1,3 @@
-#!/bin/bash
-
 readarray test_examples < tests/tests_list.txt
 
 if [ $1 != "make" ]  &&  [ $1 != "ninja" ]; then

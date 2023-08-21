@@ -1,5 +1,3 @@
-#!/bin/bash
-
 readarray test_examples < tests/tests_list.txt
 exit_code=0
 at_least_one_test_launched=0
