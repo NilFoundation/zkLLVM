@@ -14,7 +14,7 @@ from typing import Callable, Literal, NoReturn, TypedDict
 import requests
 
 GITHUB_API_VERSION = "2022-11-28"
-GITHUB_API_URL = "https://api.github.com/repos/NilFoundation/zkllvm-rslang"
+GITHUB_API_URL = "https://api.github.com/repos/NilFoundation/zkllvm"
 GITHUB_API_HEADERS = {
     "Accept": "application/vnd.github+json",
     "X-GitHub-Api-Version": GITHUB_API_VERSION,
@@ -324,27 +324,22 @@ logger.debug(f"{len(release['assets'])} assets, "
              f"published at {release['published_at']}")
 
 
-def find_asset_by_name(release: Release, filter: Callable[[Asset], bool], pattern: re.Pattern) -> Asset | None:
+def find_asset_by_name(release: Release, pattern: re.Pattern) -> Asset | None:
     for asset in release["assets"]:
-        if filter(asset) and pattern.match(asset["name"]):
+        if pattern.match(asset["name"]):
             return asset
     return None
 
 
-def gzip_or_zip(asset: Asset) -> bool:
-    # FIXME: this filter is probably not necessary since we trust our name pattern matching.
-    return asset["content_type"] in ("application/gzip", "application/zip")
-
-
 def find_host_toolchain() -> Asset | None:
-    pat = re.compile(f"rust-[0-9]+\.[0-9]+\.[0-9]+-.+-{host}")
-    return find_asset_by_name(release, gzip_or_zip, pat)
+    pat = re.compile(f"rust-[0-9]+\.[0-9]+\.[0-9]+-{host}\.tar\.gz")
+    return find_asset_by_name(release, pat)
 
 
-def find_assigner_toolchain() -> Asset | None:
+def find_assigner_target() -> Asset | None:
     assigner_triple = Triple.assigner()
-    pat = re.compile(f"rust-std-[0-9]+\.[0-9]+\.[0-9]+-.+-{assigner_triple}")
-    return find_asset_by_name(release, gzip_or_zip, pat)
+    pat = re.compile(f"rust-std-[0-9]+\.[0-9]+\.[0-9]+-{assigner_triple}\.tar\.gz")
+    return find_asset_by_name(release, pat)
 
 
 host_toolchain = find_host_toolchain()
@@ -354,11 +349,11 @@ if host_toolchain is None:
 logger.debug(f"Found host toolchain: {host_toolchain['name']}")
 
 
-assigner_toolchain = find_assigner_toolchain()
-if assigner_toolchain is None:
-    error("Could not find assigner toolchain in this release.\n"
+assigner_target = find_assigner_target()
+if assigner_target is None:
+    error("Could not find assigner target in this release.\n"
           "This is probably an internal error.")
-logger.debug(f"Found assigner toolchain: {assigner_toolchain['name']}")
+logger.debug(f"Found assigner target: {assigner_target['name']}")
 
 
 def download_asset(asset: Asset, tmpdir: Path) -> Path:
@@ -398,7 +393,7 @@ def unpack_archive(path: Path, tmpdir: Path) -> Path:
     return tmpdir / name
 
 
-def process_toolchain(asset: Asset, tmpdir: Path):
+def process_dist(asset: Asset, tmpdir: Path):
     """Download asset, unpack it and install."""
 
     logger.info(f"Downloading {asset['name']}")
@@ -417,8 +412,8 @@ def process_toolchain(asset: Asset, tmpdir: Path):
 with tempfile.TemporaryDirectory() as tmpdir:
     logger.debug(f"Tmp directory created: {tmpdir}")
 
-    process_toolchain(host_toolchain, Path(tmpdir))
-    process_toolchain(assigner_toolchain, Path(tmpdir))
+    process_dist(host_toolchain, Path(tmpdir))
+    process_dist(assigner_target, Path(tmpdir))
 
 logger.info("")
 logger.info("Installation completed")
