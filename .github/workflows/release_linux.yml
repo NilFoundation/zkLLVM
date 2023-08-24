@@ -136,6 +136,7 @@ jobs:
         run: |
           make -C build package stdlib_package -j$(nproc)
 
+      # TODO: we should consider distribution with dynamically linked LLVM
       - name: Configure CMake for rslang
         env:
           BOOST_ROOT: "${{ steps.install-boost.outputs.BOOST_ROOT }}"
@@ -152,24 +153,23 @@ jobs:
       - name: Build rslang distribution
         run: |
           make -C build_rslang rslang_dist -j$(nproc)
-          ls build_rslang/libs/rslang/build/dist
 
-      # - name: Create release
-      #   uses: ncipollo/release-action@v1
-      #   with:
-      #     name: "zkllvm-v${{ env.VERSION }}"
-      #     tag: "v${{ env.VERSION }}"
-      #     artifacts: "build/zkllvm_*.deb,build/zkllvm-stdlib_*.deb"
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          name: "zkllvm-v${{ env.VERSION }}"
+          tag: "v${{ env.VERSION }}"
+          artifacts: "build/zkllvm_*.deb,build/zkllvm-stdlib_*.deb,build_rslang/libs/rslang/build/dist/*"
 
-      # - name: Upload packages to repository
-      #   env:
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-      #   run: |
-      #     ZKLLVM_PACKAGE=`ls build/zkllvm_*.deb | cut -d'/' -f2`
-      #     STDLIB_PACKAGE=`ls build/zkllvm-stdlib_*.deb | cut -d'/' -f2`
-      #     POOL="ubuntu/pool/main/z/zkllvm"
-      #     aws s3api put-object --bucket deb.nil.foundation --key $POOL/$ZKLLVM_PACKAGE --body build/$ZKLLVM_PACKAGE
-      #     aws s3api put-object --bucket deb.nil.foundation --key $POOL/$STDLIB_PACKAGE --body build/$STDLIB_PACKAGE
-      #     mkrepo s3://deb.nil.foundation/ubuntu/
+      - name: Upload packages to repository
+        env:
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        run: |
+          ZKLLVM_PACKAGE=`ls build/zkllvm_*.deb | cut -d'/' -f2`
+          STDLIB_PACKAGE=`ls build/zkllvm-stdlib_*.deb | cut -d'/' -f2`
+          POOL="ubuntu/pool/main/z/zkllvm"
+          aws s3api put-object --bucket deb.nil.foundation --key $POOL/$ZKLLVM_PACKAGE --body build/$ZKLLVM_PACKAGE
+          aws s3api put-object --bucket deb.nil.foundation --key $POOL/$STDLIB_PACKAGE --body build/$STDLIB_PACKAGE
+          mkrepo s3://deb.nil.foundation/ubuntu/
