@@ -86,10 +86,12 @@ class Release(TypedDict):
 
 def parse_args():
     parser = argparse.ArgumentParser("rslang-installer")
+    parser.add_argument("host",
+                        help="host target triple to install (e.g. 'x86_64-unknown-linux-gnu')")
     parser.add_argument("release",
                         nargs='?',
                         default="latest",
-                        help="Release version (e.g. 'v0.1.0' or 'latest')")
+                        help="release version (e.g. 'v0.1.0' or 'latest')")
     parser.add_argument("-n", "--name",
                         default="zkllvm",
                         help="name of the toolchain to use (defaults to 'zkllvm'). "
@@ -118,6 +120,7 @@ def parse_args():
 
 args = parse_args()
 
+host: str = args.host
 release_version: str = args.release
 toolchain_name: str = args.name
 force_overwrite: bool = args.force
@@ -173,6 +176,7 @@ logger.addHandler(sh)
 
 logger.info("Rslang installer")
 logger.info("")
+logger.info(f"Host platform: {host}")
 
 
 def error(message: str) -> NoReturn:
@@ -182,44 +186,6 @@ def error(message: str) -> NoReturn:
     logger.error("")
     logger.error("Exiting...")
     sys.exit(1)
-
-
-class Triple:
-    """Target triplet, e.g. `x86_64-unknown-linux-gnu`."""
-
-    def __init__(self, machine: str, vendor: str, _os: str):
-        self.machine = machine.lower()
-        self.vendor = vendor.lower()
-        self.os = _os.lower()
-
-    @classmethod
-    def host(cls):
-        """Get host triple."""
-        machine = platform.machine().lower()
-        vendor = "unknown"  # FIXME: fill this
-        _os = platform.system().lower()  # FIXME: handle postfixes like "-gnu" and "-musl"
-        return cls(machine, vendor, _os)
-
-    @classmethod
-    def assigner(cls):
-        """Get assigner triple."""
-        return cls("assigner", "unknown", "unknown")
-
-    def is_windows(self) -> bool:
-        return host.os.startswith("windows")
-
-    def is_macos(self) -> bool:
-        return host.os.startswith("darwin")
-
-    def is_linux(self) -> bool:
-        return host.os.startswith("linux")
-
-    def __str__(self):
-        return f"{self.machine}-{self.vendor}-{self.os}"
-
-
-host = Triple.host()
-logger.info(f"Host platform: {host}")
 
 
 def cmd_exists(cmd: str) -> bool:
@@ -252,11 +218,11 @@ def cmd_output(cmd: str) -> str:
 def get_default_install_prefix() -> Path:
     """"Get default installation prefix for different platforms."""
 
-    if host.is_linux():
+    if "linux" in host:
         prefix = "/opt/rslang"
-    elif host.is_macos():
+    elif "darwin" in host:
         prefix = "/usr/local/opt"
-    elif host.is_windows():
+    elif "windows" in host:
         prefix = "C:\Program Files"
     else:
         error(f"{host} default prefix is unknown.\n"
@@ -337,8 +303,8 @@ def find_host_toolchain() -> Asset | None:
 
 
 def find_assigner_target() -> Asset | None:
-    assigner_triple = Triple.assigner()
-    pat = re.compile(f"rust-std-[0-9]+\.[0-9]+\.[0-9]+-{assigner_triple}\.tar\.gz")
+    assigner = "assigner-unknown-unknown"
+    pat = re.compile(f"rust-std-[0-9]+\.[0-9]+\.[0-9]+-{assigner}\.tar\.gz")
     return find_asset_by_name(release, pat)
 
 
