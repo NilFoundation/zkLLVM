@@ -20,7 +20,7 @@ get_python() {
 }
 
 # FIXME: change this URL after installed will be properly uploaded.
-INSTALLER_URL="${INSTALLER_URL:-https://github.com/NilFoundation/zkllvm-rslang/releases/download/v0.0.1-beta/rslang-installer.py}"
+INSTALLER_URL="${INSTALLER_URL:-https://raw.githubusercontent.com/NilFoundation/zkllvm/master/rslang-installer.py}"
 
 get_rslang_installer() {
     local _dir
