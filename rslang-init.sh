@@ -311,6 +311,9 @@ main() {
     # local _script="$RETVAL"
     local _script="rslang-installer.py"
 
+    echo "Installing dependencies"
+    "$_python" -m pip install requests
+
     echo "Running installer"
     "$_python" "$_script" "$@"
 
