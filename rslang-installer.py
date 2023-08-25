@@ -1,10 +1,13 @@
+import sys
+if sys.version_info.major < 3 or sys.version_info.minor < 7:
+    raise Exception("required Python3.7+")
+
 import argparse
 import logging
 import os
 import re
 import shutil
 import subprocess as sp
-import sys
 import tarfile
 import tempfile
 from pathlib import Path
