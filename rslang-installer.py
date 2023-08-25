@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import platform
 import re
 import shutil
 import subprocess as sp
@@ -9,9 +8,11 @@ import sys
 import tarfile
 import tempfile
 from pathlib import Path
-from typing import Callable, Literal, NoReturn, TypedDict
+from typing import Literal, NoReturn, TypedDict
 
 import requests
+
+ENC = sys.getdefaultencoding()
 
 GITHUB_API_VERSION = "2022-11-28"
 GITHUB_API_URL = "https://api.github.com/repos/NilFoundation/zkllvm"
@@ -86,8 +87,6 @@ class Release(TypedDict):
 
 def parse_args():
     parser = argparse.ArgumentParser("rslang-installer")
-    parser.add_argument("host",
-                        help="host target triple to install (e.g. 'x86_64-unknown-linux-gnu')")
     parser.add_argument("release",
                         nargs='?',
                         default="latest",
@@ -120,7 +119,6 @@ def parse_args():
 
 args = parse_args()
 
-host: str = args.host
 release_version: str = args.release
 toolchain_name: str = args.name
 force_overwrite: bool = args.force
@@ -176,7 +174,6 @@ logger.addHandler(sh)
 
 logger.info("Rslang installer")
 logger.info("")
-logger.info(f"Host platform: {host}")
 
 
 def error(message: str) -> NoReturn:
@@ -204,35 +201,209 @@ def cmd_output(cmd: str) -> str:
 
     try:
         logger.debug(f"Running '{cmd}'")
-        output = sp.check_output(cmd.split())
+        output = sp.check_output(cmd.split()).strip()
     except sp.CalledProcessError as e:
         msg = ""
         if e.stdout is not None:
-            msg += e.stdout.decode()
+            msg += e.stdout.decode(ENC)
         if e.stderr is not None:
-            msg += e.stderr.decode()
+            msg += e.stderr.decode(ENC)
         error(f"{' '.join(e.cmd)}\n{msg}")
-    return output.decode()
+    return output.decode(ENC)
 
 
-def get_default_install_prefix() -> Path:
+def cmd_output_no_fail(cmd: str) -> str | None:
+    """Run `cmd` in shell, returning `None`, if it fails."""
+
+    try:
+        logger.debug(f"Running '{cmd}'")
+        output = sp.check_output(cmd.split()).strip()
+    except sp.CalledProcessError as e:
+        return None
+    return output.decode(ENC)
+
+
+# This is taken from bootstrap.py triple detection in Rust repo.
+def get_host_triple() -> str:
+    """Try to get host triple in LLVM-compatible format."""
+    # If the user already has a host build triple with an existing `rustc`
+    # install, use their preference. This fixes most issues with Windows builds
+    # being detected as GNU instead of MSVC.
+    try:
+        output = sp.check_output(["rustc", "--version", "--verbose"],
+                                 stderr=sp.DEVNULL)
+        version = output.decode(ENC)
+        host = next(x for x in version.split('\n') if x.startswith("host: "))
+        triple = host.split("host: ")[1]
+        logger.debug(f"detected default triple '{triple}' from pre-installed rustc")
+        return triple
+    except Exception as e:
+        logger.debug(f"pre-installed rustc not detected: {e}")
+        logger.debug("falling back to auto-detect")
+
+    if sys.platform == "win32":
+        ostype = cmd_output_no_fail("uname -s")
+        cputype = cmd_output_no_fail("uname -m")
+    else:
+        ostype = cmd_output("uname -s")
+        cputype = cmd_output("uname -m")
+
+    # If we do not have `uname`, assume Windows.
+    if ostype is None or cputype is None:
+        return "x86_64-pc-windows-msvc"
+
+    # The goal here is to come up with the same triple as LLVM would,
+    # at least for the subset of platforms we're willing to target.
+    ostype_mapper = {
+        "Darwin": "apple-darwin",
+        "DragonFly": "unknown-dragonfly",
+        "FreeBSD": "unknown-freebsd",
+        "Haiku": "unknown-haiku",
+        "NetBSD": "unknown-netbsd",
+        "OpenBSD": "unknown-openbsd",
+    }
+
+    # Consider the direct transformation first and then the special cases
+    if ostype in ostype_mapper:
+        ostype = ostype_mapper[ostype]
+    elif ostype == "Linux":
+        os_from_sp = cmd_output("uname -o")
+        if os_from_sp == "Android":
+            ostype = "linux-android"
+        else:
+            ostype = "unknown-linux-gnu"
+    elif ostype == "SunOS":
+        ostype = "pc-solaris"
+        # On Solaris, uname -m will return a machine classification instead
+        # of a cpu type, so uname -p is recommended instead.  However, the
+        # output from that option is too generic for our purposes (it will
+        # always emit 'i386' on x86/amd64 systems).  As such, isainfo -k
+        # must be used instead.
+        need_cmd("isainfo")
+        cputype = cmd_output("isainfo -k")
+        # sparc cpus have sun as a target vendor
+        if "sparc" in cputype:
+            ostype = "sun-solaris"
+    elif ostype.startswith("MINGW"):
+        # msys' `uname` does not print gcc configuration, but prints msys
+        # configuration. so we cannot believe `uname -m`:
+        # msys1 is always i686 and msys2 is always x86_64.
+        # instead, msys defines $MSYSTEM which is MINGW32 on i686 and
+        # MINGW64 on x86_64.
+        ostype = "pc-windows-gnu"
+        cputype = "i686"
+        if os.environ.get("MSYSTEM") == "MINGW64":
+            cputype = "x86_64"
+    elif ostype.startswith("MSYS"):
+        ostype = "pc-windows-gnu"
+    elif ostype.startswith("CYGWIN_NT"):
+        cputype = "i686"
+        if ostype.endswith("WOW64"):
+            cputype = "x86_64"
+        ostype = "pc-windows-gnu"
+    elif sys.platform == "win32":
+        # Some Windows platforms might have a `uname` command that returns a
+        # non-standard string (e.g. gnuwin32 tools returns `windows32`). In
+        # these cases, fall back to using sys.platform.
+        return "x86_64-pc-windows-msvc"
+    else:
+        error(f"unknown OS type: {ostype}")
+
+    if cputype in ["powerpc", "riscv"] and ostype == "unknown-freebsd":
+        cputype = cmd_output("uname -p")
+    cputype_mapper = {
+        "BePC": "i686",
+        "aarch64": "aarch64",
+        "amd64": "x86_64",
+        "arm64": "aarch64",
+        "i386": "i686",
+        "i486": "i686",
+        "i686": "i686",
+        "i786": "i686",
+        "m68k": "m68k",
+        "powerpc": "powerpc",
+        "powerpc64": "powerpc64",
+        "powerpc64le": "powerpc64le",
+        "ppc": "powerpc",
+        "ppc64": "powerpc64",
+        "ppc64le": "powerpc64le",
+        "riscv64": "riscv64gc",
+        "s390x": "s390x",
+        "x64": "x86_64",
+        "x86": "i686",
+        "x86-64": "x86_64",
+        "x86_64": "x86_64",
+    }
+
+    # Consider the direct transformation first and then the special cases
+    if cputype in cputype_mapper:
+        cputype = cputype_mapper[cputype]
+    elif cputype in {"xscale", "arm"}:
+        cputype = "arm"
+        if ostype == "linux-android":
+            ostype = "linux-androideabi"
+        elif ostype == "unknown-freebsd":
+            cputype = cmd_output("uname -p")
+            ostype = "unknown-freebsd"
+    elif cputype == "armv6l":
+        cputype = "arm"
+        if ostype == "linux-android":
+            ostype = "linux-androideabi"
+        else:
+            ostype += "eabihf"
+    elif cputype in {"armv7l", "armv8l"}:
+        cputype = "armv7"
+        if ostype == "linux-android":
+            ostype = "linux-androideabi"
+        else:
+            ostype += "eabihf"
+    elif cputype == "mips":
+        if sys.byteorder == "big":
+            cputype = "mips"
+        elif sys.byteorder == "little":
+            cputype = "mipsel"
+        else:
+            error(f"unknown byteorder: {sys.byteorder}")
+    elif cputype == "mips64":
+        if sys.byteorder == "big":
+            cputype = "mips64"
+        elif sys.byteorder == "little":
+            cputype = "mips64el"
+        else:
+            error(f"unknown byteorder: {sys.byteorder}")
+        # only the n64 ABI is supported, indicate it
+        ostype += "abi64"
+    elif cputype == "sparc" or cputype == "sparcv9" or cputype == "sparc64":
+        pass
+    else:
+        error(f"unknown cpu type: {cputype}")
+
+    return f"{cputype}-{ostype}"
+
+
+host = get_host_triple()
+logger.info(f"Host platform: {host}")
+
+
+def get_install_prefix(platform: str) -> Path:
     """"Get default installation prefix for different platforms."""
 
-    if "linux" in host:
+    if "linux" in platform:
         prefix = "/opt/rslang"
-    elif "darwin" in host:
+    elif "darwin" in platform:
         prefix = "/usr/local/opt"
-    elif "windows" in host:
+    elif "windows" in platform:
         prefix = "C:\Program Files"
     else:
-        error(f"{host} default prefix is unknown.\n"
+        # TODO: enrich list of known locations for other platforms
+        error(f"{platform} default prefix is unknown.\n"
               "Please use --prefix option.")
     return Path(prefix)
 
 
 if no_rustup:
     if args.prefix is None:
-        prefix = get_default_install_prefix()
+        prefix = get_install_prefix(host)
     else:
         prefix = Path(args.prefix).resolve()
 else:
