@@ -1,8 +1,10 @@
 import sys
+
 if sys.version_info.major < 3 or sys.version_info.minor < 7:
     raise Exception("required Python3.7+")
 
 import argparse
+import json
 import logging
 import os
 import re
@@ -10,10 +12,12 @@ import shutil
 import subprocess as sp
 import tarfile
 import tempfile
+import urllib.request as request
+from http import HTTPStatus
+from http.client import HTTPResponse
 from pathlib import Path
 from typing import Literal, NoReturn, TypedDict
-
-import requests
+from urllib.error import HTTPError, URLError
 
 ENC = sys.getdefaultencoding()
 
@@ -229,6 +233,8 @@ def cmd_output_no_fail(cmd: str) -> str | None:
 # This is taken from bootstrap.py triple detection in Rust repo.
 def get_host_triple() -> str:
     """Try to get host triple in LLVM-compatible format."""
+
+    logger.debug("Detecting host triple")
     # If the user already has a host build triple with an existing `rustc`
     # install, use their preference. This fixes most issues with Windows builds
     # being detected as GNU instead of MSVC.
@@ -238,11 +244,12 @@ def get_host_triple() -> str:
         version = output.decode(ENC)
         host = next(x for x in version.split('\n') if x.startswith("host: "))
         triple = host.split("host: ")[1]
-        logger.debug(f"detected default triple '{triple}' from pre-installed rustc")
+        logger.debug(f"Detected host triple '{triple}' "
+                     "from pre-installed rustc")
         return triple
     except Exception as e:
-        logger.debug(f"pre-installed rustc not detected: {e}")
-        logger.debug("falling back to auto-detect")
+        logger.debug(f"Pre-installed rustc not found: {e}")
+        logger.debug("Falling back to auto-detect")
 
     if sys.platform == "win32":
         ostype = cmd_output_no_fail("uname -s")
@@ -414,14 +421,15 @@ else:
 
     logger.info(f"Rustup home: {rustup_home}")
 
-    toolchains = cmd_output("rustup toolchain list").strip().split("\n")
+    toolchains = cmd_output("rustup toolchain list").split("\n")
     pattern = re.compile(f"^{toolchain_name}( \(default\))?$")
     toolchain_exists = any([pattern.match(name) for name in toolchains])
 
     if toolchain_exists:
         if force_overwrite:
-            # FIXME: maybe we should silence the output of this command, which sends to stderr
-            cmd_output(f"rustup toolchain uninstall {toolchain_name}")
+            logger.info(f"Uninstalling toolchain {toolchain_name}")
+            cmd = ["rustup", "toolchain", "uninstall", toolchain_name]
+            sp.check_output(cmd, stderr=sp.DEVNULL)
         else:
             error(f"{toolchain_name} toolchain already exists. "
                   "If you want to override it, use -f/--force."
@@ -442,14 +450,17 @@ def fetch_release(version: str) -> Release:
         url = f"{GITHUB_API_URL}/releases/tags/{version}"
 
     logger.debug(f"Querying {url}")
-    response = requests.get(url, headers=GITHUB_API_HEADERS)
-    if response.status_code == requests.codes.not_found:
-        error(f"{version} release not found")
-    if response.status_code != requests.codes.ok:
-        error("Response is not 200 OK:\n"
-              f"    {response.status_code} {response.reason}")
+    req = request.Request(url, headers=GITHUB_API_HEADERS)
+    try:
+        response: HTTPResponse = request.urlopen(req)
+    except HTTPError as e:
+        if e.code == HTTPStatus.NOT_FOUND:
+            error(f"{version} release not found")
+        error(f"Failed to fetch {version} release - {e}")
+    except URLError as e:
+        error(f"Failed to reach release server: {e.reason}")
 
-    release: Release = response.json()
+    release: Release = json.load(response)
     if release["draft"] or release["prerelease"]:
         error(f"{version} release is not published."
               "If you want to get the newest possible version of rslang, "
@@ -500,18 +511,19 @@ def download_asset(asset: Asset, tmpdir: Path) -> Path:
     """Download given asset into tmpdir, returning path to local file."""
 
     logger.debug(f"Fetching {asset['browser_download_url']}")
-    with requests.get(asset["browser_download_url"], stream=True) as response:
-        if response.status_code == requests.codes.not_found:
-            error(f"{release} release not found")
-        if response.status_code != requests.codes.ok:
-            error("Response is not 200 OK:\n"
-                  f"    {response.status_code} {response.reason}")
+    try:
+        response: HTTPResponse = request.urlopen(asset["browser_download_url"])
+    except HTTPError as e:
+        if e.code == HTTPStatus.NOT_FOUND:
+            error(f"Asset not found: {asset['name']}")
+        error(f"Failed to fetch asset {asset['name']} - {e}")
+    except URLError as e:
+        error(f"Failed to reach asset server: {e.reason}")
 
-        local_file = tmpdir / asset["name"]
-        logger.debug(f"Writing to file {local_file}")
-        with open(local_file, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+    local_file = tmpdir / asset["name"]
+    logger.debug(f"Writing to file {local_file}")
+    with open(local_file, 'wb') as f:
+        shutil.copyfileobj(response, f)
     return local_file
 
 
