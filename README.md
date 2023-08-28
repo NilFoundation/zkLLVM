@@ -125,7 +125,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-t
 2. Install `rslang`
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/NilFoundation/zkllvm/master/rslang-init.sh | sh
+curl --proto '=https' --tlsv1.2 -sSf https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-init.sh | sh
 ```
 
 This downloads pre-built `rslang` and installes it as a toolchain in your `rustup`.
@@ -141,7 +141,7 @@ rustc +zkllvm -V
 You need to pass `PATH` to desired installation directory.
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/NilFoundation/zkllvm/master/rslang-init.sh | sh -s -- --no-rustup --prefix PATH
+curl --proto '=https' --tlsv1.2 -sSf https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-init.sh | sh -s -- --no-rustup --prefix PATH
 ```
 
 ## Usage
