@@ -187,9 +187,9 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 message(STATUS "Configuring rslang")
-execute_process(COMMAND ./configure ${RSLANG_BUILD_ARGS}
+execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/libs/rslang/configure ${RSLANG_BUILD_ARGS}
                 COMMAND_ERROR_IS_FATAL ANY
-                WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
 
 add_custom_target(cargo
                   COMMAND cargo build --release --target-dir ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target --package cargo
@@ -198,7 +198,7 @@ add_custom_target(cargo
                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
 
 add_custom_target(rslang
-                  COMMAND ./x build --stage ${RSLANG_BUILD_STAGE}
+                  COMMAND ./x build --config ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml --stage ${RSLANG_BUILD_STAGE}
                   DEPENDS llvm-libraries llvm-config llvm-link FileCheck cargo
                   COMMENT "Building rslang"
                   USES_TERMINAL
