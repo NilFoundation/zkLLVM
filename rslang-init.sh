@@ -20,7 +20,7 @@ get_python() {
 }
 
 # FIXME: change this URL after installed will be properly uploaded.
-INSTALLER_URL="${INSTALLER_URL:-https://raw.githubusercontent.com/NilFoundation/zkllvm/master/rslang-installer.py}"
+INSTALLER_URL="${INSTALLER_URL:-https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-installer.py}"
 
 get_rslang_installer() {
     local _dir
@@ -309,9 +309,6 @@ main() {
 
     ensure get_rslang_installer
     local _script="$RETVAL"
-
-    echo "Installing dependencies"
-    "$_python" -m pip install requests
 
     echo "Running installer"
     "$_python" "$_script" "$@"
