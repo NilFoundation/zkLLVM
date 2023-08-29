@@ -145,18 +145,11 @@ option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
 
 set(RSLANG_BUILD_STAGE "1" CACHE STRING "Stage to build (see --stage)")
 
-execute_process(COMMAND sh -c "(uname -r) 2> /dev/null"
-                RESULT_VARIABLE UNAME_RELEASE_RESULT
-                OUTPUT_VARIABLE UNAME_RELEASE
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-if( NOT UNAME_RELEASE_RESULT EQUAL 0 )
-    message(FATAL_ERROR "Failed to execute `(uname -r) 2> /dev/null`")
-endif( NOT UNAME_RELEASE_RESULT EQUAL 0 )
-
-message(STATUS "Uname release: ${UNAME_RELEASE}")
-
-string(REGEX REPLACE "${UNAME_RELEASE}$" "" RUSTC_HOST_TRIPLE "${LLVM_HOST_TRIPLE}")
+set(RUSTC_HOST_TRIPLE ${LLVM_HOST_TRIPLE})
+string(FIND "${RUSTC_HOST_TRIPLE}" "-apple-darwin" FIND_DARWIN)
+if(NOT FIND_DARWIN EQUAL -1)
+    string(REGEX MATCH "^.*-apple-darwin" RUSTC_HOST_TRIPLE ${RUSTC_HOST_TRIPLE})
+endif()
 message(STATUS "Rust host triple: ${RUSTC_HOST_TRIPLE}")
 
 list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
