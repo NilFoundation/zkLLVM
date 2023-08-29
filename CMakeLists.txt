@@ -187,6 +187,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 message(STATUS "Configuring rslang")
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
 execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/libs/rslang/configure ${RSLANG_BUILD_ARGS}
                 COMMAND_ERROR_IS_FATAL ANY
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
