@@ -28,7 +28,6 @@ macro(define_zkllvm_test test)
     get_filename_component(PARENT_PATH "${test}" DIRECTORY)
 
     set(inplisdir "${INPUTS_DIR}/${PARENT_PATH}")
-    message(inplisdir: "${inplisdir}")
     file(GLOB inplist "${inplisdir}/*")
     foreach(full_inp_file ${inplist})
         get_filename_component(curr_inp_name ${full_inp_file} NAME_WE)
@@ -36,7 +35,6 @@ macro(define_zkllvm_test test)
         run_expected_res_calculation(${full_test_name} ${PARENT_PATH} ${curr_inp_name})
         add_test_circuit_assign(${test_name}_${curr_inp_name} SOURCES ${test}.cpp INPUT ${PARENT_PATH}/${curr_inp_file})
     endforeach()
-    message(end inplist)
 
     target_include_directories(${full_test_name} PRIVATE
                                "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -108,9 +106,6 @@ function(add_test_circuit_assign example_target)
                         "${singleValues}"
                         "${multiValues}"
                         ${ARGN})
-    message("example_target: ${example_target}")
-    message("ARG_SOURCES: ${ARG_SOURCES}")
-    message("ARG_INPUT: ${ARG_INPUT}")
     add_circuit(${example_target}
                 SOURCES ${ARG_SOURCES}
 
