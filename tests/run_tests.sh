@@ -12,7 +12,7 @@ for i in ${!test_examples[*]}; do
   for file in tests/inputs/$parent_dir/*.inp; do
 
   echo -n "input $file: ";
-  ./build/bin/assigner/assigner  -b build/tests/cpp/${test_example////_}.ll -i "$file"  -t assignment.tbl -c circuit.crct -e pallas --check  > real.log
+  ./build/bin/assigner/assigner  -b build/tests/cpp/${test_example////_}.ll -i "$file"  -t assignment.tbl -c circuit.crct -e pallas --check --print_circuit_output  > real.log
   if [ $? -ne 0 ]; then
     exit_code=1
     echo -e "\033[31m Assigner failed! \033[0m";

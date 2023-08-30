@@ -83,7 +83,7 @@ void print_circuit(const ConstraintSystemType &circuit, std::ostream &out = std:
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
-template<typename CurveType>
+template<typename CurveType, bool PrintCircuitOutput>
 int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
                           std::string assignment_table_file_name,
@@ -130,7 +130,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance(verbose);
+    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams, PrintCircuitOutput> parser_instance(verbose);
 
     const char *llvm_arguments[2] = {"", "-opaque-pointers=0"};
     llvm::cl::ParseCommandLineOptions(2, llvm_arguments);
@@ -187,7 +187,8 @@ int main(int argc, char *argv[]) {
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)")
             ("check", "Check satisfiability of the generated circuit")
-            ("verbose", "Print detailed log");
+            ("verbose", "Print detailed log")
+            ("print_circuit_output", "print output of the circuit");
     // clang-format on
 
     boost::program_options::variables_map vm;
@@ -261,12 +262,24 @@ int main(int argc, char *argv[]) {
 
     switch (curve_options[elliptic_curve]) {
         case 0: {
-            return curve_dependent_main<typename algebra::curves::pallas>(bytecode_file_name,
+            if (vm.count("print_circuit_output")) {
+                return curve_dependent_main<typename algebra::curves::pallas, true>(
+                                                                          bytecode_file_name,
                                                                           public_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
                                                                           vm.count("check"),
                                                                           vm.count("verbose"));
+            }
+            else {
+                return curve_dependent_main<typename algebra::curves::pallas, false>(
+                                                                          bytecode_file_name,
+                                                                          public_input_file_name,
+                                                                          assignment_table_file_name,
+                                                                          circuit_file_name,
+                                                                          vm.count("check"),
+                                                                          vm.count("verbose"));
+            }
             break;
         }
         case 1: {
