@@ -93,7 +93,14 @@ class Release(TypedDict):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser("rslang-installer")
+    description="""This is an installer for rslang - zkLLVM fork of Rust.
+    This script finds a pre-built release of rslang for your platform and installs it.
+    """
+    epilog="To get more information about zkLLVM visit https://github.com/NilFoundation/zkllvm."
+
+    parser = argparse.ArgumentParser("rslang-installer",
+                                     description=description,
+                                     epilog=epilog)
     parser.add_argument("release",
                         nargs='?',
                         default="latest",
