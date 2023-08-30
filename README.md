@@ -96,7 +96,9 @@ And then use Rust default build system `x.py`.
 
 ### Rust toolchain
 
-You can install `rslang` as another toolchain in `rustup` or as a standalone application.
+You can install `rslang` as another toolchain in [`rustup`](https://rustup.rs/) or as a standalone application.
+Installation is done via `rslang-installer.py` script. It finds and downloads required release of `rslang`
+and installs it in the desired location.
 
 #### **Supported platforms**
 
@@ -108,27 +110,22 @@ You can install `rslang` as another toolchain in `rustup` or as a standalone app
 
 #### **Installation with `rustup`**
 
-1. Install `rustup` (if needed)
+1. Install `rustup` as described on [official page](https://rustup.rs/).
 
-[Official](https://www.rust-lang.org/tools/install) Rust installation:
+2. Install `rslang`:
 
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-If you don't want to install default Rust toolchain (which you actually don't need to use `rslang`), you can pass additional arguments during installation as follows:
+Run this in you shell:
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+curl --proto '=https' --tlsv1.2 -sSf https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-installer.py | python
 ```
 
-2. Install `rslang`
+You can also download the `rslang-installer.py` first and then run it:
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-init.sh | sh
+curl --proto '=https' --tlsv1.2 -O https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-installer.py
+python rslang-installer.py
 ```
-
-This downloads pre-built `rslang` and installes it as a toolchain in your `rustup`.
 
 Now you can use toolchain called `zkllvm` to compile with `rslang`:
 
@@ -138,10 +135,12 @@ rustc +zkllvm -V
 
 #### **Stanalone installation**
 
-You need to pass `PATH` to desired installation directory.
+To install `rslang` without `rustup` use `--no-rustup` argument.
+You will need to pass `PATH` to desired installation directory.
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-init.sh | sh -s -- --no-rustup --prefix PATH
+curl --proto '=https' --tlsv1.2 -O https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-installer.py
+python rslang-installer.py --no-rustup --prefix PATH
 ```
 
 ## Usage
