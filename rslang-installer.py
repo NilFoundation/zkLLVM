@@ -232,7 +232,7 @@ def cmd_output_no_fail(cmd: str) -> str | None:
     try:
         logger.debug(f"Running '{cmd}'")
         output = sp.check_output(cmd.split()).strip()
-    except sp.CalledProcessError as e:
+    except (sp.CalledProcessError, OSError) as e:
         return None
     return output.decode(ENC)
 
