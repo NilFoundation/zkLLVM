@@ -201,7 +201,7 @@ add_custom_target(rslang
                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
 
 add_custom_target(rslang_dist
-                  COMMAND ./x dist
+                  COMMAND ./x dist --config ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml
                   DEPENDS rslang
                   COMMENT "Building rslang distribution package"
                   USES_TERMINAL
