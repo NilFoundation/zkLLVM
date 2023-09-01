@@ -106,15 +106,6 @@ jobs:
         run: |
           make -C build assigner clang transpiler -j$(nproc)
 
-      - name: Build IR of the C++ examples
-        run: |
-          make -C build circuit_cpp_examples -j$(nproc)
-          ls -al ./build/examples/cpp
-
-      - name: Build circuit and assigner of the C++ examples
-        run: |
-          make -C build assign_cpp_examples -j$(nproc)
-
       - name: Build tests
         run: |
           chmod +x ./tests/build_tests.sh
@@ -124,6 +115,15 @@ jobs:
         run: |
           chmod +x ./tests/run_tests.sh
           bash ./tests/run_tests.sh make -j$(nproc)
+
+      - name: Build IR of the C++ examples
+        run: |
+          make -C build circuit_cpp_examples -j$(nproc)
+          ls -al ./build/examples/cpp
+
+      - name: Build circuit and assigner of the C++ examples
+        run: |
+          make -C build assign_cpp_examples -j$(nproc)
 
       - name: Build proof for the circuit of the C++ examples
         run: |
