@@ -70,14 +70,12 @@ template<typename ProfilingType, typename ConstraintSystemType, typename Columns
          typename ArithmetizationParams>
 void print_sol_files(ConstraintSystemType &constraint_system, ColumnsRotationsType &columns_rotations,
                      std::string out_folder_path = ".", bool optimize_gates = false) {
-    ProfilingType::process_split(
-        nil::blueprint::main_sol_file_template,
-        nil::blueprint::gate_sol_file_template,
-        constraint_system, 
-        columns_rotations, 
-        out_folder_path,
-        optimize_gates
-    );
+    ProfilingType::process_split(nil::blueprint::main_sol_file_template,
+                                 nil::blueprint::gate_sol_file_template,
+                                 constraint_system,
+                                 columns_rotations,
+                                 out_folder_path,
+                                 optimize_gates);
 }
 
 inline std::vector<std::size_t> generate_random_step_list(const std::size_t r, const int max_step) {
@@ -186,7 +184,7 @@ int main(int argc, char *argv[]) {
     std::string circuit_file_name;
     std::string output_folder_path;
     std::string public_input;
-    
+
     if (vm.count("mode")) {
         mode = vm["mode"].as<std::string>();
     } else {
@@ -220,9 +218,8 @@ int main(int argc, char *argv[]) {
     if (vm.count("output-folder-path")) {
         output_folder_path = vm["output-folder-path"].as<std::string>();
         boost::filesystem::path dir(output_folder_path);
-        if(boost::filesystem::create_directory(output_folder_path))
-        {
-            std::cerr<< "Directory Created: "<<output_folder_path<<std::endl;
+        if (boost::filesystem::create_directory(output_folder_path)) {
+            std::cerr << "Directory Created: " << output_folder_path << std::endl;
         }
     } else {
         std::cerr << "Invalid command line argument - output folder path is not specified" << std::endl;
@@ -264,13 +261,14 @@ int main(int argc, char *argv[]) {
     using ColumnsRotationsType = std::array<std::set<int>, ArithmetizationParams::total_columns>;
     using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
 
-    if( vm.count("public-input") ){
+    if (vm.count("public-input")) {
         public_input = vm["public-input"].as<std::string>();
-        if( !boost::filesystem::exists(public_input) ){
+        if (!boost::filesystem::exists(public_input)) {
             std::cerr << "Invalid command line argument - public input file does not exist" << std::endl;
             return 1;
         }
-        boost::filesystem::copy(public_input, output_folder_path+"/public_input.json", boost::filesystem::copy_options::overwrite_existing);
+        boost::filesystem::copy(public_input, output_folder_path + "/public_input.json",
+                                boost::filesystem::copy_options::overwrite_existing);
     }
 
     value_marshalling_type marshalled_data;
@@ -314,15 +312,16 @@ int main(int argc, char *argv[]) {
 
     if (mode == "gen-gate-argument") {
         bool optimize_gates = false;
-        if( vm.count("optimize-gates") )
+        if (vm.count("optimize-gates"))
             optimize_gates = true;
         print_sol_files<ProfilingType, ConstraintSystemType, ColumnsRotationsType, ArithmetizationParams>(
             constraint_system, columns_rotations, output_folder_path, optimize_gates);
     }
 
     if ((mode == "gen-circuit-params") || (mode == "gen-test-proof")) {
-        nil::crypto3::zk::snark::print_placeholder_params<FRIScheme, TableDescriptionType, ColumnsRotationsType, ArithmetizationParams>(
-            fri_params, table_description, columns_rotations, output_folder_path+"/circuit_params.json");
+        nil::crypto3::zk::snark::print_placeholder_params<FRIScheme, TableDescriptionType, ColumnsRotationsType,
+                                                          ArithmetizationParams>(
+            fri_params, table_description, columns_rotations, output_folder_path + "/circuit_params.json");
     }
 
     if (mode == "gen-test-proof") {
@@ -335,8 +334,7 @@ int main(int argc, char *argv[]) {
         typename nil::crypto3::zk::snark::placeholder_private_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type private_preprocessed_data =
             nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
-                constraint_system, assignment_table.private_table(), table_description, fri_params
-            );
+                constraint_system, assignment_table.private_table(), table_description, fri_params);
 
         std::cout << "Generating proof..." << std::endl;
         using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
@@ -345,14 +343,13 @@ int main(int argc, char *argv[]) {
             fri_params);
         std::cout << "Proof generated" << std::endl;
 
-        if( !vm.count("skip-verification") ) {
+        if (!vm.count("skip-verification")) {
             std::cout << "Verifying proof..." << std::endl;
             bool verification_result =
                 nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
                     public_preprocessed_data, proof, constraint_system, fri_params);
-            
 
-            ASSERT_MSG(verification_result, "Proof is not verified" );
+            BOOST_ASSERT_MSG(verification_result, "Proof is not verified");
             std::cout << "Proof is verified" << std::endl;
         } else {
             std::cout << "Proof verification skipped" << std::endl;

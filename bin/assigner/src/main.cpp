@@ -80,16 +80,18 @@ void print_circuit(const ConstraintSystemType &circuit, std::ostream &out = std:
     cv.resize(filled_val.length(), 0x00);
     auto write_iter = cv.begin();
     nil::marshalling::status_type status = filled_val.write(write_iter, cv.size());
-    print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
+    if (status == nil::marshalling::status_type::success) {
+        print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
+    }
 }
 
-template<typename CurveType>
-int curve_dependent_main(std::string bytecode_file_name,
-                          std::string public_input_file_name,
-                          std::string assignment_table_file_name,
-                          std::string circuit_file_name,
-                          bool check_validity,
-                          bool verbose) {
+template<typename CurveType, bool PrintCircuitOutput>
+int curve_dependent_main(const std::string &bytecode_file_name,
+                         const std::string &public_input_file_name,
+                         const std::string &assignment_table_file_name,
+                         const std::string &circuit_file_name,
+                         bool check_validity,
+                         bool verbose) {
     using BlueprintFieldType = typename CurveType::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 5;
@@ -130,7 +132,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance(verbose);
+    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams, PrintCircuitOutput> parser_instance(verbose);
 
     const char *llvm_arguments[2] = {"", "-opaque-pointers=0"};
     llvm::cl::ParseCommandLineOptions(2, llvm_arguments);
@@ -151,7 +153,7 @@ int curve_dependent_main(std::string bytecode_file_name,
     std::ofstream otable;
     otable.open(assignment_table_file_name);
     if (!otable) {
-        std::cout << "Something wrong with output " << assignment_table_file_name << std::endl;
+        std::cout << "Something is wrong with the output " << assignment_table_file_name << std::endl;
         return 1;
     }
     nil::blueprint::profiling_assignment_table(parser_instance.assignmnt, desc.usable_rows_amount, otable);
@@ -160,15 +162,15 @@ int curve_dependent_main(std::string bytecode_file_name,
     std::ofstream ocircuit;
     ocircuit.open(circuit_file_name);
     if (!ocircuit) {
-        std::cout << "Something wrong with output " << circuit_file_name << std::endl;
+        std::cout << "Something is wrong with the output " << circuit_file_name << std::endl;
         return 1;
     }
     print_circuit<nil::marshalling::option::big_endian, ConstraintSystemType>(parser_instance.bp, ocircuit);
     ocircuit.close();
 
-    if (check_validity){
-        bool is_satisfied = nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignmnt);
-        ASSERT_MSG(is_satisfied, "The circuit is not satisfied" );
+    if (check_validity) {
+        BOOST_ASSERT_MSG(nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignmnt),
+                         "The circuit is not satisfied");
     }
 
     return 0;
@@ -246,7 +248,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::map<std::string, int> curve_options{
+    std::map<std::string, int> curve_options {
         {"pallas", 0},
         {"vesta", 1},
         {"ed25519", 2},
@@ -261,27 +263,35 @@ int main(int argc, char *argv[]) {
 
     switch (curve_options[elliptic_curve]) {
         case 0: {
-            return curve_dependent_main<typename algebra::curves::pallas>(bytecode_file_name,
-                                                                          public_input_file_name,
-                                                                          assignment_table_file_name,
-                                                                          circuit_file_name,
-                                                                          vm.count("check"),
-                                                                          vm.count("verbose"));
-            break;
+            if (vm.count("print_circuit_output")) {
+                return curve_dependent_main<typename algebra::curves::pallas, true>(bytecode_file_name,
+                                                                                    public_input_file_name,
+                                                                                    assignment_table_file_name,
+                                                                                    circuit_file_name,
+                                                                                    vm.count("check"),
+                                                                                    vm.count("verbose"));
+            } else {
+                return curve_dependent_main<typename algebra::curves::pallas, false>(bytecode_file_name,
+                                                                                     public_input_file_name,
+                                                                                     assignment_table_file_name,
+                                                                                     circuit_file_name,
+                                                                                     vm.count("check"),
+                                                                                     vm.count("verbose"));
+            }
         }
         case 1: {
             std::cerr << "command line argument -e vesta is not supported yet" << std::endl;
-            assert(1==0 && "vesta curve based circuits are not supported yet");
+            assert(1 == 0 && "vesta curve based circuits are not supported yet");
             break;
         }
         case 2: {
             std::cerr << "command line argument -e ed25519 is not supported yet" << std::endl;
-            assert(1==0 && "ed25519 curve based circuits are not supported yet");
+            assert(1 == 0 && "ed25519 curve based circuits are not supported yet");
             break;
         }
         case 3: {
             std::cerr << "command line argument -e bls12-381 is not supported yet" << std::endl;
-            assert(1==0 && "bls12-381 curve based circuits are not supported yet");
+            assert(1 == 0 && "bls12-381 curve based circuits are not supported yet");
             break;
         }
     };
