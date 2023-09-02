@@ -189,7 +189,8 @@ int main(int argc, char *argv[]) {
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)")
             ("check", "Check satisfiability of the generated circuit")
-            ("verbose", "Print detailed log");
+            ("verbose", "Print detailed log")
+            ("print_circuit_output", "print output of the circuit");
     // clang-format on
 
     boost::program_options::variables_map vm;

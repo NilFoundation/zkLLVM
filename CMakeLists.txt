@@ -83,6 +83,9 @@ set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
 add_subdirectory(examples)
+if(BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
 
 install(TARGETS assigner RUNTIME DESTINATION bin)
 install(TARGETS transpiler RUNTIME DESTINATION bin)
@@ -142,23 +145,14 @@ option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
 
 set(RSLANG_BUILD_STAGE "1" CACHE STRING "Stage to build (see --stage)")
 
-execute_process(COMMAND sh -c "(uname -r) 2> /dev/null"
-                RESULT_VARIABLE UNAME_RELEASE_RESULT
-                OUTPUT_VARIABLE UNAME_RELEASE
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-if( NOT UNAME_RELEASE_RESULT EQUAL 0 )
-    message(FATAL_ERROR "Failed to execute `(uname -r) 2> /dev/null`")
-endif( NOT UNAME_RELEASE_RESULT EQUAL 0 )
-
-message(STATUS "Uname release: ${UNAME_RELEASE}")
-
-string(REGEX REPLACE "${UNAME_RELEASE}$" "" RUSTC_HOST_TRIPLE "${LLVM_HOST_TRIPLE}")
+set(RUSTC_HOST_TRIPLE ${LLVM_HOST_TRIPLE})
+string(FIND "${RUSTC_HOST_TRIPLE}" "-apple-darwin" FIND_DARWIN)
+if(NOT FIND_DARWIN EQUAL -1)
+    string(REGEX MATCH "^.*-apple-darwin" RUSTC_HOST_TRIPLE ${RUSTC_HOST_TRIPLE})
+endif()
 message(STATUS "Rust host triple: ${RUSTC_HOST_TRIPLE}")
 
 list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
-list(APPEND RSLANG_BUILD_ARGS --release-channel=stable)
-list(APPEND RSLANG_BUILD_ARGS "--release-description=zkLLVM ${ZKLLVM_VERSION_MAJOR}.${ZKLLVM_VERSION_MINOR}.${ZKLLVM_VERSION_PATCH}")
 list(APPEND RSLANG_BUILD_ARGS --target=${RUSTC_HOST_TRIPLE},assigner-unknown-unknown)
 list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-config=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config)
 list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-filecheck=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/FileCheck)
@@ -172,6 +166,7 @@ if(${BUILD_SHARED_LIBS})
 endif()
 list(APPEND RSLANG_BUILD_ARGS --set build.build-dir=${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/build)
 list(APPEND RSLANG_BUILD_ARGS --set build.cargo=${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target/release/cargo)
+list(APPEND RSLANG_BUILD_ARGS --disable-docs)
 if(${RSLANG_BUILD_EXTENDED})
     list(APPEND RSLANG_BUILD_ARGS --enable-extended)
     if(RSLANG_BUILD_TOOLS)
@@ -184,11 +179,13 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     list(APPEND RSLANG_BUILD_ARGS --enable-debug-assertions-std)
     list(APPEND RSLANG_BUILD_ARGS --debuginfo-level=1)
 endif()
+list(APPEND RSLANG_BUILD_ARGS --dist-compression-formats=gz)
 
 message(STATUS "Configuring rslang")
-execute_process(COMMAND ./configure ${RSLANG_BUILD_ARGS}
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
+execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/libs/rslang/configure ${RSLANG_BUILD_ARGS}
                 COMMAND_ERROR_IS_FATAL ANY
-                WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
 
 add_custom_target(cargo
                   COMMAND cargo build --release --target-dir ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target --package cargo
@@ -197,8 +194,15 @@ add_custom_target(cargo
                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
 
 add_custom_target(rslang
-                  COMMAND ./x build --stage ${RSLANG_BUILD_STAGE}
+                  COMMAND ./x build --config ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml --stage ${RSLANG_BUILD_STAGE}
                   DEPENDS llvm-libraries llvm-config llvm-link FileCheck cargo
                   COMMENT "Building rslang"
+                  USES_TERMINAL
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+
+add_custom_target(rslang_dist
+                  COMMAND ./x dist
+                  DEPENDS rslang
+                  COMMENT "Building rslang distribution package"
                   USES_TERMINAL
                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)

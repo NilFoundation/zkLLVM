@@ -42,13 +42,17 @@ jobs:
             boost@1.76 \
             cmake \
             icu4c \
-            spdlog
+            spdlog \
+            bash
 
       - name: Print toolchain information
         run: |
           git --version
           cc --version
           cmake --version
+          bash --version
+          which -a bash
+          echo PATH: $PATH
 
       - name: Checkout sources
         uses: actions/checkout@v3
@@ -71,7 +75,8 @@ jobs:
             -B build \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
+            -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE \
+            -DBUILD_TESTS=TRUE .
 
       - name: Build zkllvm
         run: |
@@ -85,6 +90,16 @@ jobs:
       - name: Build circuit and assigner of the C++ examples
         run: |
           make -C build assign_cpp_examples -j$(sysctl -n hw.logicalcpu)
+
+      - name: Build tests
+        run: |
+          chmod +x ./tests/build_tests.sh
+          bash ./tests/build_tests.sh make -j$(sysctl -n hw.logicalcpu)
+
+      - name: Run tests
+        run: |
+          chmod +x ./tests/run_tests.sh
+          bash ./tests/run_tests.sh make -j$(sysctl -n hw.logicalcpu)
 
       - name: Build proof for the circuit of the C++ examples
         run: |
