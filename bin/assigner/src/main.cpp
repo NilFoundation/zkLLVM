@@ -118,18 +118,18 @@ int curve_dependent_main(const std::string &bytecode_file_name,
         p.write(input_string, ec);
         if (ec) {
             std::cerr << "JSON parsing of public input failed" << std::endl;
-            return 1;
+            return EXIT_FAILURE;
         }
     }
     p.finish(ec);
     if (ec) {
         std::cerr << "JSON parsing of public input failed" << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     boost::json::value input_json_value = p.release();
     if (!input_json_value.is_array()) {
         std::cerr << "Array of arguments is expected in JSON file" << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams, PrintCircuitOutput> parser_instance(verbose);
@@ -139,11 +139,11 @@ int curve_dependent_main(const std::string &bytecode_file_name,
 
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
     if (module == nullptr) {
-        return 1;
+        return EXIT_FAILURE;
     }
 
     if (!parser_instance.evaluate(*module, input_json_value.as_array())) {
-        return 1;
+        return EXIT_FAILURE;
     }
 
     zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams> desc;
@@ -154,7 +154,7 @@ int curve_dependent_main(const std::string &bytecode_file_name,
     otable.open(assignment_table_file_name);
     if (!otable) {
         std::cout << "Something is wrong with the output " << assignment_table_file_name << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     nil::blueprint::profiling_assignment_table(parser_instance.assignmnt, desc.usable_rows_amount, otable);
     otable.close();
@@ -163,7 +163,7 @@ int curve_dependent_main(const std::string &bytecode_file_name,
     ocircuit.open(circuit_file_name);
     if (!ocircuit) {
         std::cout << "Something is wrong with the output " << circuit_file_name << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     print_circuit<nil::marshalling::option::big_endian, ConstraintSystemType>(parser_instance.bp, ocircuit);
     ocircuit.close();
@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
     } else {
         std::cerr << "Invalid command line argument - bytecode file name is not specified" << std::endl;
         std::cout << options_desc << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     if (vm.count("public-input")) {
@@ -221,7 +221,7 @@ int main(int argc, char *argv[]) {
     } else {
         std::cerr << "Invalid command line argument - public input file name is not specified" << std::endl;
         std::cout << options_desc << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     if (vm.count("assignment-table")) {
@@ -229,7 +229,7 @@ int main(int argc, char *argv[]) {
     } else {
         std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
         std::cout << options_desc << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     if (vm.count("circuit")) {
@@ -237,7 +237,7 @@ int main(int argc, char *argv[]) {
     } else {
         std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
         std::cout << options_desc << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     if (vm.count("elliptic-curve-type")) {
@@ -245,7 +245,7 @@ int main(int argc, char *argv[]) {
     } else {
         std::cerr << "Invalid command line argument - elliptic curve type is not specified" << std::endl;
         std::cout << options_desc << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     std::map<std::string, int> curve_options {
@@ -258,7 +258,7 @@ int main(int argc, char *argv[]) {
     if (curve_options.find(elliptic_curve) == curve_options.end()) {
         std::cerr << "Invalid command line argument -e (Native elliptic curve type): " << elliptic_curve << std::endl;
         std::cout << options_desc << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
     switch (curve_options[elliptic_curve]) {
@@ -281,17 +281,17 @@ int main(int argc, char *argv[]) {
         }
         case 1: {
             std::cerr << "command line argument -e vesta is not supported yet" << std::endl;
-            assert(1 == 0 && "vesta curve based circuits are not supported yet");
+            BOOST_ASSERT_MSG(false, "vesta curve based circuits are not supported yet");
             break;
         }
         case 2: {
             std::cerr << "command line argument -e ed25519 is not supported yet" << std::endl;
-            assert(1 == 0 && "ed25519 curve based circuits are not supported yet");
+            BOOST_ASSERT_MSG(false, "ed25519 curve based circuits are not supported yet");
             break;
         }
         case 3: {
             std::cerr << "command line argument -e bls12-381 is not supported yet" << std::endl;
-            assert(1 == 0 && "bls12-381 curve based circuits are not supported yet");
+            BOOST_ASSERT_MSG(false, "bls12-381 curve based circuits are not supported yet");
             break;
         }
     };
