@@ -169,7 +169,7 @@ int curve_dependent_main(const std::string &bytecode_file_name,
     ocircuit.close();
 
     if (check_validity) {
-        BOOST_ASSERT_MSG(nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignmnt),
+        BOOST_VERIFY_MSG(nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignmnt),
                          "The circuit is not satisfied");
     }
 
@@ -282,17 +282,17 @@ int main(int argc, char *argv[]) {
         }
         case 1: {
             std::cerr << "command line argument -e vesta is not supported yet" << std::endl;
-            BOOST_ASSERT_MSG(false, "vesta curve based circuits are not supported yet");
+            BOOST_VERIFY_MSG(false, "vesta curve based circuits are not supported yet");
             break;
         }
         case 2: {
             std::cerr << "command line argument -e ed25519 is not supported yet" << std::endl;
-            BOOST_ASSERT_MSG(false, "ed25519 curve based circuits are not supported yet");
+            BOOST_VERIFY_MSG(false, "ed25519 curve based circuits are not supported yet");
             break;
         }
         case 3: {
             std::cerr << "command line argument -e bls12-381 is not supported yet" << std::endl;
-            BOOST_ASSERT_MSG(false, "bls12-381 curve based circuits are not supported yet");
+            BOOST_VERIFY_MSG(false, "bls12-381 curve based circuits are not supported yet");
             break;
         }
     };
