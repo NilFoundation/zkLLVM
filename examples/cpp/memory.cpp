@@ -2,7 +2,7 @@
 
 int global = 5;
 
-struct chain {
+struct __attribute__((packed)) chain {
     int val;
     chain *next;
 };

@@ -87,6 +87,8 @@ if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
+add_subdirectory(libs/stdlib)
+
 install(TARGETS assigner RUNTIME DESTINATION bin)
 install(TARGETS transpiler RUNTIME DESTINATION bin)
 install(FILES cmake/CircuitCompile.cmake DESTINATION share/zkllvm)
@@ -138,7 +140,8 @@ include(CPack)
 
 # Package for stdlib
 add_custom_target(stdlib_package
-                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR})
+                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR}
+                  DEPENDS zkllvm-libc)
 
 option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
 option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
