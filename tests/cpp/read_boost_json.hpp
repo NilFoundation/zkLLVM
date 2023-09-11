@@ -59,15 +59,15 @@ boost::json::value read_boost_json (std::string input_file_name) {
     return input_json_value;
 }
 
-template<typename BlueprintFieldType>
-typename BlueprintFieldType::value_type parse_native_scalar(const boost::json::value &json_value) {
+template<typename OperatingFieldType>
+typename OperatingFieldType::value_type parse_scalar(const boost::json::value &json_value) {
 
     const std::size_t buflen = 256;
     char buf[buflen];
     std::size_t numlen = 0;
 
-    typename BlueprintFieldType::extended_integral_type integral_res;
-    typename BlueprintFieldType::value_type res;
+    typename OperatingFieldType::extended_integral_type integral_res;
+    typename OperatingFieldType::value_type res;
 
     switch (json_value.kind()) {
     case boost::json::kind::int64:
@@ -84,9 +84,9 @@ typename BlueprintFieldType::value_type parse_native_scalar(const boost::json::v
         }
         json_value.as_string().copy(buf, numlen);
         buf[numlen] = '\0';
-        integral_res = typename BlueprintFieldType::extended_integral_type(buf);
-        if (integral_res >= BlueprintFieldType::modulus) {
-            assert(false && "Input does not fit into BlueprintFieldType");
+        integral_res = typename OperatingFieldType::extended_integral_type(buf);
+        if (integral_res >= OperatingFieldType::modulus) {
+            assert(false && "Input does not fit into OperatingFieldType");
         }
         res = integral_res;
         return res;
@@ -113,7 +113,7 @@ std::vector<typename BlueprintFieldType::value_type> read_fields(std::string inp
             assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
         }
 
-        res.push_back(parse_native_scalar<BlueprintFieldType>(current_value.at("field")));
+        res.push_back(parse_scalar<BlueprintFieldType>(current_value.at("field")));
     }
     return res;
 }
@@ -154,17 +154,16 @@ std::vector<uint32_t> read_uint32_t(std::string input_file_name) {
     return res;
 }
 
-template<typename BlueprintFieldType>
-std::vector<typename BlueprintFieldType::value_type> read_curves(std::string input_file_name) {
+template<typename CurveType>
+std::vector<typename CurveType::template g1_type<>::value_type> read_curves(std::string input_file_name) {
 
     boost::json::value input_json_value = read_boost_json (input_file_name);
 
-    std::vector<typename BlueprintFieldType::value_type> res;
+    std::vector<typename CurveType::template g1_type<>::value_type> res;
 
     for (std::size_t i = 0; i < input_json_value.as_array().size(); i++) {
         const boost::json::object &current_value = input_json_value.as_array()[i].as_object();
-        if (current_value.size() != 2)
-            assert(false && "Curve length must be 2");
+        // std::cerr << "current_value: " << current_value << "\n";
         if(!current_value.contains("curve"))
             assert(false && "json value must contain \"curve\"");
         if (!current_value.at("curve").is_array()) {
@@ -175,13 +174,15 @@ std::vector<typename BlueprintFieldType::value_type> read_curves(std::string inp
                 assert(false && "curve element must be array of length 2");
             }
             else {
-                for (std::size_t i = 0; i < 2; i++) {
-                    if (current_value.at("curve").as_array()[i].is_double()) {
-                        assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
-                    }
-                    else {
-                        res.push_back(parse_native_scalar<BlueprintFieldType>(current_value.at("curve").as_array()[i]));
-                    }
+                if (current_value.at("curve").as_array()[0].is_double() ||
+                    current_value.at("curve").as_array()[1].is_double()) {
+                    assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
+                }
+                else {
+                    typename CurveType::template g1_type<>::value_type point;
+                    point.X = parse_scalar<typename CurveType::base_field_type>(current_value.at("curve").as_array()[0]);
+                    point.Y = parse_scalar<typename CurveType::base_field_type>(current_value.at("curve").as_array()[1]);
+                    res.push_back(point);
                 }
             }
         }
