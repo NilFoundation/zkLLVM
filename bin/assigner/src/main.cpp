@@ -201,6 +201,17 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    if (vm.count("version")) {
+#ifdef ASSIGNER_VERSION
+#define xstr(s) str(s)
+#define str(s) #s
+        std::cout << xstr(ASSIGNER_VERSION) << std::endl;
+#else
+        std::cout << "undefined" << std::endl;
+#endif
+        return 0;
+    }
+
     std::string bytecode_file_name;
     std::string public_input_file_name;
     std::string assignment_table_file_name;
