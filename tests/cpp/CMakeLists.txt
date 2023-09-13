@@ -166,6 +166,7 @@ set(TESTS_NAMES
     "algebra/fields/25519_arithmetics/add"
     # "algebra/fields/25519_arithmetics/mul"  # fails on neg1_neg1 due to bug in blueprint, temporarily disabled
     "algebra/fields/25519_arithmetics/sub"
+    "algebra/curves/pallas_arithmetics/add"
     )
 
 file(REMOVE ../tests_list.txt)
