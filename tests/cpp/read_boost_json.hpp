@@ -154,12 +154,12 @@ std::vector<uint32_t> read_uint32_t(std::string input_file_name) {
     return res;
 }
 
-template<typename CurveType>
-std::vector<typename CurveType::template g1_type<>::value_type> read_curves(std::string input_file_name) {
+template<typename PointType, typename FieldType>
+std::vector<PointType> read_curves(std::string input_file_name) {
 
     boost::json::value input_json_value = read_boost_json (input_file_name);
 
-    std::vector<typename CurveType::template g1_type<>::value_type> res;
+    std::vector<PointType> res;
 
     for (std::size_t i = 0; i < input_json_value.as_array().size(); i++) {
         const boost::json::object &current_value = input_json_value.as_array()[i].as_object();
@@ -179,9 +179,9 @@ std::vector<typename CurveType::template g1_type<>::value_type> read_curves(std:
                     assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
                 }
                 else {
-                    typename CurveType::template g1_type<>::value_type point;
-                    point.X = parse_scalar<typename CurveType::base_field_type>(current_value.at("curve").as_array()[0]);
-                    point.Y = parse_scalar<typename CurveType::base_field_type>(current_value.at("curve").as_array()[1]);
+                    PointType point;
+                    point.X = parse_scalar<FieldType>(current_value.at("curve").as_array()[0]);
+                    point.Y = parse_scalar<FieldType>(current_value.at("curve").as_array()[1]);
                     res.push_back(point);
                 }
             }
