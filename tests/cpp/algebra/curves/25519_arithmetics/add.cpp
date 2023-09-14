@@ -35,19 +35,13 @@ int main (int argc, char *argv[]){
     using curve_point_type = typename curve_type::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type;
     using field_type = typename curve_type::base_field_type;
 
-    std::string input_file_name(argv[1]);
+    boost::json::value input_json = read_boost_json(std::string(argv[1]));
 
-    constexpr static const std::size_t input_size = 2;
+    curve_point_type a = read_curve<curve_point_type, field_type>(input_json, 0);
+    curve_point_type b = read_curve<curve_point_type, field_type>(input_json, 1);
 
-    std::vector<curve_point_type> input_vec = read_curves<curve_point_type, field_type>(input_file_name);
-    if (input_vec.size() != input_size){
-        std::cerr << "input file contains " << input_vec.size() << " field elements" << "\n";
-        std::cerr << "addition circuit accepts " << input_size << " field elements" << "\n";
-        assert(false && "input file does not match circuit signature");
-    } else{
-        curve_addition(input_vec[0], input_vec[1]);
-        return 0;
-    }
+    curve_addition(a, b);
+    return 0;
 }
 
 #endif
