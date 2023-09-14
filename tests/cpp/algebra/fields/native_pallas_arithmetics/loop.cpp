@@ -34,20 +34,13 @@ int main (int argc, char *argv[]){
         std::abort();
     }
 
-    std::string input_file_name(argv[1]);
-
-    constexpr static const std::size_t input_size = 2;
+    boost::json::value input_json = read_boost_json(std::string(argv[1]));
 
     using BlueprintFieldType = typename pallas::base_field_type;
+    typename BlueprintFieldType::value_type a = read_field <BlueprintFieldType>(input_json, 0);
+    typename BlueprintFieldType::value_type b = read_field <BlueprintFieldType>(input_json, 1);
 
-    std::vector<typename BlueprintFieldType::value_type> input_vec = read_fields<BlueprintFieldType>(input_file_name);
-    if (input_vec.size() != input_size){
-        std::cerr << "input file contains " << input_vec.size() << " field elements" << "\n";
-        std::cerr << "addition circuit accepts " << input_size << " field elements" << "\n";
-        assert(false && "input file does not match circuit signature");
-    } else{
-        arithmetics_loop(input_vec[0], input_vec[1]);
-        return 0;
-    }
+    arithmetics_loop(a, b);
+    return 0;
 }
 #endif
