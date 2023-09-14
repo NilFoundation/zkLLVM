@@ -166,6 +166,7 @@ set(TESTS_NAMES
     "algebra/fields/25519_arithmetics/sub"
     "algebra/curves/pallas_arithmetics/add"
     "algebra/curves/25519_arithmetics/add"
+    "algebra/curves/25519_arithmetics_2/mul"
     )
 
 file(REMOVE ../tests_list.txt)
