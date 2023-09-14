@@ -25,18 +25,12 @@ int main (int argc, char *argv[]){
         std::abort();
     }
 
-    std::string input_file_name(argv[1]);
+    boost::json::value input_json = read_boost_json(std::string(argv[1]));
 
-    constexpr static const std::size_t input_size = 2;
+    uint32_t a = read_uint32_t(input_json, 0);
+    uint32_t b = read_uint32_t(input_json, 1);
 
-    std::vector<uint32_t> input_vec = read_uint32_t(input_file_name);
-    if (input_vec.size() != input_size){
-        std::cerr << "input file contains " << input_vec.size() << " integers" << "\n";
-        std::cerr << "circuit accepts " << input_size << " integers" << "\n";
-        assert(false && "input file does not match circuit signature");
-    } else{
-        division(input_vec[0], input_vec[1]);
-        return 0;
-    }
+    division(a, b);
+    return 0;
 }
 #endif
