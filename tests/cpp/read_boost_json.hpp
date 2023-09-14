@@ -96,94 +96,74 @@ typename OperatingFieldType::value_type parse_scalar(const boost::json::value &j
     }
 }
 
-template<typename BlueprintFieldType>
-std::vector<typename BlueprintFieldType::value_type> read_fields(std::string input_file_name) {
+template<typename OperatingFieldType>
+typename OperatingFieldType::value_type read_field(boost::json::value& input_json_value, std::size_t position) {
 
-    boost::json::value input_json_value = read_boost_json (input_file_name);
-
-    std::vector<typename BlueprintFieldType::value_type> res;
-
-    for (std::size_t i = 0; i < input_json_value.as_array().size(); i++) {
-        const boost::json::object &current_value = input_json_value.as_array()[i].as_object();
-        if (current_value.size() != 1)
-            assert(false && "field length must be 1");
-        if(!current_value.contains("field"))
-            assert(false && "json value must contain \"field\"");
-        if (current_value.at("field").is_double()) {
-            assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
-        }
-
-        res.push_back(parse_scalar<BlueprintFieldType>(current_value.at("field")));
+    const boost::json::object &current_value = input_json_value.as_array()[position].as_object();
+    if (current_value.size() != 1)
+        assert(false && "field length must be 1");
+    if(!current_value.contains("field"))
+        assert(false && "json value must contain \"field\"");
+    if (current_value.at("field").is_double()) {
+        assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
     }
-    return res;
+
+    return parse_scalar<OperatingFieldType>(current_value.at("field"));
 }
 
-std::vector<uint32_t> read_uint32_t(std::string input_file_name) {
 
-    boost::json::value input_json_value = read_boost_json (input_file_name);
+uint32_t read_uint32_t(boost::json::value& input_json_value, std::size_t position) {
 
-    std::vector<uint32_t> res;
-
-    for (std::size_t i = 0; i < input_json_value.as_array().size(); i++) {
-        const boost::json::object &current_value = input_json_value.as_array()[i].as_object();
-        if (current_value.size() != 1)
-            assert(false && "field length must be 1");
-        if(!current_value.contains("int"))
-            assert(false && "json value must contain \"int\"");
-        if (current_value.at("int").is_double()) {
-            assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
-        }
-
-        uint32_t current_res;
-
-        switch (current_value.at("int").kind()) {
-            case boost::json::kind::int64:
-                current_res = current_value.at("int").as_int64();
-                break;
-            case boost::json::kind::uint64:
-                current_res = current_value.at("int").as_int64();
-                break;
-            default: {
-                std::cerr << "wrong kind of input value: " << current_value.at("int").kind() << "\n";
-                std::abort();
-            }
-        }
-
-        res.push_back(current_res);
+    const boost::json::object &current_value = input_json_value.as_array()[position].as_object();
+    if (current_value.size() != 1)
+        assert(false && "field length must be 1");
+    if(!current_value.contains("int"))
+        assert(false && "json value must contain \"int\"");
+    if (current_value.at("int").is_double()) {
+        assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
     }
-    return res;
+
+    uint32_t current_res;
+
+    switch (current_value.at("int").kind()) {
+        case boost::json::kind::int64:
+            current_res = current_value.at("int").as_int64();
+            break;
+        case boost::json::kind::uint64:
+            current_res = current_value.at("int").as_int64();
+            break;
+        default: {
+            std::cerr << "wrong kind of input value: " << current_value.at("int").kind() << "\n";
+            std::abort();
+        }
+    }
+
+    return current_res;
 }
 
 template<typename PointType, typename FieldType>
-std::vector<PointType> read_curves(std::string input_file_name) {
+PointType read_curve(boost::json::value& input_json_value, std::size_t position) {
 
-    boost::json::value input_json_value = read_boost_json (input_file_name);
+    PointType res;
 
-    std::vector<PointType> res;
-
-    for (std::size_t i = 0; i < input_json_value.as_array().size(); i++) {
-        const boost::json::object &current_value = input_json_value.as_array()[i].as_object();
-        // std::cerr << "current_value: " << current_value << "\n";
-        if(!current_value.contains("curve"))
-            assert(false && "json value must contain \"curve\"");
-        if (!current_value.at("curve").is_array()) {
+    const boost::json::object &current_value = input_json_value.as_array()[position].as_object();
+    if(!current_value.contains("curve"))
+        assert(false && "json value must contain \"curve\"");
+    if (!current_value.at("curve").is_array()) {
+        assert(false && "curve element must be array of length 2");
+    }
+    else {
+        if(current_value.at("curve").as_array().size() != 2) {
             assert(false && "curve element must be array of length 2");
         }
         else {
-            if(current_value.at("curve").as_array().size() != 2) {
-                assert(false && "curve element must be array of length 2");
+            if (current_value.at("curve").as_array()[0].is_double() ||
+                current_value.at("curve").as_array()[1].is_double()) {
+                assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
             }
             else {
-                if (current_value.at("curve").as_array()[0].is_double() ||
-                    current_value.at("curve").as_array()[1].is_double()) {
-                    assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
-                }
-                else {
-                    PointType point;
-                    point.X = parse_scalar<FieldType>(current_value.at("curve").as_array()[0]);
-                    point.Y = parse_scalar<FieldType>(current_value.at("curve").as_array()[1]);
-                    res.push_back(point);
-                }
+                res.X = parse_scalar<FieldType>(current_value.at("curve").as_array()[0]);
+                res.Y = parse_scalar<FieldType>(current_value.at("curve").as_array()[1]);
             }
         }
     }
