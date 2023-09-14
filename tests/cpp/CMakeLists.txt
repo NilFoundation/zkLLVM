@@ -136,7 +136,6 @@ function(add_test_circuit_assign example_target)
                 crypto3::zk
 
                 ${Boost_LIBRARIES})
-    add_dependencies(circuit_cpp_examples "${example_target}")
 
     if (CIRCUIT_ASSEMBLY_OUTPUT)
         set(binary_name ${example_target}.ll)
@@ -145,7 +144,6 @@ function(add_test_circuit_assign example_target)
     endif()
 
     assign_ir(${example_target} ${binary_name} ${ARG_INPUT})
-    add_dependencies(assign_cpp_examples ${example_target}_assign)
 endfunction()
 
 set(TESTS_NAMES
@@ -167,6 +165,7 @@ set(TESTS_NAMES
     # "algebra/fields/25519_arithmetics/mul"  # fails on neg1_neg1 due to bug in blueprint, temporarily disabled
     "algebra/fields/25519_arithmetics/sub"
     "algebra/curves/pallas_arithmetics/add"
+    # "algebra/curves/25519_arithmetics/add"
     )
 
 file(REMOVE ../tests_list.txt)
