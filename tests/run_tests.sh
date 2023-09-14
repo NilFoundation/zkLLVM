@@ -32,7 +32,7 @@ for i in ${!test_examples[*]}; do
     echo -e "\033[32m succeeded \033[0m";
   else
     exit_code=1
-    echo -e "\033[31m Test failed! Real result fiffers from expected result. \033[0m";
+    echo -e "\033[31m Test failed! Real result differs from expected result. \033[0m";
     echo -e "\nexpected result:";
     cat expected.log;
     echo -e "\nreal circuit output:";
