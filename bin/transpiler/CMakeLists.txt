@@ -36,13 +36,20 @@ endif()
 
 string(TOUPPER ${CURRENT_PROJECT_NAME} UPPER_CURRENT_PROJECT_NAME)
 
+find_program(GIT_EXE git)
+
 execute_process(COMMAND ${GIT_EXE} describe --tags HEAD
         OUTPUT_VARIABLE DESCRIBE_OUTPUT
         OUTPUT_STRIP_TRAILING_WHITESPACE
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/libs/${CURRENT_PROJECT_NAME})
-# Remove preceding 'v' from tag
-string(REGEX REPLACE "^v" "" ${CURRENT_PROJECT_NAME}_VERSION ${DESCRIBE_OUTPUT})
-add_compile_definitions(${UPPER_CURRENT_PROJECT_NAME}_VERSION=${${CURRENT_PROJECT_NAME}_VERSION})
+
+if(${DESCRIBE_OUTPUT} MATCHES "^v[0-9]+.[0-9]+.[0-9]+$")
+    # Remove preceding 'v' from tag
+    string(REGEX REPLACE "^v" "" ${CURRENT_PROJECT_NAME}_VERSION ${DESCRIBE_OUTPUT})
+    add_compile_definitions(${UPPER_CURRENT_PROJECT_NAME}_VERSION=${${CURRENT_PROJECT_NAME}_VERSION})
+endif()
+
+
 
 # get header files; only needed by CMake generators,
 # expr.g., for creating proper Xcode projects

@@ -6,7 +6,7 @@ function(add_example_without_proving example_target)
     set(prefix ARG)
     set(noValues "")
     set(singleValues INPUT)
-    set(multiValues SOURCES)
+    set(multiValues SOURCES COMPILER_OPTIONS)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
                         "${singleValues}"
@@ -14,6 +14,7 @@ function(add_example_without_proving example_target)
                         ${ARGN})
     add_circuit(${example_target}
                 SOURCES ${ARG_SOURCES}
+                COMPILER_OPTIONS ${ARG_COMPILER_OPTIONS}
 
                 LINK_LIBRARIES
                 crypto3::algebra
@@ -79,7 +80,7 @@ add_example_with_proving(merkle_tree_sha2_256_cpp_example SOURCES merkle_tree_sh
 add_example_with_proving(sha256_cpp_example SOURCES sha2_256.cpp INPUT sha2_256.inp)
 add_example_with_proving(balance_cpp_example SOURCES balance.cpp INPUT balance.inp)
 add_example_with_proving(memory_cpp_example SOURCES memory.cpp INPUT memory.inp)
-add_example_with_proving(polynomial_cpp_example SOURCES polynomial.cpp INPUT polynomial.inp)
+add_example_with_proving(polynomial_cpp_example SOURCES polynomial.cpp INPUT polynomial.inp COMPILER_OPTIONS -std=c++20)
 add_example_with_proving(pallas_curve_addition_cpp_example
            SOURCES pallas_curve_examples/pallas_curve_add.cpp
            INPUT pallas_curve_examples/pallas_curve_add.inp)
@@ -99,18 +100,16 @@ add_example_with_proving(uint_shift_right SOURCES bit_operations/shift_right.cpp
 add_example_with_proving(uint_bit_decomposition SOURCES bit_operations/bit_decomposition.cpp INPUT bit_operations/bit_decomposition.inp)
 add_example_with_proving(uint_bit_composition SOURCES bit_operations/bit_composition.cpp INPUT bit_operations/bit_composition.inp)
 
-# add_example_with_proving(compare_neq_cpp SOURCES compare/neq.cpp INPUT compare/neq.inp)
-# add_example_with_proving(compare_eq_cpp SOURCES compare/eq.cpp INPUT compare/eq.inp)
-add_example_with_proving(compare_grequal_cpp SOURCES compare/grequal.cpp INPUT compare/grequal.inp)
-add_example_with_proving(compare_lequal_cpp SOURCES compare/lequal.cpp INPUT compare/lequal.inp)
-add_example_with_proving(compare_greater_than_cpp SOURCES compare/greater_than.cpp INPUT compare/greater_than.inp)
-add_example_with_proving(compare_less_than_cpp SOURCES compare/less_than.cpp INPUT compare/less_than.inp)
+# Comparison component is disabled due to issue with negative numbers, so we can't prove an empty circuit
+add_example_without_proving(compare_neq_cpp SOURCES compare/neq.cpp INPUT compare/neq.inp)
+add_example_without_proving(compare_eq_cpp SOURCES compare/eq.cpp INPUT compare/eq.inp)
+add_example_without_proving(compare_grequal_cpp SOURCES compare/grequal.cpp INPUT compare/grequal.inp)
+add_example_without_proving(compare_lequal_cpp SOURCES compare/lequal.cpp INPUT compare/lequal.inp)
+add_example_without_proving(compare_greater_than_cpp SOURCES compare/greater_than.cpp INPUT compare/greater_than.inp)
+add_example_without_proving(compare_less_than_cpp SOURCES compare/less_than.cpp INPUT compare/less_than.inp)
 
 #Balances tree example is too big to be proven in a reasonable time
 add_example_without_proving(balances_tree_cpp_example SOURCES balances_tree.cpp INPUT balances_tree.inp)
 
-#Empty component for assigner testing
-add_example_without_proving(zkbridge_input_reading_test SOURCES zkbridge_input_reading_test.cpp INPUT zkbridge_input_reading_test.inp)
-
 # add_example_without_proving(eddsa_signature_verification_cpp SOURCES eddsa_signature_verification.cpp INPUT eddsa_signature_verification.inp)
-# add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp)
+add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp)

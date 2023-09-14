@@ -88,6 +88,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
                           std::string assignment_table_file_name,
                           std::string circuit_file_name,
+                          long stack_size,
                           bool check_validity,
                           bool verbose) {
     using BlueprintFieldType = typename CurveType::base_field_type;
@@ -130,10 +131,8 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams, PrintCircuitOutput> parser_instance(verbose);
-
-    const char *llvm_arguments[2] = {"", "-opaque-pointers=0"};
-    llvm::cl::ParseCommandLineOptions(2, llvm_arguments);
+    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams, PrintCircuitOutput> parser_instance(stack_size,
+                                                                                                          verbose);
 
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
     if (module == nullptr) {
@@ -186,6 +185,7 @@ int main(int argc, char *argv[]) {
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)")
+            ("stack-size,s", boost::program_options::value<long>(), "Stack size in bytes")
             ("check", "Check satisfiability of the generated circuit")
             ("verbose", "Print detailed log")
             ("print_circuit_output", "print output of the circuit");
@@ -217,6 +217,7 @@ int main(int argc, char *argv[]) {
     std::string assignment_table_file_name;
     std::string circuit_file_name;
     std::string elliptic_curve;
+    long stack_size;
 
     if (vm.count("bytecode")) {
         bytecode_file_name = vm["bytecode"].as<std::string>();
@@ -271,6 +272,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    if (vm.count("stack-size")) {
+        stack_size = vm["stack-size"].as<long>();
+    } else {
+        stack_size = 4000000;
+    }
+
     switch (curve_options[elliptic_curve]) {
         case 0: {
             if (vm.count("print_circuit_output")) {
@@ -279,6 +286,7 @@ int main(int argc, char *argv[]) {
                                                                           public_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
+                                                                          stack_size,
                                                                           vm.count("check"),
                                                                           vm.count("verbose"));
             }
@@ -288,6 +296,7 @@ int main(int argc, char *argv[]) {
                                                                           public_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
+                                                                          stack_size,
                                                                           vm.count("check"),
                                                                           vm.count("verbose"));
             }
