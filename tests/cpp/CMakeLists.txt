@@ -167,6 +167,11 @@ set(TESTS_NAMES
     "algebra/curves/pallas_arithmetics/add"
     "algebra/curves/25519_arithmetics/add"
     "algebra/curves/25519_arithmetics_2/mul"
+    "algebra/curves/pallas_arithmetics_2/mul"
+    "algebra/curves/constructors/zero_pallas"
+    "algebra/curves/constructors/one_pallas"
+    "algebra/curves/constructors/zero_ed25519"
+    "algebra/curves/constructors/one_ed25519"
     )
 
 file(REMOVE ../tests_list.txt)
