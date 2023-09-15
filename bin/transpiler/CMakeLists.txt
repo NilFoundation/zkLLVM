@@ -34,7 +34,12 @@ elseif(CMAKE_CROSSCOMPILING)
     endif()
 endif()
 
-cm_setup_version(VERSION 0.1.0)
+string(TOUPPER ${CURRENT_PROJECT_NAME} UPPER_CURRENT_PROJECT_NAME)
+
+if (CPACK_PACKAGE_VERSION)
+    add_compile_definitions(${UPPER_CURRENT_PROJECT_NAME}_VERSION=${CPACK_PACKAGE_VERSION})
+endif()
+
 
 # get header files; only needed by CMake generators,
 # expr.g., for creating proper Xcode projects
