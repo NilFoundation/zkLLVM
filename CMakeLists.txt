@@ -77,8 +77,6 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/blueprint")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/assigner")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/transpiler")
 
-add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
-
 set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
@@ -89,8 +87,6 @@ endif()
 
 add_subdirectory(libs/stdlib)
 
-install(TARGETS assigner RUNTIME DESTINATION bin)
-install(TARGETS transpiler RUNTIME DESTINATION bin)
 install(FILES cmake/CircuitCompile.cmake DESTINATION share/zkllvm)
 
 find_program(GIT_EXE git)
@@ -137,6 +133,10 @@ if(ZKLLVM_VERSION_INCREMENT)
 endif()
 
 include(CPack)
+
+add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
+install(TARGETS assigner RUNTIME DESTINATION bin)
+install(TARGETS transpiler RUNTIME DESTINATION bin)
 
 # Package for stdlib
 add_custom_target(stdlib_package

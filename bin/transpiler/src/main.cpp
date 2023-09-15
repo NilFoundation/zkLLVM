@@ -181,6 +181,17 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    if (vm.count("version")) {
+#ifdef TRANSPILER_VERSION
+#define xstr(s) str(s)
+#define str(s) #s
+        std::cout << xstr(TRANSPILER_VERSION) << std::endl;
+#else
+        std::cout << "undefined" << std::endl;
+#endif
+        return 0;
+    }
+
     std::string mode;
     std::string assignment_table_file_name;
     std::string circuit_file_name;
