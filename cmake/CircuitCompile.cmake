@@ -82,13 +82,13 @@ function(add_circuit_no_stdlib name)
         get_filename_component(source_base_name ${source} NAME)
         add_custom_target(${name}_${source_base_name}_${extension}
                         COMMAND ${CLANG} -target assigner
-                        -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 ${format_option} ${ARG_COMPILER_OPTIONS}  -o ${source_base_name}.${extension} ${source}
+                        -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 ${format_option} ${ARG_COMPILER_OPTIONS}  -o ${name}_${source_base_name}.${extension} ${source}
 
                         VERBATIM COMMAND_EXPAND_LISTS
 
                         SOURCES ${source})
         add_dependencies(${name}_compile_sources ${name}_${source_base_name}_${extension})
-        list(APPEND compiler_outputs "${source_base_name}.${extension}")
+        list(APPEND compiler_outputs "${name}_${source_base_name}.${extension}")
     endforeach()
 
     # Link sources
