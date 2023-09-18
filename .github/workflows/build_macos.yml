@@ -93,13 +93,13 @@ jobs:
 
       - name: Build tests
         run: |
-          chmod +x ./tests/build_tests.sh
-          bash ./tests/build_tests.sh make -j$(sysctl -n hw.logicalcpu)
+          make -C build all_expected_res_tests -j$(sysctl -n hw.logicalcpu)
+          make -C build all_circuit_tests -j$(sysctl -n hw.logicalcpu)
 
       - name: Run tests
         run: |
           chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh make -j$(sysctl -n hw.logicalcpu)
+          bash ./tests/run_tests.sh -j$(sysctl -n hw.logicalcpu)
 
       - name: Build proof for the circuit of the C++ examples
         run: |
