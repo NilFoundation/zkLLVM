@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <fstream>
+#include <chrono>
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -139,9 +140,13 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
+    auto start = std::chrono::system_clock::now();
     if (!parser_instance.evaluate(*module, input_json_value.as_array())) {
         return 1;
     }
+    auto stop = std::chrono::system_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop- start);
+    std::cout << "Evaluate time = " << elapsed.count() << '\n';
 
     zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams> desc;
     desc.usable_rows_amount = parser_instance.assignmnt.rows_amount();
