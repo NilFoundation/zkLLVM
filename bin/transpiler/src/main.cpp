@@ -15,6 +15,7 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 #include <nil/crypto3/algebra/fields/arithmetic_params/pallas.hpp>
@@ -289,7 +290,7 @@ int main(int argc, char *argv[]) {
     auto read_iter = v.begin();
     auto status = marshalled_data.read(read_iter, v.size());
     auto constraint_system =
-        nil::crypto3::marshalling::types::make_plonk_constraint_system<ConstraintSystemType, Endianness>(
+        nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
             marshalled_data);
 
     using ColumnType = nil::crypto3::zk::snark::plonk_column<BlueprintFieldType>;
@@ -309,19 +310,27 @@ int main(int argc, char *argv[]) {
 
     const std::size_t Lambda = 2;
     using Hash = nil::crypto3::hashes::keccak_1600<256>;
-    using placeholder_params =
-        nil::crypto3::zk::snark::placeholder_params<BlueprintFieldType, ArithmetizationParams, Hash, Hash, Lambda>;
-    using types = nil::crypto3::zk::snark::detail::placeholder_policy<BlueprintFieldType, placeholder_params>;
-
-    using FRIScheme =
-        typename nil::crypto3::zk::commitments::fri<BlueprintFieldType, typename placeholder_params::merkle_hash_type,
-                                                    typename placeholder_params::transcript_hash_type, Lambda, 2, 4>;
-    using FRIParamsType = typename FRIScheme::params_type;
-
+    using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
+        BlueprintFieldType, ArithmetizationParams
+    >;
+    
     std::size_t table_rows_log = std::ceil(std::log2(table_description.rows_amount));
-    auto fri_params = create_fri_params<FRIScheme, BlueprintFieldType>(table_rows_log);
+    using lpc_params_type = nil::crypto3::zk::commitments::list_polynomial_commitment_params<        
+        Hash,
+        Hash, 
+        Lambda, 
+        2
+    >;
+    using lpc_type = nil::crypto3::zk::commitments::list_polynomial_commitment<BlueprintFieldType, lpc_params_type>;
+    using lpc_scheme_type = typename nil::crypto3::zk::commitments::lpc_commitment_scheme<lpc_type>;
+    using placeholder_params = nil::crypto3::zk::snark::placeholder_params<circuit_params, lpc_scheme_type>;
+    using policy_type = nil::crypto3::zk::snark::detail::placeholder_policy<BlueprintFieldType, placeholder_params>;
+
+    auto fri_params = create_fri_params<typename lpc_type::fri_type, BlueprintFieldType>(table_rows_log);
     std::size_t permutation_size =
         table_description.witness_columns + table_description.public_input_columns + table_description.constant_columns;
+    lpc_scheme_type lpc_scheme(fri_params);
+
 
     if (mode == "gen-gate-argument") {
         bool optimize_gates = false;
@@ -331,36 +340,38 @@ int main(int argc, char *argv[]) {
             constraint_system, columns_rotations, output_folder_path, optimize_gates);
     }
 
-    if ((mode == "gen-circuit-params") || (mode == "gen-test-proof")) {
-        nil::crypto3::zk::snark::print_placeholder_params<FRIScheme, TableDescriptionType, ColumnsRotationsType, ArithmetizationParams>(
-            fri_params, table_description, columns_rotations, output_folder_path+"/circuit_params.json");
+    if ((mode != "gen-circuit-params") && (mode != "gen-test-proof")) {
+        return 0;
     }
 
+    std::cout << "Preprocessing public data..." << std::endl;
+    typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
+        BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
+    nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
+        constraint_system, assignment_table.public_table(), table_description, lpc_scheme, permutation_size);
+    nil::crypto3::zk::snark::print_placeholder_params<placeholder_params>(
+        public_preprocessed_data, lpc_scheme, output_folder_path+"/circuit_params.json");
+
     if (mode == "gen-test-proof") {
-        std::cout << "Preprocessing public data..." << std::endl;
-        typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
-            BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
-            nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
-                constraint_system, assignment_table.public_table(), table_description, fri_params, permutation_size);
         std::cout << "Preprocessing private data..." << std::endl;
         typename nil::crypto3::zk::snark::placeholder_private_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type private_preprocessed_data =
             nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
-                constraint_system, assignment_table.private_table(), table_description, fri_params
+                constraint_system, assignment_table.private_table(), table_description
             );
 
         std::cout << "Generating proof..." << std::endl;
         using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
         ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
             public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
-            fri_params);
+            lpc_scheme);
         std::cout << "Proof generated" << std::endl;
 
         if( !vm.count("skip-verification") ) {
             std::cout << "Verifying proof..." << std::endl;
             bool verification_result =
                 nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                    public_preprocessed_data, proof, constraint_system, fri_params);
+                    public_preprocessed_data, proof, constraint_system, lpc_scheme);
             
 
             ASSERT_MSG(verification_result, "Proof is not verified" );
@@ -370,7 +381,7 @@ int main(int argc, char *argv[]) {
         }
 
         std::string proof_path = output_folder_path + "/proof.bin";
-        std::cout << "Writing proof to" << proof_path << "..." << std::endl;
+        std::cout << "Writing proof to " << proof_path << "..." << std::endl;
         auto filled_placeholder_proof =
             nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
         proof_print<Endianness, ProofType>(proof, proof_path);
@@ -378,6 +389,5 @@ int main(int argc, char *argv[]) {
         iassignment.close();
         return 0;
     }
-
     return 0;
 }
