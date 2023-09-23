@@ -46,10 +46,10 @@
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/constraint_system.hpp>
+#include <nil/crypto3/marshalling/zk/types/plonk/assignment_table.hpp>
 
 #include <nil/blueprint/parser.hpp>
 #include <nil/blueprint/asserts.hpp>
-#include <nil/blueprint/transpiler/table_profiling.hpp>
 #include <nil/blueprint/utils/satisfiability_check.hpp>
 
 #include <llvm/Support/CommandLine.h>
@@ -83,6 +83,19 @@ void print_circuit(const ConstraintSystemType &circuit, std::ostream &out = std:
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
+template<typename Endianness, typename AssignmentTableType>
+void print_assignment_table(std::size_t usable_rows, const AssignmentTableType &table, std::ostream &out = std::cout) {
+    using TTypeBase = nil::marshalling::field_type<Endianness>;
+    auto filled_val =
+        nil::crypto3::marshalling::types::fill_assignment_table<Endianness, AssignmentTableType>(usable_rows, table);
+
+    std::vector<std::uint8_t> cv;
+    cv.resize(filled_val.length(), 0x00);
+    auto write_iter = cv.begin();
+    nil::marshalling::status_type status = filled_val.write(write_iter, cv.size());
+    print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
+}
+
 template<typename CurveType, bool PrintCircuitOutput>
 int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
@@ -93,9 +106,9 @@ int curve_dependent_main(std::string bytecode_file_name,
                           bool verbose) {
     using BlueprintFieldType = typename CurveType::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
-    constexpr std::size_t PublicInputColumns = 5;
+    constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 50;
+    constexpr std::size_t SelectorColumns = 30;
 
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
@@ -153,7 +166,14 @@ int curve_dependent_main(std::string bytecode_file_name,
         std::cout << "Something wrong with output " << assignment_table_file_name << std::endl;
         return 1;
     }
-    nil::blueprint::profiling_assignment_table(parser_instance.assignmnt, desc.usable_rows_amount, otable);
+
+    using AssignmentTableType = zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, zk::snark::plonk_column<BlueprintFieldType>>;
+    print_assignment_table<
+        nil::marshalling::option::big_endian, 
+        AssignmentTableType
+    >(desc.usable_rows_amount, parser_instance.assignmnt, otable);
+
+//    nil::blueprint::profiling_assignment_table(parser_instance.assignmnt, desc.usable_rows_amount, otable);
     otable.close();
 
     std::ofstream ocircuit;

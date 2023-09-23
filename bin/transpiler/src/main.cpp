@@ -28,6 +28,7 @@
 #include <nil/marshalling/endianness.hpp>
 #include <nil/crypto3/marshalling/zk/types/placeholder/proof.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/constraint_system.hpp>
+#include <nil/crypto3/marshalling/zk/types/plonk/assignment_table.hpp>
 
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/preprocessor.hpp>
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/prover.hpp>
@@ -242,23 +243,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::ifstream ifile;
-    ifile.open(circuit_file_name);
-    if (!ifile.is_open()) {
-        std::cout << "Cannot find input file " << circuit_file_name << std::endl;
-        return 1;
-    }
-    std::vector<std::uint8_t> v;
-    if (!read_buffer_from_file(ifile, v)) {
-        std::cout << "Cannot parse input file " << circuit_file_name << std::endl;
-        return 1;
-    }
-    ifile.close();
-
     using curve_type = nil::crypto3::algebra::curves::pallas;
     using BlueprintFieldType = typename curve_type::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
-    constexpr std::size_t PublicInputColumns = 5;
+    constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
     constexpr std::size_t SelectorColumns = 30;
 
@@ -273,6 +261,13 @@ int main(int argc, char *argv[]) {
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using value_marshalling_type =
         nil::crypto3::marshalling::types::plonk_constraint_system<TTypeBase, ConstraintSystemType>;
+
+    using ColumnType = nil::crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+    using AssignmentTableType =
+        nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
+    using table_value_marshalling_type =
+        nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
+
     using ColumnsRotationsType = std::array<std::set<int>, ArithmetizationParams::total_columns>;
     using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
 
@@ -285,27 +280,54 @@ int main(int argc, char *argv[]) {
         boost::filesystem::copy(public_input, output_folder_path+"/public_input.json", boost::filesystem::copy_options::overwrite_existing);
     }
 
-    value_marshalling_type marshalled_data;
-    TableDescriptionType table_description;
-    auto read_iter = v.begin();
-    auto status = marshalled_data.read(read_iter, v.size());
-    auto constraint_system =
-        nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
-            marshalled_data);
+    ConstraintSystemType constraint_system;
+    {
+        std::ifstream ifile;
+        ifile.open(circuit_file_name);
+        if (!ifile.is_open()) {
+            std::cout << "Cannot find input file " << circuit_file_name << std::endl;
+            return 1;
+        }
+        std::vector<std::uint8_t> v;
+        if (!read_buffer_from_file(ifile, v)) {
+            std::cout << "Cannot parse input file " << circuit_file_name << std::endl;
+            return 1;
+        }
+        ifile.close();
 
-    using ColumnType = nil::crypto3::zk::snark::plonk_column<BlueprintFieldType>;
-    using AssignmentTableType =
-        nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
-
-    std::ifstream iassignment;
-    iassignment.open(assignment_table_file_name);
-    if (!iassignment) {
-        std::cout << "Cannot open " << assignment_table_file_name << std::endl;
-        return 1;
+        value_marshalling_type marshalled_data;
+        auto read_iter = v.begin();
+        auto status = marshalled_data.read(read_iter, v.size());
+        constraint_system = nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
+                marshalled_data
+        );
     }
+
+    TableDescriptionType table_description;
     AssignmentTableType assignment_table;
-    std::tie(table_description.usable_rows_amount, table_description.rows_amount, assignment_table) =
-        nil::blueprint::load_assignment_table<BlueprintFieldType, ArithmetizationParams, ColumnType>(iassignment);
+    {
+        std::ifstream iassignment;
+        iassignment.open(assignment_table_file_name);
+        if (!iassignment) {
+            std::cout << "Cannot open " << assignment_table_file_name << std::endl;
+            return 1;
+        }
+        std::vector<std::uint8_t> v;
+        if (!read_buffer_from_file(iassignment, v)) {
+            std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
+            return 1;
+        }
+        iassignment.close();
+        table_value_marshalling_type marshalled_table_data;
+        auto read_iter = v.begin();
+        auto status = marshalled_table_data.read(read_iter, v.size());
+        std::tie(table_description.usable_rows_amount, assignment_table) =
+            nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
+                marshalled_table_data
+            );
+        table_description.rows_amount = assignment_table.rows_amount();
+    }
+
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
     const std::size_t Lambda = 2;
@@ -386,8 +408,8 @@ int main(int argc, char *argv[]) {
             nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
         proof_print<Endianness, ProofType>(proof, proof_path);
         std::cout << "Proof written" << std::endl;
-        iassignment.close();
         return 0;
     }
+
     return 0;
 }
