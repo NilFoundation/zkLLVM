@@ -74,7 +74,7 @@ void print_circuit(const ConstraintSystemType &circuit, std::ostream &out = std:
 
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     auto filled_val =
-        nil::crypto3::marshalling::types::fill_plonk_constraint_system<ConstraintSystemType, Endianness>(circuit);
+        nil::crypto3::marshalling::types::fill_plonk_constraint_system<Endianness, ConstraintSystemType>(circuit);
 
     std::vector<std::uint8_t> cv;
     cv.resize(filled_val.length(), 0x00);
