@@ -36,4 +36,4 @@ function(add_rust_example example_target)
     add_dependencies(prove_rust_examples ${example_target}_prove)
 endfunction()
 
-add_rust_example(arithmetics_raw_rust_example EXAMPLE_NAME arithmetics_raw INPUT arithmetics.inp)
+add_rust_example(arithmetics_builtins_rust_example EXAMPLE_NAME arithmetics_builtins INPUT arithmetics.inp)
