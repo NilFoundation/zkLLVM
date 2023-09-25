@@ -1,5 +1,4 @@
 #![no_main]
-#![no_std]
 
 // In this example built-in field type is used.
 type PallasBase = __zkllvm_field_pallas_base;
