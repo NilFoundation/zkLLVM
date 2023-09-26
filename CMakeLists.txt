@@ -77,8 +77,6 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/blueprint")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/assigner")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/transpiler")
 
-add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
-
 set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
@@ -87,8 +85,8 @@ if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
-install(TARGETS assigner RUNTIME DESTINATION bin)
-install(TARGETS transpiler RUNTIME DESTINATION bin)
+add_subdirectory(libs/stdlib)
+
 install(FILES cmake/CircuitCompile.cmake DESTINATION share/zkllvm)
 
 find_program(GIT_EXE git)
@@ -136,9 +134,14 @@ endif()
 
 include(CPack)
 
+add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
+install(TARGETS assigner RUNTIME DESTINATION bin)
+install(TARGETS transpiler RUNTIME DESTINATION bin)
+
 # Package for stdlib
 add_custom_target(stdlib_package
-                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR})
+                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR}
+                  DEPENDS zkllvm-libc)
 
 option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
 option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
@@ -153,6 +156,8 @@ endif()
 message(STATUS "Rust host triple: ${RUSTC_HOST_TRIPLE}")
 
 list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
+list(APPEND RSLANG_BUILD_ARGS --release-channel=stable)
+list(APPEND RSLANG_BUILD_ARGS "--release-description=zkLLVM ${ZKLLVM_VERSION_MAJOR}.${ZKLLVM_VERSION_MINOR}.${ZKLLVM_VERSION_PATCH}")
 list(APPEND RSLANG_BUILD_ARGS --target=${RUSTC_HOST_TRIPLE},assigner-unknown-unknown)
 list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-config=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config)
 list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-filecheck=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/FileCheck)
@@ -175,9 +180,6 @@ if(${RSLANG_BUILD_EXTENDED})
 endif()
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     list(APPEND RSLANG_BUILD_ARGS --enable-debug)
-    list(APPEND RSLANG_BUILD_ARGS --enable-debug-assertions)
-    list(APPEND RSLANG_BUILD_ARGS --enable-debug-assertions-std)
-    list(APPEND RSLANG_BUILD_ARGS --debuginfo-level=1)
 endif()
 list(APPEND RSLANG_BUILD_ARGS --dist-compression-formats=gz)
 
