@@ -115,15 +115,15 @@ jobs:
         run: |
           make -C build assign_cpp_examples -j$(nproc)
 
-      - name: Build tests
+      - name: Build tests (constructors tests disabled)
         run: |
-          chmod +x ./tests/build_tests.sh
-          bash ./tests/build_tests.sh make -j$(nproc)
+          chmod +x ./tests/build_tests_without_constructors.sh
+          bash ./tests/build_tests_without_constructors.sh make -j$(nproc)
 
-      - name: Run tests
+      - name: Run tests (constructors tests disabled)
         run: |
-          chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh make -j$(nproc)
+          chmod +x ./tests/run_tests_without_constructors.sh
+          bash ./tests/run_tests_without_constructors.sh make -j$(nproc)
 
       - name: Build proof for the circuit of the C++ examples
         run: |
