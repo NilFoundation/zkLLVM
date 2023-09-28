@@ -41,8 +41,8 @@
 
 #include <nil/blueprint/asserts.hpp>
 #include <nil/blueprint/transpiler/minimized_profiling_plonk_circuit.hpp>
+#include <nil/blueprint/transpiler/evm_verifier_gen.hpp>
 #include <nil/blueprint/transpiler/public_input.hpp>
-#include <nil/blueprint/transpiler/table_profiling.hpp>
 
 bool read_buffer_from_file(std::ifstream &ifile, std::vector<std::uint8_t> &v) {
     char c;
@@ -159,10 +159,11 @@ int main(int argc, char *argv[]) {
     // clang-format off
     options_desc.add_options()("help,h", "Display help message")
             ("version,v", "Display version")
-            ("mode,m", boost::program_options::value<std::string>(), "Transpiler mode (gen-circuit-params, gen-gate-argument, gen-test-proof).\
+            ("mode,m", boost::program_options::value<std::string>(), "Transpiler mode (gen-circuit-params, gen-gate-argument, gen-test-proof, gen-evm-verifier).\
             gen-gate-argument prepares gate argument and some placeholder params.\
             gen-circuit-params prepares circuit parameters for verification.\
-            gen-test-proof prepares gate argument, placeholder params and sample proof for local testing.")
+            gen-test-proof prepares gate argument, placeholder params and sample proof for local testing.\
+            gen-evm-verifier generates all modules for evm verification.")
             ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table input file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit input file")
@@ -208,7 +209,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (!(mode == "gen-test-proof" || mode == "gen-gate-argument" || mode == "gen-circuit-params")) {
+    if (!(mode == "gen-test-proof" || mode == "gen-gate-argument" || mode == "gen-circuit-params" || mode == "gen-evm-verifier")) {
         std::cerr << "Invalid mode specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -362,7 +363,7 @@ int main(int argc, char *argv[]) {
             constraint_system, columns_rotations, output_folder_path, optimize_gates);
     }
 
-    if ((mode != "gen-circuit-params") && (mode != "gen-test-proof")) {
+    if ((mode != "gen-circuit-params") && (mode != "gen-test-proof") && (mode != "gen-evm-verifier")) {
         return 0;
     }
 
@@ -371,6 +372,18 @@ int main(int argc, char *argv[]) {
         BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
     nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
         constraint_system, assignment_table.public_table(), table_description, lpc_scheme, permutation_size);
+
+    if (mode == "gen-evm-verifier") {
+        nil::blueprint::print_evm_verifier<placeholder_params>(
+            constraint_system, 
+            public_preprocessed_data.common_data, 
+            lpc_scheme,
+            permutation_size,
+            output_folder_path
+        );
+        return 0;
+    }
+
     nil::crypto3::zk::snark::print_placeholder_params<placeholder_params>(
         public_preprocessed_data, lpc_scheme, output_folder_path+"/circuit_params.json");
 
