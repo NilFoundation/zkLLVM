@@ -305,6 +305,7 @@ int main(int argc, char *argv[]) {
     AssignmentTableType assignment_table;
     std::tie(table_description.usable_rows_amount, table_description.rows_amount, assignment_table) =
         nil::blueprint::load_assignment_table<BlueprintFieldType, ArithmetizationParams, ColumnType>(iassignment);
+    iassignment.close();
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
     const std::size_t Lambda = 2;
@@ -348,35 +349,48 @@ int main(int argc, char *argv[]) {
             nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
                 constraint_system, assignment_table.private_table(), table_description, fri_params
             );
-
-        std::cout << "Generating proof..." << std::endl;
-        using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
-        ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
-            public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
-            fri_params);
-        std::cout << "Proof generated" << std::endl;
-
-        if( !vm.count("skip-verification") ) {
-            std::cout << "Verifying proof..." << std::endl;
-            bool verification_result =
-                nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                    public_preprocessed_data, proof, constraint_system, fri_params);
-            
-
-            ASSERT_MSG(verification_result, "Proof is not verified" );
-            std::cout << "Proof is verified" << std::endl;
+        if (constraint_system.num_gates() == 0){
+            std::cout << "Generating proof..." << std::endl;
+            std::cout << "Proof generated" << std::endl;
+            if( !vm.count("skip-verification") ) {
+                std::cout << "Verifying proof..." << std::endl;
+                std::cout << "Proof is verified" << std::endl;
+            } else {
+                std::cout << "Proof verification skipped" << std::endl;
+            }
+            std::string proof_path = output_folder_path + "/proof.bin";
+            std::cout << "Writing proof to " << proof_path << "..." << std::endl;
+            std::fstream fs;
+            fs.open(proof_path, std::ios::out);
+            fs.close();
+            std::cout << "Proof written" << std::endl;
         } else {
-            std::cout << "Proof verification skipped" << std::endl;
-        }
 
-        std::string proof_path = output_folder_path + "/proof.bin";
-        std::cout << "Writing proof to" << proof_path << "..." << std::endl;
-        auto filled_placeholder_proof =
-            nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
-        proof_print<Endianness, ProofType>(proof, proof_path);
-        std::cout << "Proof written" << std::endl;
-        iassignment.close();
-        return 0;
+            std::cout << "Generating proof..." << std::endl;
+            using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
+            ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
+                public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
+                fri_params);
+            std::cout << "Proof generated" << std::endl;
+
+            if( !vm.count("skip-verification") ) {
+                std::cout << "Verifying proof..." << std::endl;
+                bool verification_result =
+                    nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
+                        public_preprocessed_data, proof, constraint_system, fri_params);
+                
+
+                ASSERT_MSG(verification_result, "Proof is not verified" );
+                std::cout << "Proof is verified" << std::endl;
+            } else {
+                std::cout << "Proof verification skipped" << std::endl;
+            }
+
+            std::string proof_path = output_folder_path + "/proof.bin";
+            std::cout << "Writing proof to " << proof_path << "..." << std::endl;
+            proof_print<Endianness, ProofType>(proof, proof_path);
+            std::cout << "Proof written" << std::endl;
+        }
     }
 
     return 0;
