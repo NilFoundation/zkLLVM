@@ -92,7 +92,6 @@ function(add_test_circuit test)
                 crypto3::zk
 
                 ${Boost_LIBRARIES})
-    add_dependencies(circuit_cpp_examples "${example_target}")
 
 endfunction()
 
