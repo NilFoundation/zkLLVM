@@ -395,6 +395,18 @@ int main(int argc, char *argv[]) {
                 constraint_system, assignment_table.private_table(), table_description
             );
 
+        std::size_t max_non_zero = 0;
+        for(std::size_t i = 0; i < assignment_table.public_inputs(0).size(); i++ ){
+            if(assignment_table.public_inputs(0) != 0){
+                max_non_zero = i;
+            }
+        }
+        for(std::size_t i = 0; i < assignment_table.public_inputs(0).size(); i++ ){
+            if(assignment_table.public_inputs(0) != 0){
+                max_non_zero = i;
+            }
+        }
+
         std::cout << "Generating proof..." << std::endl;
         using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
         ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
@@ -404,15 +416,15 @@ int main(int argc, char *argv[]) {
 
         if( !vm.count("skip-verification") ) {
             std::cout << "Verifying proof..." << std::endl;
+            std::array<std::vector<typename BlueprintFieldType::value_type>, PublicInputColumns> input;
+            input[0] = {5,11};
             bool verification_result =
                 nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                    public_preprocessed_data, proof, constraint_system, lpc_scheme);
+                    public_preprocessed_data, proof, constraint_system, lpc_scheme, input);
             
 
             ASSERT_MSG(verification_result, "Proof is not verified" );
             std::cout << "Proof is verified" << std::endl;
-        } else {
-            std::cout << "Proof verification skipped" << std::endl;
         }
 
         std::string proof_path = output_folder_path + "/proof.bin";
@@ -423,6 +435,4 @@ int main(int argc, char *argv[]) {
         std::cout << "Proof written" << std::endl;
         return 0;
     }
-
-    return 0;
 }
