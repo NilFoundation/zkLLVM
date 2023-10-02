@@ -374,13 +374,13 @@ int main(int argc, char *argv[]) {
         constraint_system, assignment_table.public_table(), table_description, lpc_scheme, permutation_size);
 
     if (mode == "gen-evm-verifier") {
-        nil::blueprint::print_evm_verifier<placeholder_params>(
+        nil::blueprint::evm_verifier_printer<placeholder_params>(
             constraint_system, 
             public_preprocessed_data.common_data, 
             lpc_scheme,
             permutation_size,
             output_folder_path
-        );
+        ).print();
         return 0;
     }
 
