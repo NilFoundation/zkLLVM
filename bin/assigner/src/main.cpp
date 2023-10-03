@@ -108,7 +108,7 @@ int curve_dependent_main(std::string bytecode_file_name,
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 30;
+    constexpr std::size_t SelectorColumns = 35;
 
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;

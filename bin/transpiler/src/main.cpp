@@ -249,7 +249,7 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 30;
+    constexpr std::size_t SelectorColumns = 35;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -396,16 +396,15 @@ int main(int argc, char *argv[]) {
             );
 
         std::size_t max_non_zero = 0;
-        for(std::size_t i = 0; i < assignment_table.public_inputs(0).size(); i++ ){
-            if(assignment_table.public_inputs(0) != 0){
+        for(std::size_t i = 0; i < assignment_table.public_input(0).size(); i++ ){
+            if(assignment_table.public_input(0)[i] != 0){
                 max_non_zero = i;
             }
         }
-        for(std::size_t i = 0; i < assignment_table.public_inputs(0).size(); i++ ){
-            if(assignment_table.public_inputs(0) != 0){
-                max_non_zero = i;
-            }
+        for(std::size_t i = 0; i < max_non_zero + 1; i++ ){
+            std::cout << assignment_table.public_input(0)[i] << " ";
         }
+        std::cout << std::endl;
 
         std::cout << "Generating proof..." << std::endl;
         using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
@@ -416,12 +415,10 @@ int main(int argc, char *argv[]) {
 
         if( !vm.count("skip-verification") ) {
             std::cout << "Verifying proof..." << std::endl;
-            std::array<std::vector<typename BlueprintFieldType::value_type>, PublicInputColumns> input;
-            input[0] = {5,11};
             bool verification_result =
                 nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                    public_preprocessed_data, proof, constraint_system, lpc_scheme, input);
-            
+                    public_preprocessed_data, proof, constraint_system, lpc_scheme
+                );
 
             ASSERT_MSG(verification_result, "Proof is not verified" );
             std::cout << "Proof is verified" << std::endl;
