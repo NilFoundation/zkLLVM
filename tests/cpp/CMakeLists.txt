@@ -159,29 +159,43 @@ endfunction()
 
 file(REMOVE ../tests_list.txt)
 
-add_zkllvm_unit_test("algebra/fields/native_pallas_arithmetics/add")
-add_zkllvm_unit_test("algebra/fields/native_pallas_arithmetics/mul")
-add_zkllvm_unit_test("algebra/fields/native_pallas_arithmetics/sub")
-add_zkllvm_unit_test("algebra/integers/shift/left")
-add_zkllvm_unit_test("algebra/integers/shift/right")
+
+# curve tests
+add_zkllvm_unit_test("algebra/curves/25519_arithmetics/compare")
+add_zkllvm_unit_test("algebra/curves/25519_arithmetics/add")
+add_zkllvm_unit_test("algebra/curves/25519_arithmetics_2/mul")
+
+add_zkllvm_unit_test("algebra/curves/constructors/zero_pallas")
+add_zkllvm_unit_test("algebra/curves/constructors/one_pallas")
+add_zkllvm_unit_test("algebra/curves/constructors/zero_ed25519")
+add_zkllvm_unit_test("algebra/curves/constructors/one_ed25519")
+
+add_zkllvm_unit_test("algebra/curves/pallas_arithmetics/compare")
+# add_zkllvm_unit_test("algebra/curves/pallas_arithmetics/add") # fails when return value is 0,1 due to blueprint bug, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/pallas_arithmetics_2/mul") # fails because blueprint component requires prepared scalar, tempotatily disabled
+
+
+# field tests
+add_zkllvm_unit_test("algebra/fields/25519_arithmetics/add")
+# add_zkllvm_unit_test("algebra/fields/25519_arithmetics/mul")  # fails on neg1_neg1 due to bug in blueprint, temporarily disabled
+add_zkllvm_unit_test("algebra/fields/25519_arithmetics/sub")
+
 add_zkllvm_unit_test("algebra/fields/comparison/greater")
 add_zkllvm_unit_test("algebra/fields/comparison/grequal")
 add_zkllvm_unit_test("algebra/fields/comparison/lequal")
 add_zkllvm_unit_test("algebra/fields/comparison/less")
 add_zkllvm_unit_test("algebra/fields/comparison/equal")
 add_zkllvm_unit_test("algebra/fields/comparison/not_equal")
+
+add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/add")
+add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/loop")
+add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/mul")
+add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/sub")
+
+
+# int tests
 add_zkllvm_unit_test("algebra/integers/division/udiv")
 add_zkllvm_unit_test("algebra/integers/division/urem")
-add_zkllvm_unit_test("algebra/fields/native_pallas_arithmetics/loop")
-add_zkllvm_unit_test("algebra/fields/25519_arithmetics/add")
-# add_zkllvm_unit_test("algebra/fields/25519_arithmetics/mul")  # fails on neg1_neg1 due to bug in blueprint, temporarily disabled
-add_zkllvm_unit_test("algebra/fields/25519_arithmetics/sub")
-add_zkllvm_unit_test("algebra/curves/25519_arithmetics/add")
-add_zkllvm_unit_test("algebra/curves/25519_arithmetics_2/mul")
-# add_zkllvm_unit_test("algebra/curves/pallas_arithmetics/add") # fails when return value is 0,1 due to blueprint bug, temporarily disabled
-# add_zkllvm_unit_test("algebra/curves/pallas_arithmetics_2/mul") # fails because blueprint component requires prepared scalar, tempotatily disabled
 
-add_zkllvm_unit_test("algebra/curves/constructors/zero_pallas")
-add_zkllvm_unit_test("algebra/curves/constructors/one_pallas")
-add_zkllvm_unit_test("algebra/curves/constructors/zero_ed25519")
-add_zkllvm_unit_test("algebra/curves/constructors/one_ed25519")
+add_zkllvm_unit_test("algebra/integers/shift/left")
+add_zkllvm_unit_test("algebra/integers/shift/right")
