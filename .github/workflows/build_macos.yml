@@ -101,6 +101,11 @@ jobs:
           chmod +x ./tests/run_tests.sh
           bash ./tests/run_tests.sh -j$(sysctl -n hw.logicalcpu)
 
+      - name: Run tests on faulty inputs
+        run: |
+          chmod +x ./tests/run_tests_faulty_input.sh
+          bash ./tests/run_tests_faulty_input.sh -j$(sysctl -n hw.logicalcpu)
+
       - name: Build proof for the circuit of the C++ examples
         run: |
           make -C build prove_cpp_examples -j$(sysctl -n hw.logicalcpu)
