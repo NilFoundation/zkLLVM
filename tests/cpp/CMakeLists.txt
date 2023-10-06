@@ -12,6 +12,7 @@ include(CMTest)
 
 add_custom_target(all_expected_res_tests)
 add_custom_target(all_circuit_tests)
+add_custom_target(all_for_test_run)
 
 if(NOT Boost_UNIT_TEST_FRAMEWORK_FOUND)
     cm_find_package(Boost REQUIRED COMPONENTS unit_test_framework filesystem)
@@ -199,3 +200,9 @@ add_zkllvm_unit_test("algebra/integers/division/urem")
 
 add_zkllvm_unit_test("algebra/integers/shift/left")
 add_zkllvm_unit_test("algebra/integers/shift/right")
+
+#bool tests
+add_zkllvm_unit_test("algebra/bool/assigner_exit_check")
+
+add_dependencies(all_for_test_run all_circuit_tests)
+add_dependencies(all_for_test_run all_expected_res_tests)
