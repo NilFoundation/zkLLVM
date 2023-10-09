@@ -1,6 +1,7 @@
 #include <nil/crypto3/hash/algorithm/hash.hpp>
 #include <nil/crypto3/hash/sha2.hpp>
 #include <nil/crypto3/algebra/curves/pallas.hpp>
+#include <nil/crypto3/algebra/curves/ed25519.hpp>
 
 using namespace nil::crypto3;
 using namespace nil::crypto3::algebra::curves;
@@ -9,29 +10,25 @@ typedef __attribute__((ext_vector_type(4)))
                 typename pallas::base_field_type::value_type eddsa_message_block_type;
 
 typedef struct __attribute__((packed)) {
-    __zkllvm_curve_curve25519 R;
-    __zkllvm_field_curve25519_scalar s;
+    typename ed25519::template g1_type<>::value_type R;
+    typename ed25519::scalar_field_type::value_type s;
 } eddsa_signature_type;
 
 bool verify_eddsa_signature (eddsa_signature_type input,
-    __zkllvm_curve_curve25519 pk,
+    typename ed25519::template g1_type<>::value_type pk,
     eddsa_message_block_type M) {
 
-        // __zkllvm_curve_curve25519 B = ed25519::template g1_type<>::value_type::one();
-        __zkllvm_curve_curve25519 B = pk;
-        __zkllvm_field_curve25519_scalar k = __builtin_assigner_sha2_512_curve25519(input.R, pk, M);
+        typename ed25519::template g1_type<>::value_type B = ed25519::template g1_type<>::one();
+        typename ed25519::scalar_field_type::value_type k = __builtin_assigner_sha2_512_curve25519(input.R, pk, M);
 
-        // return (B*input.s - (input.R + (pk*k))).is_zero();
-        return true;
+        return B*input.s == (input.R + (pk*k));
 }
 
 typedef struct __attribute__((packed)) {
     typename hashes::sha2<256>::block_type prev_block_hash;
     typename hashes::sha2<256>::block_type data;
     std::array<eddsa_signature_type, 16> validators_signatures;
-    std::array<__zkllvm_curve_curve25519, 16> validators_keys;
-    // eddsa_signature_type validators_signature;
-    // __zkllvm_curve_curve25519 validators_key;
+    std::array<typename ed25519::template g1_type<>::value_type, 16> validators_keys;
 } block_data_type;
 
 bool is_same(typename hashes::sha2<256>::block_type block0,
