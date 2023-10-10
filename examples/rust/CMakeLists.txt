@@ -37,3 +37,4 @@ function(add_rust_example example_target)
 endfunction()
 
 add_rust_example(arithmetics_builtins_rust_example EXAMPLE_NAME arithmetics_builtins INPUT arithmetics.inp)
+add_rust_example(arithmetics_arkworks_rust_example EXAMPLE_NAME arithmetics_arkworks INPUT arithmetics_arkworks.inp)
