@@ -171,6 +171,10 @@ int main(int argc, char *argv[]) {
             It'll be better to create an empty folder for output")
             ("optimize-gates", "Put multiple sequental small gates into one .sol file")
             ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
+            ("gates-library-threshold", boost::program_options::value<std::size_t>(), "Gates library size limit, per module. Default = 0, each gate in a separate library")
+            ("gates-inline-threshold", boost::program_options::value<std::size_t>(), "Gates inline size limit. Default = 0, none of the gates are inlined")
+            ("lookups-library-threshold", boost::program_options::value<std::size_t>(), "Lookups library size limit, per module. Default = 0, each lookup in a separate library")
+            ("lookups-inline-threshold", boost::program_options::value<std::size_t>(), "Lookups inline size limit. Default = 0, none of the lookups are inlined")
             ;
     // clang-format on
 
@@ -374,12 +378,32 @@ int main(int argc, char *argv[]) {
         constraint_system, assignment_table.public_table(), table_description, lpc_scheme, permutation_size);
 
     if (mode == "gen-evm-verifier") {
+        std::size_t gates_library_threshold = 0;
+        std::size_t lookups_library_threshold = 0;
+        std::size_t gates_inline_threshold = 0;
+        std::size_t lookups_inline_threshold = 0;
+        if ( vm.count("gates-library-threshold") ) {
+            gates_library_threshold = vm["gates-library-threshold"].as<std::size_t>();
+        }
+        if ( vm.count("lookups-library-threshold") ) {
+            gates_library_threshold = vm["lookups-library-threshold"].as<std::size_t>();
+        }
+        if ( vm.count("gates-inline-threshold") ) {
+            gates_inline_threshold = vm["gates-inline-threshold"].as<std::size_t>();
+        }
+        if ( vm.count("lookups-inline-threshold") ) {
+            gates_inline_threshold = vm["lookups-inline-threshold"].as<std::size_t>();
+        }
         nil::blueprint::evm_verifier_printer<placeholder_params>(
             constraint_system,
             public_preprocessed_data.common_data,
             lpc_scheme,
             permutation_size,
-            output_folder_path
+            output_folder_path,
+            gates_library_threshold,
+            lookups_library_threshold,
+            gates_inline_threshold,
+            lookups_inline_threshold
         ).print();
         return 0;
     }
