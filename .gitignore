@@ -642,3 +642,6 @@ callgrind.*
 
 .ycm_extra_config.py
 .color_coded
+
+# We don't want to commit Cargo.lock for examples
+examples/rust/Cargo.lock
