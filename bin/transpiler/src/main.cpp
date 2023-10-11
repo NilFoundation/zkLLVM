@@ -169,7 +169,7 @@ int main(int argc, char *argv[]) {
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit input file")
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
-            ("optimize-gates", "Put multiple sequental small gates into one .sol file")
+            ("optimize-gates", "Put multiple small gates into one .sol file, sets reasonable threshold limits")
             ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
             ("gates-library-threshold", boost::program_options::value<std::size_t>(), "Gates library size limit, per module. Default = 0, each gate in a separate library")
             ("gates-inline-threshold", boost::program_options::value<std::size_t>(), "Gates inline size limit. Default = 0, none of the gates are inlined")
@@ -382,6 +382,14 @@ int main(int argc, char *argv[]) {
         std::size_t lookups_library_threshold = 0;
         std::size_t gates_inline_threshold = 0;
         std::size_t lookups_inline_threshold = 0;
+
+        if ( vm.count("optimize-gates") >0 ) {
+            gates_library_threshold = 1200;
+            lookups_library_threshold = 1200;
+            gates_inline_threshold = 1000;
+            lookups_inline_threshold = 1000;
+        }
+
         if ( vm.count("gates-library-threshold") ) {
             gates_library_threshold = vm["gates-library-threshold"].as<std::size_t>();
         }
