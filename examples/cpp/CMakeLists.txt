@@ -70,6 +70,12 @@ function(add_example_with_proving example_target)
 
     gen_proof(${example_target} ${ARG_INPUT})
     add_dependencies(prove_cpp_examples ${example_target}_prove)
+
+    if(GENERATE_EVM_VERIFIER)
+        gen_evm_verifier(${example_target} ${ARG_INPUT})
+        add_dependencies(prove_cpp_examples ${example_target}_evm_verifier)
+    endif()
+
 endfunction()
 
 add_example_with_proving(arithmetics_cpp_example SOURCES arithmetics.cpp INPUT arithmetics.inp)
