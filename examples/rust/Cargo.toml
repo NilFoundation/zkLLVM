@@ -5,3 +5,4 @@ edition = "2021"
 
 [dev-dependencies]
 ark-pallas = { git = "https://github.com/NilFoundation/arkworks-curves.git", branch = "master", default-features = false, features = [ "zkllvm" ] }
+ark-curve25519 = { git = "https://github.com/NilFoundation/arkworks-curves.git", branch = "master", default-features = false, features = [ "zkllvm" ] }
