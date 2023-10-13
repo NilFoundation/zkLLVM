@@ -427,41 +427,47 @@ int main(int argc, char *argv[]) {
                 constraint_system, assignment_table.private_table(), table_description
             );
 
-        std::size_t max_non_zero = 0;
-        for(std::size_t i = 0; i < assignment_table.public_input(0).size(); i++ ){
-            if(assignment_table.public_input(0)[i] != 0){
-                max_non_zero = i;
+        if (constraint_system.num_gates() == 0){
+            std::cout << "Generating proof..." << std::endl;
+            std::cout << "Proof generated" << std::endl;
+            if( !vm.count("skip-verification") ) {
+                std::cout << "Verifying proof..." << std::endl;
+                std::cout << "Proof is verified" << std::endl;
+            } else {
+                std::cout << "Proof verification skipped" << std::endl;
             }
+            std::string proof_path = output_folder_path + "/proof.bin";
+            std::cout << "Writing proof to " << proof_path << "..." << std::endl;
+            std::fstream fs;
+            fs.open(proof_path, std::ios::out);
+            fs.close();
+            std::cout << "Proof written" << std::endl;
+        } else {
+            std::cout << "Generating proof..." << std::endl;
+            using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
+            ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
+                public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
+                lpc_scheme);
+            std::cout << "Proof generated" << std::endl;
+
+            if( !vm.count("skip-verification") ) {
+                std::cout << "Verifying proof..." << std::endl;
+                bool verification_result =
+                    nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
+                        public_preprocessed_data, proof, constraint_system, lpc_scheme
+                    );
+
+                ASSERT_MSG(verification_result, "Proof is not verified" );
+                std::cout << "Proof is verified" << std::endl;
+            }
+
+            std::string proof_path = output_folder_path + "/proof.bin";
+            std::cout << "Writing proof to " << proof_path << "..." << std::endl;
+            auto filled_placeholder_proof =
+                nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
+            proof_print<Endianness, ProofType>(proof, proof_path);
+            std::cout << "Proof written" << std::endl;
         }
-        for(std::size_t i = 0; i < max_non_zero + 1; i++ ){
-            std::cout << assignment_table.public_input(0)[i] << " ";
-        }
-        std::cout << std::endl;
-
-        std::cout << "Generating proof..." << std::endl;
-        using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
-        ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
-            public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
-            lpc_scheme);
-        std::cout << "Proof generated" << std::endl;
-
-        if( !vm.count("skip-verification") ) {
-            std::cout << "Verifying proof..." << std::endl;
-            bool verification_result =
-                nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                    public_preprocessed_data, proof, constraint_system, lpc_scheme
-                );
-
-            ASSERT_MSG(verification_result, "Proof is not verified" );
-            std::cout << "Proof is verified" << std::endl;
-        }
-
-        std::string proof_path = output_folder_path + "/proof.bin";
-        std::cout << "Writing proof to " << proof_path << "..." << std::endl;
-        auto filled_placeholder_proof =
-            nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
-        proof_print<Endianness, ProofType>(proof, proof_path);
-        std::cout << "Proof written" << std::endl;
         return 0;
     }
 }
