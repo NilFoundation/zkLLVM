@@ -121,3 +121,4 @@ add_example_without_proving(eddsa_signature_verification_cpp SOURCES eddsa_signa
 add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp)
 
 add_example_without_proving(fri_lin_inter SOURCES placeholder_prover/fri_lin_inter.cpp INPUT placeholder_prover/fri_lin_inter.inp)
+add_example_without_proving(fri_array_swap SOURCES placeholder_prover/fri_array_swap.cpp INPUT placeholder_prover/fri_array_swap.inp)
