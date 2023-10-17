@@ -175,6 +175,7 @@ int main(int argc, char *argv[]) {
             ("gates-inline-threshold", boost::program_options::value<std::size_t>(), "Gates inline size limit. Default = 0, none of the gates are inlined")
             ("lookups-library-threshold", boost::program_options::value<std::size_t>(), "Lookups library size limit, per module. Default = 0, each lookup in a separate library")
             ("lookups-inline-threshold", boost::program_options::value<std::size_t>(), "Lookups inline size limit. Default = 0, none of the lookups are inlined")
+            ("deduce-horner", "Detect polynomials over one variable and deduce to Horner's formula")
             ;
     // clang-format on
 
@@ -411,7 +412,8 @@ int main(int argc, char *argv[]) {
             gates_library_threshold,
             lookups_library_threshold,
             gates_inline_threshold,
-            lookups_inline_threshold
+            lookups_inline_threshold,
+            vm.count("deduce-horner") > 0
         ).print();
         return 0;
     }
