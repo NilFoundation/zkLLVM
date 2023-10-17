@@ -227,6 +227,9 @@ add_zkllvm_unit_test("libc/strncpy/strncpy")
 add_zkllvm_unit_test("hashes/sha256/sha2_256")
 add_zkllvm_unit_test("hashes/poseidon/poseidon")
 
+# recursive prover tests
+add_zkllvm_unit_test("algebra/recursive_prover/fri_lin_inter/fri_lin_inter")
+
 add_dependencies(all_for_test_run assigner)
 add_dependencies(all_for_test_run all_circuit_tests)
 add_dependencies(all_for_test_run all_expected_res_tests)
