@@ -109,7 +109,7 @@ typename FRIScheme::params_type create_fri_params(std::size_t degree_log, const 
     typename FRIScheme::params_type params;
     nil::crypto3::math::polynomial<typename FieldType::value_type> q = {0, 0, 1};
 
-    constexpr std::size_t expand_factor = 7;
+    constexpr std::size_t expand_factor = 0;
     std::size_t r = degree_log - 1;
 
     std::vector<std::shared_ptr<nil::crypto3::math::evaluation_domain<FieldType>>> domain_set =
@@ -336,7 +336,7 @@ int main(int argc, char *argv[]) {
 
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
-    const std::size_t Lambda = 9;
+    const std::size_t Lambda = 2;
     using Hash = nil::crypto3::hashes::keccak_1600<256>;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
         BlueprintFieldType, ArithmetizationParams
