@@ -67,6 +67,11 @@ jobs:
           submodules: 'recursive'
           fetch-depth: 0
 
+      - name: Clean index.lock files if checkout step was cancelled or failed
+        if: cancelled() || failure()
+        run: |
+          find .git -name 'index.lock' -exec rm -v {} \;
+
       # Workaround: https://github.com/actions/checkout/issues/1169
       - name: Mark directory as safe
         run: |
