@@ -109,7 +109,7 @@ typename FRIScheme::params_type create_fri_params(std::size_t degree_log, const 
     typename FRIScheme::params_type params;
     nil::crypto3::math::polynomial<typename FieldType::value_type> q = {0, 0, 1};
 
-    constexpr std::size_t expand_factor = 0;
+    constexpr std::size_t expand_factor = 7;
     std::size_t r = degree_log - 1;
 
     std::vector<std::shared_ptr<nil::crypto3::math::evaluation_domain<FieldType>>> domain_set =
@@ -176,6 +176,7 @@ int main(int argc, char *argv[]) {
             ("lookups-library-threshold", boost::program_options::value<std::size_t>(), "Lookups library size limit, per module. Default = 0, each lookup in a separate library")
             ("lookups-inline-threshold", boost::program_options::value<std::size_t>(), "Lookups inline size limit. Default = 0, none of the lookups are inlined")
             ("deduce-horner", "Detect polynomials over one variable and deduce to Horner's formula")
+            ("optimize-powers", "Optimize terms that are powers of single variable")
             ;
     // clang-format on
 
@@ -336,7 +337,7 @@ int main(int argc, char *argv[]) {
 
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
-    const std::size_t Lambda = 2;
+    const std::size_t Lambda = 9;
     using Hash = nil::crypto3::hashes::keccak_1600<256>;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
         BlueprintFieldType, ArithmetizationParams
@@ -383,25 +384,35 @@ int main(int argc, char *argv[]) {
         std::size_t lookups_library_threshold = 0;
         std::size_t gates_inline_threshold = 0;
         std::size_t lookups_inline_threshold = 0;
+        bool deduce_horner = false;
+        bool optimize_powers = false;
 
         if ( vm.count("optimize-gates") >0 ) {
-            gates_library_threshold = 1200;
-            lookups_library_threshold = 1200;
+            gates_library_threshold = 1000;
+            lookups_library_threshold = 1000;
             gates_inline_threshold = 1000;
             lookups_inline_threshold = 1000;
+            deduce_horner = true;
+            optimize_powers = true;
         }
 
         if ( vm.count("gates-library-threshold") ) {
             gates_library_threshold = vm["gates-library-threshold"].as<std::size_t>();
         }
         if ( vm.count("lookups-library-threshold") ) {
-            gates_library_threshold = vm["lookups-library-threshold"].as<std::size_t>();
+            lookups_library_threshold = vm["lookups-library-threshold"].as<std::size_t>();
         }
         if ( vm.count("gates-inline-threshold") ) {
             gates_inline_threshold = vm["gates-inline-threshold"].as<std::size_t>();
         }
         if ( vm.count("lookups-inline-threshold") ) {
-            gates_inline_threshold = vm["lookups-inline-threshold"].as<std::size_t>();
+            lookups_inline_threshold = vm["lookups-inline-threshold"].as<std::size_t>();
+        }
+        if ( vm.count("deduce-horner") > 0 ) {
+            deduce_horner = true;
+        }
+        if ( vm.count("optimize-powers") > 0 ) {
+            optimize_powers = true;
         }
         nil::blueprint::evm_verifier_printer<placeholder_params>(
             constraint_system,
@@ -413,7 +424,8 @@ int main(int argc, char *argv[]) {
             lookups_library_threshold,
             gates_inline_threshold,
             lookups_inline_threshold,
-            vm.count("deduce-horner") > 0
+            deduce_horner,
+            optimize_powers
         ).print();
         return 0;
     }
