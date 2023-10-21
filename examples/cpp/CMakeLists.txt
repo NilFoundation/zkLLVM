@@ -123,3 +123,4 @@ add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp
 add_example_with_proving(fri_lin_inter SOURCES placeholder_prover/fri_lin_inter.cpp INPUT placeholder_prover/fri_lin_inter.inp)
 add_example_with_proving(fri_array_swap SOURCES placeholder_prover/fri_array_swap.cpp INPUT placeholder_prover/fri_array_swap.inp)
 add_example_with_proving(fri_cosets SOURCES placeholder_prover/fri_cosets.cpp INPUT placeholder_prover/fri_cosets.inp)
+add_example_with_proving(gate_argument_verifier SOURCES placeholder_prover/gate_argument_verifier.cpp INPUT placeholder_prover/gate_argument_verifier.inp)
