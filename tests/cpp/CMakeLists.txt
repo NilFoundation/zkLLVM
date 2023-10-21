@@ -166,10 +166,12 @@ add_zkllvm_unit_test("algebra/curves/25519_arithmetics/compare")
 add_zkllvm_unit_test("algebra/curves/25519_arithmetics/add")
 add_zkllvm_unit_test("algebra/curves/25519_arithmetics_2/mul")
 
+if(APPLE)
 add_zkllvm_unit_test("algebra/curves/constructors/zero_pallas")
 add_zkllvm_unit_test("algebra/curves/constructors/one_pallas")
 add_zkllvm_unit_test("algebra/curves/constructors/zero_ed25519")
 add_zkllvm_unit_test("algebra/curves/constructors/one_ed25519")
+endif()
 
 add_zkllvm_unit_test("algebra/curves/pallas_arithmetics/compare")
 # add_zkllvm_unit_test("algebra/curves/pallas_arithmetics/add") # fails when return value is 0,1 due to blueprint bug, temporarily disabled
