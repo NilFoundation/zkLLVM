@@ -123,21 +123,18 @@ typename hashes::sha2<256>::block_type hash_layer(std::array<typename hashes::sh
     std::array<typename hashes::sha2<256>::block_type, potentially_non_zero_leaves_amount> potentially_non_zero_leaves;
     for (std::size_t i = 0; i < potentially_non_zero_leaves_amount; i++) {
         // MSB first
-        typedef __zkllvm_field_pallas_base __attribute__((ext_vector_type(64))) decomposed_int64_type;
+        std::array<typename algebra::curves::pallas::base_field_type::value_type, 128> decomposed_block_1;
+        std::array<typename algebra::curves::pallas::base_field_type::value_type, 128> decomposed_block_2;
 
-        decomposed_int64_type first_balance_in_block_bits =
-            __builtin_assigner_bit_decomposition64(validator_balances[4*i], true);
-        decomposed_int64_type second_balance_in_block_bits =
-            __builtin_assigner_bit_decomposition64(validator_balances[4*i+1], true);
-        decomposed_int64_type third_balance_in_block_bits =
-            __builtin_assigner_bit_decomposition64(validator_balances[4*i+2], true);
-        decomposed_int64_type fourth_balance_in_block_bits =
-            __builtin_assigner_bit_decomposition64(validator_balances[4*i+3], true);
+        __builtin_assigner_bit_decomposition(decomposed_block_1.data()     , 64, validator_balances[4*i], true);
+        __builtin_assigner_bit_decomposition(decomposed_block_1.data() + 64, 64, validator_balances[4*i+1], true);
+        __builtin_assigner_bit_decomposition(decomposed_block_2.data()     , 64, validator_balances[4*i+2], true);
+        __builtin_assigner_bit_decomposition(decomposed_block_2.data() + 64, 64, validator_balances[4*i+3], true);
 
-        typename algebra::curves::pallas::base_field_type::value_type first_block = __builtin_assigner_bit_composition128(
-            first_balance_in_block_bits, second_balance_in_block_bits, true);
-        typename algebra::curves::pallas::base_field_type::value_type second_block = __builtin_assigner_bit_composition128(
-            third_balance_in_block_bits, fourth_balance_in_block_bits, true);
+        typename algebra::curves::pallas::base_field_type::value_type first_block = __builtin_assigner_bit_composition(
+            decomposed_block_1.data(), 128, true);
+        typename algebra::curves::pallas::base_field_type::value_type second_block = __builtin_assigner_bit_composition(
+            decomposed_block_2.data(), 128, true);
 
         potentially_non_zero_leaves[i] = {first_block, second_block};
     }
