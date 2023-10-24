@@ -212,6 +212,8 @@ add_zkllvm_unit_test("algebra/bool/assigner_exit_check")
 add_zkllvm_unit_test("algebra/de_composition/decomposition/msb")
 add_zkllvm_unit_test("algebra/de_composition/decomposition/lsb")
 
+# recursive prover tests
+add_zkllvm_unit_test("algebra/recursive_prover/fri_lin_inter/fri_lin_inter")
 
 add_dependencies(all_for_test_run all_circuit_tests)
 add_dependencies(all_for_test_run all_expected_res_tests)
