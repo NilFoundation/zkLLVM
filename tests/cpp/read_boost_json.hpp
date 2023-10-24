@@ -111,8 +111,8 @@ typename OperatingFieldType::value_type read_field(boost::json::value& input_jso
     return parse_scalar<OperatingFieldType>(current_value.at("field"));
 }
 
-
-uint32_t read_uint32_t(boost::json::value& input_json_value, std::size_t position) {
+template<typename int_type>
+int_type read_uint(boost::json::value& input_json_value, std::size_t position) {
 
     const boost::json::object &current_value = input_json_value.as_array()[position].as_object();
     if (current_value.size() != 1)
@@ -123,7 +123,7 @@ uint32_t read_uint32_t(boost::json::value& input_json_value, std::size_t positio
         assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
     }
 
-    uint32_t current_res;
+    int_type current_res;
 
     switch (current_value.at("int").kind()) {
         case boost::json::kind::int64:
