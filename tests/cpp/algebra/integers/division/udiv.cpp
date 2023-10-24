@@ -27,8 +27,8 @@ int main (int argc, char *argv[]){
 
     boost::json::value input_json = read_boost_json(std::string(argv[1]));
 
-    uint32_t a = read_uint32_t(input_json, 0);
-    uint32_t b = read_uint32_t(input_json, 1);
+    uint32_t a = read_uint<uint32_t>(input_json, 0);
+    uint32_t b = read_uint<uint32_t>(input_json, 1);
 
     division(a, b);
     return 0;
