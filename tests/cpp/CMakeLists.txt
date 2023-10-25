@@ -20,6 +20,7 @@ endif()
 
 cm_test_link_libraries(
                        crypto3::zk
+                       crypto3::assigner
                        ${Boost_LIBRARIES})
 
 
@@ -215,6 +216,7 @@ add_zkllvm_unit_test("algebra/de_composition/decomposition/lsb")
 # recursive prover tests
 add_zkllvm_unit_test("algebra/recursive_prover/fri_lin_inter/fri_lin_inter")
 add_zkllvm_unit_test("algebra/recursive_prover/fri_cosets/fri_cosets")
+add_zkllvm_unit_test("algebra/recursive_prover/gate_arg_verifier/1gate_1constr/gate_arg_verifier")
 
 add_dependencies(all_for_test_run all_circuit_tests)
 add_dependencies(all_for_test_run all_expected_res_tests)
