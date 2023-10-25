@@ -20,6 +20,7 @@ endif()
 
 cm_test_link_libraries(
                        crypto3::zk
+                       crypto3::assigner
                        ${Boost_LIBRARIES})
 
 
@@ -226,5 +227,6 @@ add_zkllvm_unit_test("libc/strncpy/strncpy")
 add_zkllvm_unit_test("hashes/sha256/sha2_256")
 add_zkllvm_unit_test("hashes/poseidon/poseidon")
 
+add_dependencies(all_for_test_run assigner)
 add_dependencies(all_for_test_run all_circuit_tests)
 add_dependencies(all_for_test_run all_expected_res_tests)
