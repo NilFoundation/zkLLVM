@@ -1,49 +1,143 @@
-[ {"array": [
+[
+  {"array":[
     {"field":1},
-    {"field":2},
-    {"field":3},
-    {"field":4},
-    {"field":5}
-    ]},
-  {"array": [
-    {"field":10},
-    {"field":11},
-    {"field":12}
-    ] },
-  {"array": [
-    {"field":10},
-    {"field":11},
-    {"field":12},
-    {"field":13},
-    {"field":14},
-    {"field":15}
-    ] },
-  {"array": [
-    {"field":10},
-    {"field":11},
-    {"field":12},
-    {"field":13},
-    {"field":14},
-    {"field":15}
-    ] },
-  {"array": [
-    {"field":10},
-    {"field":11},
-    {"field":12}
-    ] },
-  {"array": [
-    {"field":10},
-    {"field":11},
-    {"field":12},
-    {"field":13},
-    {"field":14},
-    {"field":15}
-    ] },
-    {"field":20}
-     ]
-
-
-    std::array<typename pallas::base_field_type::value_type, 14> lookup_table_lookup_options,
-    std::array<typename pallas::base_field_type::value_type, 3> shifted_lookup_table_selectors,
-    std::array<typename pallas::base_field_type::value_type, 14> shifted_lookup_table_lookup_options,
-    std::array<typename pallas::base_field_type::value_type, 17> sorted
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1}
+]},
+{"array":[
+    {"field":1},
+    {"field":1},
+    {"field":1}
+]},
+{"array":[
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1}
+]},
+{"array":[
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1}
+]},
+{"array":[
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1}
+]},
+{"array":[
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1}
+]},
+{"array":[
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1}
+]},
+{"array":[
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1}
+]},
+{"array":[
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1}
+]},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+    {"field":1},
+{"vector":[
+    {"field":1},
+    {"field":1}
+]},
+{"vector":[
+    {"field":1},
+    {"field":1}
+]},
+{"vector":[
+    {"field":1},
+    {"field":1}
+]}
+]
