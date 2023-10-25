@@ -11,6 +11,6 @@ using namespace nil::crypto3::algebra::curves;
 
     std::array<std::array<typename pallas::base_field_type::value_type, 3>, array_length> res;
 
-     __builtin_assigner_fri_cosets(res.data(), array_length, omega, bits_amount, input);
+     __builtin_assigner_fri_cosets(res.data(), array_length, omega, input);
      return res;
 }
