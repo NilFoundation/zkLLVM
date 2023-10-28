@@ -20,10 +20,8 @@ input_type swap_array(input_type input, bool swap) {
 
 
 [[circuit]] typename pallas::base_field_type::value_type
-    field_arithmetic_example(typename pallas::base_field_type::value_type swap_field,
+    field_arithmetic_example(bool swap,
         std::array<typename pallas::base_field_type::value_type, 6> input) {
-
-    bool swap = typename pallas::base_field_type::value_type(0) != swap_field;
 
     using arr6_type = std::array<typename pallas::base_field_type::value_type, 6>;
     using arr4_type = std::array<typename pallas::base_field_type::value_type, 4>;
