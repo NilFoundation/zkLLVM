@@ -217,6 +217,7 @@ add_zkllvm_unit_test("algebra/de_composition/decomposition/lsb")
 add_zkllvm_unit_test("algebra/recursive_prover/fri_lin_inter/fri_lin_inter")
 add_zkllvm_unit_test("algebra/recursive_prover/fri_cosets/fri_cosets")
 add_zkllvm_unit_test("algebra/recursive_prover/gate_arg_verifier/1gate_1constr/gate_arg_verifier")
+add_zkllvm_unit_test("algebra/recursive_prover/permutation_arg_verifier/input_length_4/test")
 
 add_dependencies(all_for_test_run all_circuit_tests)
 add_dependencies(all_for_test_run all_expected_res_tests)
