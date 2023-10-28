@@ -197,3 +197,23 @@ std::array<typename OperatingFieldType::value_type, size>
     return res;
 
 }
+
+template<typename OperatingFieldType, std::size_t size>
+std::array<typename OperatingFieldType::value_type, size>
+    read_vector_field(boost::json::value& input_json_value, std::size_t position) {
+
+    std::array<typename OperatingFieldType::value_type, size> res;
+
+    const boost::json::object &current_obj = input_json_value.as_array()[position].as_object();
+    ASSERT(current_obj.size() == 1 && current_obj.contains("vector"));
+    ASSERT(current_obj.at("vector").is_array());
+    auto &arr = current_obj.at("vector").as_array();
+
+    for(std::size_t i = 0; i < size; i++) {
+        ASSERT(arr[i].as_object().contains("field"));
+        res[i] = parse_scalar<OperatingFieldType>(arr[i].as_object().at("field"));
+    }
+
+    return res;
+
+}
