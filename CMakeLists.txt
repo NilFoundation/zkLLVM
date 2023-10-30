@@ -137,6 +137,7 @@ include(CPack)
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
 install(TARGETS assigner RUNTIME DESTINATION bin)
 install(TARGETS transpiler RUNTIME DESTINATION bin)
+install(TARGETS recursive-gen RUNTIME DESTINATION bin)
 
 # Package for stdlib
 add_custom_target(stdlib_package

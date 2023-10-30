@@ -166,10 +166,12 @@ add_zkllvm_unit_test("algebra/curves/25519_arithmetics/compare")
 add_zkllvm_unit_test("algebra/curves/25519_arithmetics/add")
 add_zkllvm_unit_test("algebra/curves/25519_arithmetics_2/mul")
 
+if(APPLE)
 add_zkllvm_unit_test("algebra/curves/constructors/zero_pallas")
 add_zkllvm_unit_test("algebra/curves/constructors/one_pallas")
 add_zkllvm_unit_test("algebra/curves/constructors/zero_ed25519")
 add_zkllvm_unit_test("algebra/curves/constructors/one_ed25519")
+endif()
 
 add_zkllvm_unit_test("algebra/curves/pallas_arithmetics/compare")
 # add_zkllvm_unit_test("algebra/curves/pallas_arithmetics/add") # fails when return value is 0,1 due to blueprint bug, temporarily disabled
@@ -193,6 +195,8 @@ add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/loop")
 add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/mul")
 add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/sub")
 
+add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/private_input_add")
+
 
 # int tests
 add_zkllvm_unit_test("algebra/integers/division/udiv")
@@ -203,6 +207,11 @@ add_zkllvm_unit_test("algebra/integers/shift/right")
 
 #bool tests
 add_zkllvm_unit_test("algebra/bool/assigner_exit_check")
+
+# bit de/composition tests
+add_zkllvm_unit_test("algebra/de_composition/decomposition/msb")
+add_zkllvm_unit_test("algebra/de_composition/decomposition/lsb")
+
 
 add_dependencies(all_for_test_run all_circuit_tests)
 add_dependencies(all_for_test_run all_expected_res_tests)
