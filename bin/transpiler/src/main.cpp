@@ -253,7 +253,7 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 35;
+    constexpr std::size_t SelectorColumns = 70;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
