@@ -160,7 +160,11 @@ int curve_dependent_main(std::string bytecode_file_name,
 
     zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams> desc;
     desc.usable_rows_amount = parser_instance.assignmnt.rows_amount();
-    desc.rows_amount = zk::snark::basic_padding(parser_instance.assignmnt);
+    if (check_validity){
+        bool is_satisfied = nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignmnt);
+        ASSERT_MSG(is_satisfied, "The circuit is not satisfied" );
+    }
+    desc.rows_amount = zk::snark::zk_padding(parser_instance.assignmnt);
 
     std::ofstream otable;
     otable.open(assignment_table_file_name);
@@ -171,7 +175,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
     using AssignmentTableType = zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, zk::snark::plonk_column<BlueprintFieldType>>;
     print_assignment_table<
-        nil::marshalling::option::big_endian, 
+        nil::marshalling::option::big_endian,
         AssignmentTableType
     >(desc.usable_rows_amount, parser_instance.assignmnt, otable);
 
@@ -186,11 +190,6 @@ int curve_dependent_main(std::string bytecode_file_name,
     }
     print_circuit<nil::marshalling::option::big_endian, ConstraintSystemType>(parser_instance.bp, ocircuit);
     ocircuit.close();
-
-    if (check_validity){
-        bool is_satisfied = nil::blueprint::is_satisfied(parser_instance.bp, parser_instance.assignmnt);
-        ASSERT_MSG(is_satisfied, "The circuit is not satisfied" );
-    }
 
     return 0;
 }
