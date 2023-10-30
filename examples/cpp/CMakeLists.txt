@@ -78,6 +78,7 @@ function(add_example_with_proving example_target)
 
 endfunction()
 
+add_example_with_proving(placeholder_verifier_cpp_example SOURCES placeholder_verifier.cpp INPUT placeholder_verifier.inp)
 add_example_with_proving(arithmetics_cpp_example SOURCES arithmetics.cpp INPUT arithmetics.inp)
 add_example_with_proving(integer_arithmetics_cpp_example SOURCES integer_arithmetics.cpp INPUT integer_arithmetics.inp)
 add_example_with_proving(poseidon_cpp_example SOURCES poseidon.cpp INPUT poseidon.inp)

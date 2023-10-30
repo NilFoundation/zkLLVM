@@ -23,10 +23,16 @@
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
 
+#include <nil/crypto3/hash/algorithm/hash.hpp>
+#include <nil/crypto3/hash/sha2.hpp>
+#include <nil/crypto3/hash/md5.hpp>
+#include <nil/crypto3/hash/keccak.hpp>
+#include <nil/crypto3/hash/poseidon.hpp>
+
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
-#include <nil/crypto3/marshalling/zk/types/placeholder/proof.hpp>
+//#include <nil/crypto3/marshalling/zk/types/placeholder/proof.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/constraint_system.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/assignment_table.hpp>
 
@@ -43,6 +49,7 @@
 #include <nil/blueprint/transpiler/minimized_profiling_plonk_circuit.hpp>
 #include <nil/blueprint/transpiler/evm_verifier_gen.hpp>
 #include <nil/blueprint/transpiler/public_input.hpp>
+#include <nil/blueprint/transpiler/recursive_verifier_generator.hpp>
 
 bool read_buffer_from_file(std::ifstream &ifile, std::vector<std::uint8_t> &v) {
     char c;
@@ -109,7 +116,7 @@ typename FRIScheme::params_type create_fri_params(std::size_t degree_log, const 
     typename FRIScheme::params_type params;
     nil::crypto3::math::polynomial<typename FieldType::value_type> q = {0, 0, 1};
 
-    constexpr std::size_t expand_factor = 0;
+    constexpr std::size_t expand_factor = 1;
     std::size_t r = degree_log - 1;
 
     std::vector<std::shared_ptr<nil::crypto3::math::evaluation_domain<FieldType>>> domain_set =
@@ -134,7 +141,7 @@ void print_hex_byteblob(std::ostream &os, TIter iter_begin, TIter iter_end, bool
         os << std::endl;
     }
 }
-
+/*
 template<typename Endianness, typename Proof>
 void proof_print(Proof &proof, const std::string &output_file) {
     using namespace nil::crypto3::marshalling;
@@ -151,7 +158,7 @@ void proof_print(Proof &proof, const std::string &output_file) {
     out.open(output_file);
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
-
+*/
 int main(int argc, char *argv[]) {
 
     boost::program_options::options_description options_desc("zkLLVM circuit EVM gate argument transpiler");
@@ -159,11 +166,14 @@ int main(int argc, char *argv[]) {
     // clang-format off
     options_desc.add_options()("help,h", "Display help message")
             ("version,v", "Display version")
-            ("mode,m", boost::program_options::value<std::string>(), "Transpiler mode (gen-circuit-params, gen-gate-argument, gen-test-proof, gen-evm-verifier).\
+            ("mode,m", boost::program_options::value<std::string>(), "Transpiler mode (gen-circuit-params, gen-gate-argument, gen-test-proof, gen-evm-verifier, gen-recursive-verifier-input, gen-recursive-verifier-main).\
             gen-gate-argument prepares gate argument and some placeholder params.\
             gen-circuit-params prepares circuit parameters for verification.\
             gen-test-proof prepares gate argument, placeholder params and sample proof for local testing.\
-            gen-evm-verifier generates all modules for evm verification.")
+            gen-evm-verifier generates all modules for evm verification.\
+            gen-recursive-verifier-input generates test proof and recursive verifier input.\
+            gen-recursive-verifier-main generates main.cpp file for recursive verifier for given circuit.\
+             ")
             ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table input file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit input file")
@@ -213,7 +223,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (!(mode == "gen-test-proof" || mode == "gen-gate-argument" || mode == "gen-circuit-params" || mode == "gen-evm-verifier")) {
+    if (!(mode == "gen-test-proof" || mode == "gen-gate-argument" ||
+          mode == "gen-circuit-params" || mode == "gen-evm-verifier" ||
+          mode == "gen-recursive-verifier-input" || mode == "gen-recursive-verifier-main"
+    )) {
         std::cerr << "Invalid mode specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -331,12 +344,15 @@ int main(int argc, char *argv[]) {
                 marshalled_table_data
             );
         table_description.rows_amount = assignment_table.rows_amount();
+        std::cout << "usable rows amount = " << table_description.usable_rows_amount << std::endl;
+        std::cout << "rows amount = " << table_description.rows_amount << std::endl;
     }
-
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
     const std::size_t Lambda = 2;
-    using Hash = nil::crypto3::hashes::keccak_1600<256>;
+    using policy = nil::crypto3::hashes::detail::mina_poseidon_policy<BlueprintFieldType>;
+    using Hash = nil::crypto3::hashes::poseidon<policy>;
+//    using Hash = nil::crypto3::hashes::keccak_1600<256>;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
         BlueprintFieldType, ArithmetizationParams
     >;
@@ -367,7 +383,8 @@ int main(int argc, char *argv[]) {
             constraint_system, columns_rotations, output_folder_path, optimize_gates);
     }
 
-    if ((mode != "gen-circuit-params") && (mode != "gen-test-proof") && (mode != "gen-evm-verifier")) {
+    if ((mode != "gen-circuit-params") && (mode != "gen-test-proof") && (mode != "gen-evm-verifier") &&
+        (mode != "gen-recursive-verifier-input" && mode != "gen-recursive-verifier-main")) {
         return 0;
     }
 
@@ -376,6 +393,16 @@ int main(int argc, char *argv[]) {
         BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
     nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
         constraint_system, assignment_table.public_table(), table_description, lpc_scheme, permutation_size);
+    if( mode == "gen-recursive-verifier-main"){
+        std::string cpp_path = output_folder_path + "/placeholder_verifier.cpp";
+        std::ofstream output_file;
+        output_file.open(cpp_path);
+        output_file << nil::blueprint::recursive_verifier_generator<placeholder_params>::generate_recursive_verifier(
+            constraint_system, public_preprocessed_data.common_data, lpc_scheme, permutation_size
+        );
+        output_file.close();
+        return 0;
+    }
 
     if (mode == "gen-evm-verifier") {
         std::size_t gates_library_threshold = 0;
@@ -384,9 +411,9 @@ int main(int argc, char *argv[]) {
         std::size_t lookups_inline_threshold = 0;
 
         if ( vm.count("optimize-gates") >0 ) {
-            gates_library_threshold = 1200;
+            gates_library_threshold = 600;
             lookups_library_threshold = 1200;
-            gates_inline_threshold = 1000;
+            gates_inline_threshold = 800;
             lookups_inline_threshold = 1000;
         }
 
@@ -419,7 +446,7 @@ int main(int argc, char *argv[]) {
     nil::crypto3::zk::snark::print_placeholder_params<placeholder_params>(
         public_preprocessed_data, lpc_scheme, output_folder_path+"/circuit_params.json");
 
-    if (mode == "gen-test-proof") {
+    if (mode == "gen-test-proof" || mode == "gen-recursive-verifier-input") {
         std::cout << "Preprocessing private data..." << std::endl;
         typename nil::crypto3::zk::snark::placeholder_private_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type private_preprocessed_data =
@@ -456,12 +483,25 @@ int main(int argc, char *argv[]) {
             std::cout << "Proof is verified" << std::endl;
         }
 
-        std::string proof_path = output_folder_path + "/proof.bin";
-        std::cout << "Writing proof to " << proof_path << "..." << std::endl;
-        auto filled_placeholder_proof =
-            nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
-        proof_print<Endianness, ProofType>(proof, proof_path);
-        std::cout << "Proof written" << std::endl;
+        if( mode == "gen-test-proof"){
+            std::string proof_path = output_folder_path + "/proof.bin";
+            std::cout << "Writing proof to " << proof_path << "..." << std::endl;
+            //auto filled_placeholder_proof =
+            //    nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
+            //proof_print<Endianness, ProofType>(proof, proof_path);
+            std::cout << "Proof written" << std::endl;
+        } else if( mode == "gen-recursive-verifier-input"){
+            typename BlueprintFieldType::value_type test_poseidon(0x2fadbe2852044d028597455bc2abbd1bc873af205dfabb8a304600f3e09eeba8_cppui255);
+            auto result = nil::crypto3::hash<Hash>(test_poseidon, test_poseidon);
+
+            std::string inp_path = output_folder_path + "/placeholder_verifier.inp";
+            std::ofstream output_file;
+            output_file.open(inp_path);
+            output_file << nil::blueprint::recursive_verifier_generator<placeholder_params>::generate_input(
+                {}, public_preprocessed_data.common_data.vk, proof
+            );
+            output_file.close();
+        }
         return 0;
     }
 }
