@@ -2,17 +2,18 @@
 
 use std::intrinsics::assigner_sha2_256;
 
+use ark_ff::AdditiveGroup;
 use ark_pallas::Fq;
 
 type BlockType = [Fq; 2];
 
 #[circuit]
 pub fn balance(layer_0_leaves: [BlockType; 0x10]) -> BlockType {
-    let mut layer_1_leaves: [BlockType; 0x8] = [[0g.into(), 0g.into()]; 0x8];
+    let mut layer_1_leaves: [BlockType; 0x8] = [[Fq::ZERO, Fq::ZERO]; 0x8];
     let layer_1_size = 0x8;
-    let mut layer_2_leaves: [BlockType; 0x4] = [[0g.into(), 0g.into()]; 0x4];
+    let mut layer_2_leaves: [BlockType; 0x4] = [[Fq::ZERO, Fq::ZERO]; 0x4];
     let layer_2_size = 0x4;
-    let mut layer_3_leaves: [BlockType; 0x2] = [[0g.into(), 0g.into()]; 0x2];
+    let mut layer_3_leaves: [BlockType; 0x2] = [[Fq::ZERO, Fq::ZERO]; 0x2];
     let layer_3_size = 0x2;
 
     for leaf_index in 0..layer_1_size {
