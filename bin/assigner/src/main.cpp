@@ -555,7 +555,7 @@ int main(int argc, char *argv[]) {
         std::cout << options_desc << std::endl;
         return 1;
     }
-    
+
 
     if (vm.count("help")) {
         std::cout << options_desc << std::endl;
