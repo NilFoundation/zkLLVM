@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dev-dependencies]
-ark-pallas = { git = "https://github.com/NilFoundation/arkworks-curves.git", branch = "master", default-features = false, features = [ "zkllvm" ] }
-ark-curve25519 = { git = "https://github.com/NilFoundation/arkworks-curves.git", branch = "master", default-features = false, features = [ "zkllvm" ] }
+ark-ff = { git = "https://github.com/NilFoundation/arkworks-algebra.git", features = [ "zkllvm" ] }
+ark-pallas = { git = "https://github.com/NilFoundation/arkworks-curves.git", features = [ "zkllvm" ] }
+ark-curve25519 = { git = "https://github.com/NilFoundation/arkworks-curves.git", features = [ "zkllvm" ] }
