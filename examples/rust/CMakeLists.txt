@@ -19,7 +19,7 @@ function(add_rust_example example_target)
                         ${ARGN})
 
     add_custom_target(${example_target}
-                      RUSTC=${RUSTC} ${CARGO} build --target-dir ${TARGET_DIR} --target ${TARGET} --example ${ARG_EXAMPLE_NAME} --release
+                      RUSTC=${RUSTC} ${CARGO} build --target-dir ${TARGET_DIR} --target ${TARGET} --example ${ARG_EXAMPLE_NAME} --release --ignore-rust-version
                       DEPENDS rslang
                       USES_TERMINAL
                       VERBATIM
