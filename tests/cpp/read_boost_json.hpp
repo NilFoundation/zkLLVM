@@ -17,6 +17,7 @@
 #include <boost/program_options.hpp>
 
 #include <nil/crypto3/algebra/curves/pallas.hpp>
+#include <nil/blueprint/asserts.hpp>
 
 
 boost::json::value read_boost_json (std::string input_file_name) {
@@ -24,7 +25,7 @@ boost::json::value read_boost_json (std::string input_file_name) {
     std::ifstream input_file(input_file_name.c_str());
     if (!input_file.is_open()) {
         std::cerr << "Could not open the file - '" << input_file_name << "'" << std::endl;
-        assert(false && "Could not open input file!");
+        UNREACHABLE("Could not open input file!");
     }
 
     boost::json::stream_parser p;
@@ -51,9 +52,7 @@ boost::json::value read_boost_json (std::string input_file_name) {
     }
 
     for (std::size_t i = 0; i < input_json_value.as_array().size(); i++) {
-        if (!input_json_value.as_array()[i].is_object()) {
-            assert(false && "input must containt json objects");
-        }
+        ASSERT_MSG(input_json_value.as_array()[i].is_object(), "input must containt json objects");
     }
 
     return input_json_value;
@@ -80,19 +79,21 @@ typename OperatingFieldType::value_type parse_scalar(const boost::json::value &j
         numlen = json_value.as_string().size();
         if (numlen > buflen - 1) {
             std::cerr << "json_value " << json_value.as_string() << " exceeds buffer size (" << buflen - 1 << ")\n";
-            assert(false && "json_value size exceeds buffer size");
+            UNREACHABLE("json_value size exceeds buffer size");
         }
         json_value.as_string().copy(buf, numlen);
         buf[numlen] = '\0';
         integral_res = typename OperatingFieldType::extended_integral_type(buf);
         if (integral_res >= OperatingFieldType::modulus) {
-            assert(false && "Input does not fit into OperatingFieldType");
+            std::cerr << "input value:   " << integral_res << "\n";
+            std::cerr << "field_modulus: " << OperatingFieldType::modulus << "\n";
+            UNREACHABLE("Input does not fit into OperatingFieldType");
         }
         res = integral_res;
         return res;
     }
     default:
-        assert(false && "only integers and strings are supported");
+        UNREACHABLE("only integers and strings are supported");
     }
 }
 
@@ -100,13 +101,9 @@ template<typename OperatingFieldType>
 typename OperatingFieldType::value_type read_field(boost::json::value& input_json_value, std::size_t position) {
 
     const boost::json::object &current_value = input_json_value.as_array()[position].as_object();
-    if (current_value.size() != 1)
-        assert(false && "field length must be 1");
-    if(!current_value.contains("field"))
-        assert(false && "json value must contain \"field\"");
-    if (current_value.at("field").is_double()) {
-        assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
-    }
+    ASSERT_MSG(current_value.size() == 1, "field length must be 1");
+    ASSERT_MSG(current_value.contains("field"), "json value must contain \"field\"");
+    ASSERT_MSG(!current_value.at("field").is_double(), "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
 
     return parse_scalar<OperatingFieldType>(current_value.at("field"));
 }
@@ -115,13 +112,9 @@ template<typename int_type>
 int_type read_uint(boost::json::value& input_json_value, std::size_t position) {
 
     const boost::json::object &current_value = input_json_value.as_array()[position].as_object();
-    if (current_value.size() != 1)
-        assert(false && "field length must be 1");
-    if(!current_value.contains("int"))
-        assert(false && "json value must contain \"int\"");
-    if (current_value.at("int").is_double()) {
-        assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
-    }
+    ASSERT_MSG(current_value.size() == 1, "field length must be 1");
+    ASSERT_MSG(current_value.contains("int"), "json value must contain \"int\"");
+    ASSERT_MSG(!current_value.at("int").is_double(), "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
 
     int_type current_res;
 
@@ -134,7 +127,7 @@ int_type read_uint(boost::json::value& input_json_value, std::size_t position) {
             break;
         default: {
             std::cerr << "wrong kind of input value: " << current_value.at("int").kind() << "\n";
-            std::abort();
+            UNREACHABLE("wrong kind of input");
         }
     }
 
@@ -148,18 +141,18 @@ PointType read_curve(boost::json::value& input_json_value, std::size_t position)
 
     const boost::json::object &current_value = input_json_value.as_array()[position].as_object();
     if(!current_value.contains("curve"))
-        assert(false && "json value must contain \"curve\"");
+        ASSERT(false && "json value must contain \"curve\"");
     if (!current_value.at("curve").is_array()) {
-        assert(false && "curve element must be array of length 2");
+        ASSERT(false && "curve element must be array of length 2");
     }
     else {
         if(current_value.at("curve").as_array().size() != 2) {
-            assert(false && "curve element must be array of length 2");
+            ASSERT(false && "curve element must be array of length 2");
         }
         else {
             if (current_value.at("curve").as_array()[0].is_double() ||
                 current_value.at("curve").as_array()[1].is_double()) {
-                assert(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
+                ASSERT(false && "got double value for field argument. Probably the value is too big to be represented as integer. You can put it in quotes to avoid JSON parser restrictions.");
             }
             else {
                 res.X = parse_scalar<FieldType>(current_value.at("curve").as_array()[0]);
@@ -168,4 +161,44 @@ PointType read_curve(boost::json::value& input_json_value, std::size_t position)
         }
     }
     return res;
+}
+
+template<typename OperatingFieldType, std::size_t size>
+std::array<typename OperatingFieldType::value_type, size>
+    read_array_field(boost::json::value& input_json_value, std::size_t position) {
+
+    std::array<typename OperatingFieldType::value_type, size> res;
+
+    const boost::json::object &current_obj = input_json_value.as_array()[position].as_object();
+    ASSERT(current_obj.size() == 1 && current_obj.contains("array"));
+    ASSERT(current_obj.at("array").is_array());
+    auto &arr = current_obj.at("array").as_array();
+
+    for(std::size_t i = 0; i < size; i++) {
+        ASSERT(arr[i].as_object().contains("field"));
+        res[i] = parse_scalar<OperatingFieldType>(arr[i].as_object().at("field"));
+    }
+
+    return res;
+
+}
+
+template<typename OperatingFieldType, std::size_t size>
+std::array<typename OperatingFieldType::value_type, size>
+    read_vector_field(boost::json::value& input_json_value, std::size_t position) {
+
+    std::array<typename OperatingFieldType::value_type, size> res;
+
+    const boost::json::object &current_obj = input_json_value.as_array()[position].as_object();
+    ASSERT(current_obj.size() == 1 && current_obj.contains("vector"));
+    ASSERT(current_obj.at("vector").is_array());
+    auto &arr = current_obj.at("vector").as_array();
+
+    for(std::size_t i = 0; i < size; i++) {
+        ASSERT(arr[i].as_object().contains("field"));
+        res[i] = parse_scalar<OperatingFieldType>(arr[i].as_object().at("field"));
+    }
+
+    return res;
+
 }

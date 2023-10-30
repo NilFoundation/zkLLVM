@@ -1,0 +1,32 @@
+[
+    {"array":[
+        {"field":"0x15d6ac6a26ba0bf2d81357fc2009ca5c8df2ee41a3442fdb40f9ef7d31d2968f"},
+        {"field":"0"},
+        {"field":"0x15d6ac6a26ba0bf2d81357fc2009ca5c8df2ee41a3442fdb40f9ef7d31d2968f"}
+    ]},
+    {"array":[
+        {"field":"0x3b96bf475105236e888b56379c4a37e56e694e4778d96480b2bff231b3448fd8"},
+        {"field":"0x29f1bc649519b128aab8af160d73177a9ef42375370b1215190af7448056cf34"},
+        {"field":"0x11b8adf6e98075cb559b6b6e433f7564b3f0e655f7506f16b1af418f81b20c01"}
+    ]},
+    {"array":[
+        {"field":"0x3b96bf475105236e888b56379c4a37e56e694e4778d96480b2bff231b3448fd8"},
+        {"field":"0x29f1bc649519b128aab8af160d73177a9ef42375370b1215190af7448056cf34"},
+        {"field":"0x11b8adf6e98075cb559b6b6e433f7564b3f0e655f7506f16b1af418f81b20c01"}
+    ]},
+    {"field":"0x2a37d8915b58f641a50e3d4e43869c2987f7988f0ff7dac56a285ee684e53af3"},
+    {"field":"0x1"},
+    {"field":"0x1"},
+    {"field":"0x2a37d8915b58f641a50e3d4e43869c2987f7988f0ff7dac56a285ee684e53af3"},
+    {"field":"0x362c09c9697f3d477eee786396c2e690cc2f73d44a5650e351b2b844dba3fb73"},
+
+    {"vector":[
+        {"field":"0xc51d84f8427d67ce47566fb043b6415f91196129cb6fd0ea3362f213a0e8cc8"},
+        {"field":"0x3301d234398523d96772d81b9b06b066888f67fcc3f1d0af919bbc7b856cf854"}
+    ]},
+    {"vector":[
+        {"field":"0"},
+        {"field":"0"},
+        {"field":"0"}
+    ]}
+]
