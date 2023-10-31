@@ -224,8 +224,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (!(mode == "gen-test-proof" || mode == "gen-gate-argument" ||
-          mode == "gen-circuit-params" || mode == "gen-evm-verifier" ||
-          mode == "gen-recursive-verifier-input" || mode == "gen-recursive-verifier-main"
+          mode == "gen-circuit-params" || mode == "gen-evm-verifier"
     )) {
         std::cerr << "Invalid mode specified" << std::endl;
         std::cout << options_desc << std::endl;
@@ -266,7 +265,7 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 35;
+    constexpr std::size_t SelectorColumns = 100;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
