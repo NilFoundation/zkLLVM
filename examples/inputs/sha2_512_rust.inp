@@ -1,53 +1,29 @@
 [
   {
-    "struct": [
-      {
-        "curve": [
-          52,
-          647
-        ]
-      }
+    "curve": [
+      52,
+      647
     ]
   },
   {
-    "struct": [
-      {
-        "curve": [
-          52,
-          647
-        ]
-      }
+    "curve": [
+      52,
+      647
     ]
   },
   {
     "array": [
       {
-        "struct": [
-          {
-            "field": 234
-          }
-        ]
+        "field": 234
       },
       {
-        "struct": [
-          {
-            "field": 45633456
-          }
-        ]
+        "field": 45633456
       },
       {
-        "struct": [
-          {
-            "field": 345
-          }
-        ]
+        "field": 345
       },
       {
-        "struct": [
-          {
-            "field": 724257
-          }
-        ]
+        "field": 724257
       }
     ]
   }
