@@ -93,10 +93,10 @@ class Release(TypedDict):
 
 
 def parse_args():
-    description="""This is an installer for rslang - zkLLVM fork of Rust.
+    description = """This is an installer for rslang - zkLLVM fork of Rust.
     This script finds a pre-built release of rslang for your platform and installs it.
     """
-    epilog="To get more information about zkLLVM visit https://github.com/NilFoundation/zkllvm."
+    epilog = "To get more information about zkLLVM visit https://github.com/NilFoundation/zkllvm."
 
     parser = argparse.ArgumentParser("rslang-installer",
                                      description=description,
@@ -104,7 +104,11 @@ def parse_args():
     parser.add_argument("release",
                         nargs='?',
                         default="latest",
-                        help="release version (e.g. 'v0.1.0' or 'latest')")
+                        help="zkLLVM release version (e.g. 'v0.1.0' or 'latest')")
+    parser.add_argument("--channel",
+                        default="stable",
+                        choices=["stable", "beta", "nightly"],
+                        help="Rust release channel (defaults to 'stable')")
     parser.add_argument("-n", "--name",
                         default="zkllvm",
                         help="name of the toolchain to use (defaults to 'zkllvm'). "
@@ -134,6 +138,7 @@ def parse_args():
 args = parse_args()
 
 release_version: str = args.release
+channel_name: str = args.channel
 toolchain_name: str = args.name
 force_overwrite: bool = args.force
 no_rustup: bool = args.no_rustup
@@ -482,6 +487,21 @@ logger.debug(f"{len(release['assets'])} assets, "
              f"published at {release['published_at']}")
 
 
+def channel_regexp(name: str) -> str:
+    if name == "stable":
+        return r"[0-9]+\.[0-9]+\.[0-9]+"
+    elif name == "beta":
+        return "beta"
+    elif name == "nightly":
+        return "nightly"
+    else:
+        raise KeyError(f"unknown Rust release channel name: {name}")
+
+
+logger.info(f"Using {channel_name} channel")
+channel = channel_regexp(channel_name)
+
+
 def find_asset_by_name(release: Release, pattern: re.Pattern) -> Asset | None:
     for asset in release["assets"]:
         if pattern.match(asset["name"]):
@@ -490,20 +510,19 @@ def find_asset_by_name(release: Release, pattern: re.Pattern) -> Asset | None:
 
 
 def find_host_toolchain() -> Asset | None:
-    pat = re.compile(f"rust-[0-9]+\.[0-9]+\.[0-9]+-{host}\.tar\.gz")
+    pat = re.compile(f"rust-{channel}-{host}\.tar\.gz")
     return find_asset_by_name(release, pat)
 
 
 def find_assigner_target() -> Asset | None:
     assigner = "assigner-unknown-unknown"
-    pat = re.compile(f"rust-std-[0-9]+\.[0-9]+\.[0-9]+-{assigner}\.tar\.gz")
+    pat = re.compile(f"rust-std-{channel}-{assigner}\.tar\.gz")
     return find_asset_by_name(release, pat)
 
 
 host_toolchain = find_host_toolchain()
 if host_toolchain is None:
-    error(f"Could not find toolchain for {host} platform.\n"
-          "This platform is probably not supported.")
+    error(f"Could not find toolchain for {host} platform on {channel_name} channel.")
 logger.debug(f"Found host toolchain: {host_toolchain['name']}")
 
 
@@ -572,7 +591,9 @@ with tempfile.TemporaryDirectory() as tmpdir:
     logger.debug(f"Tmp directory created: {tmpdir}")
 
     process_dist(host_toolchain, Path(tmpdir))
+    logger.info(f"Host toolchain installed")
     process_dist(assigner_target, Path(tmpdir))
+    logger.info(f"Assigner target installed")
 
 logger.info("")
 logger.info("Installation completed")
