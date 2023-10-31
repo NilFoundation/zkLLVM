@@ -114,17 +114,17 @@ and installs it in the desired location.
 
 2. Install `rslang`:
 
-Run this in you shell:
+Run this in your shell:
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-installer.py | python
+curl --proto '=https' --tlsv1.2 -sSf https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-installer.py | python - --channel nightly
 ```
 
 You can also download the `rslang-installer.py` first and then run it:
 
 ```bash
 curl --proto '=https' --tlsv1.2 -O https://cdn.jsdelivr.net/gh/NilFoundation/zkllvm@master/rslang-installer.py
-python rslang-installer.py
+python rslang-installer.py --channel nightly
 ```
 
 Now you can use toolchain called `zkllvm` to compile with `rslang`:
