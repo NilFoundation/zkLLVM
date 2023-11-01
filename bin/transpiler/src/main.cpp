@@ -179,12 +179,13 @@ int main(int argc, char *argv[]) {
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit input file")
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
-            ("optimize-gates", "Put multiple small gates into one .sol file, sets reasonable threshold limits")
+            ("optimize-gates", "Put multiple small gates into several .sol file, sets reasonable threshold limits")
             ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
-            ("gates-library-threshold", boost::program_options::value<std::size_t>(), "Gates library size limit, per module. Default = 0, each gate in a separate library")
-            ("gates-inline-threshold", boost::program_options::value<std::size_t>(), "Gates inline size limit. Default = 0, none of the gates are inlined")
+            ("gates-contract-size-threshold", boost::program_options::value<std::size_t>(), "Gates library size limit, per module. Default = 0, each constraint in a separate library")
             ("lookups-library-threshold", boost::program_options::value<std::size_t>(), "Lookups library size limit, per module. Default = 0, each lookup in a separate library")
             ("lookups-inline-threshold", boost::program_options::value<std::size_t>(), "Lookups inline size limit. Default = 0, none of the lookups are inlined")
+            ("deduce-horner", "Detect polynomials over one variable and deduce to Horner's formula")
+            ("optimize-powers", "Optimize terms that are powers of single variable")
             ;
     // clang-format on
 
@@ -404,29 +405,33 @@ int main(int argc, char *argv[]) {
     }
 
     if (mode == "gen-evm-verifier") {
-        std::size_t gates_library_threshold = 0;
+        std::size_t gates_contract_size_threshold = 800;
         std::size_t lookups_library_threshold = 0;
-        std::size_t gates_inline_threshold = 0;
         std::size_t lookups_inline_threshold = 0;
+        bool deduce_horner = false;
+        bool optimize_powers = false;
 
         if ( vm.count("optimize-gates") >0 ) {
-            gates_library_threshold = 600;
-            lookups_library_threshold = 1200;
-            gates_inline_threshold = 800;
+            lookups_library_threshold = 1000;
             lookups_inline_threshold = 1000;
+            deduce_horner = true;
+            optimize_powers = true;
         }
 
-        if ( vm.count("gates-library-threshold") ) {
-            gates_library_threshold = vm["gates-library-threshold"].as<std::size_t>();
+        if ( vm.count("gates-contract-size-threshold") ) {
+            gates_contract_size_threshold = vm["gates-contract-size-threshold"].as<std::size_t>();
         }
         if ( vm.count("lookups-library-threshold") ) {
-            gates_library_threshold = vm["lookups-library-threshold"].as<std::size_t>();
-        }
-        if ( vm.count("gates-inline-threshold") ) {
-            gates_inline_threshold = vm["gates-inline-threshold"].as<std::size_t>();
+            lookups_library_threshold = vm["lookups-library-threshold"].as<std::size_t>();
         }
         if ( vm.count("lookups-inline-threshold") ) {
-            gates_inline_threshold = vm["lookups-inline-threshold"].as<std::size_t>();
+            lookups_inline_threshold = vm["lookups-inline-threshold"].as<std::size_t>();
+        }
+        if ( vm.count("deduce-horner") > 0 ) {
+            deduce_horner = true;
+        }
+        if ( vm.count("optimize-powers") > 0 ) {
+            optimize_powers = true;
         }
         nil::blueprint::evm_verifier_printer<placeholder_params>(
             constraint_system,
@@ -434,10 +439,11 @@ int main(int argc, char *argv[]) {
             lpc_scheme,
             permutation_size,
             output_folder_path,
-            gates_library_threshold,
+            gates_contract_size_threshold,
             lookups_library_threshold,
-            gates_inline_threshold,
-            lookups_inline_threshold
+            lookups_inline_threshold,
+            deduce_horner,
+            optimize_powers
         ).print();
         return 0;
     }
