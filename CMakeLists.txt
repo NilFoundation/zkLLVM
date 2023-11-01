@@ -15,8 +15,8 @@ cmake_policy(SET CMP0057 NEW)
 cmake_policy(SET CMP0063 NEW)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake"
-     "${CMAKE_CURRENT_LIST_DIR}/cmake/packages"
-     "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/share/modules/cmake")
+        "${CMAKE_CURRENT_LIST_DIR}/cmake/packages"
+        "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/share/modules/cmake")
 
 include(CMConfig)
 include(CMSetupVersion)
@@ -30,6 +30,38 @@ macro(cm_find_package NAME)
         set(${ARGV0}_FOUND ON CACHE BOOL "")
     endif()
 endmacro()
+
+# A helper function to get the architecture and system components from a target
+# triple.
+function(get_arch_and_system_from_triple triple arch_var sys_var)
+    string(REPLACE "-" ";" triple_comps ${triple})
+    list(LENGTH triple_comps triple_size)
+    if(triple_size LESS "3")
+        return()
+    endif()
+    math(EXPR system_index "${triple_size} - 2")
+    list(GET triple_comps 0 target_arch)
+    # The target_arch string can have sub-architecture suffixes which we want to
+    # remove. So, we regex-match the string and set target_arch to a cleaner
+    # value.
+    if(target_arch MATCHES "^mips")
+        set(target_arch "mips")
+    elseif(target_arch MATCHES "^arm")
+        set(target_arch "arm")
+    elseif(target_arch MATCHES "^aarch64")
+        set(target_arch "aarch64")
+    elseif(target_arch MATCHES "(x86_64)|(AMD64|amd64)|(^i.86$)")
+        set(target_arch "x86_64")
+    elseif(target_arch MATCHES "^(powerpc|ppc)")
+        set(target_arch "power")
+    else()
+        return()
+    endif()
+
+    set(${arch_var} ${target_arch} PARENT_SCOPE)
+    list(GET triple_comps ${system_index} target_sys)
+    set(${sys_var} ${target_sys} PARENT_SCOPE)
+endfunction(get_arch_and_system_from_triple)
 
 cm_setup_version(VERSION 0.3.0 PREFIX ${CMAKE_WORKSPACE_NAME})
 
@@ -79,12 +111,38 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/transpiler")
 
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
 
-set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
+set(LLVM_ENABLE_PROJECTS "clang;libc" CACHE STRING "Additional LLVM projects")
+set(LLVM_ENABLE_RUNTIMES "libc;libcxx;libcxxabi" CACHE STRING "Additional LLVM runtimes")
+
+set(target_triple_option "-print-target-triple")
+if(CMAKE_COMPILER_IS_GNUCXX)
+    # GCC does not support the "-print-target-triple" option but supports
+    # "-print-multiarch" which clang does not support for all targets.
+    set(target_triple_option "-print-multiarch")
+endif()
+execute_process(COMMAND ${CMAKE_CXX_COMPILER} ${target_triple_option}
+        RESULT_VARIABLE libc_compiler_triple_check
+        OUTPUT_VARIABLE libc_compiler_triple)
+if(NOT (libc_compiler_triple_check EQUAL "0"))
+    message(FATAL_ERROR "libc build: error querying target triple from the "
+            "compiler: ${libc_compiler_triple}")
+endif()
+get_arch_and_system_from_triple(${libc_compiler_triple}
+        compiler_arch compiler_sys)
+if(NOT compiler_arch)
+    message(FATAL_ERROR
+            "libc build: Invalid or unknown libc compiler target triple: "
+            "${libc_compiler_triple}")
+endif()
+set(LIBC_TARGET_TRIPLE ${libc_compiler_triple})
+string(REPLACE "apple" "darwin" LIBC_TARGET_TRIPLE ${LIBC_TARGET_TRIPLE})
+set(LLVM_LIBC_FULL_BUILD TRUE)
+
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
 add_subdirectory(examples)
 if(BUILD_TESTS)
-  add_subdirectory(tests)
+    add_subdirectory(tests)
 endif()
 
 install(TARGETS assigner RUNTIME DESTINATION bin)
@@ -95,9 +153,9 @@ find_program(GIT_EXE git)
 
 if(NOT ZKLLVM_VERSION)
     execute_process(COMMAND ${GIT_EXE} describe --tags HEAD
-                    OUTPUT_VARIABLE DESCRIBE_OUTBUT
-                    OUTPUT_STRIP_TRAILING_WHITESPACE
-                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+            OUTPUT_VARIABLE DESCRIBE_OUTBUT
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
     if(NOT ("${DESCRIBE_OUTBUT}" STREQUAL "${ZKLLVM_VERSION}"))
         set(ZKLLVM_VERSION "${DESCRIBE_OUTBUT}")
@@ -138,7 +196,7 @@ include(CPack)
 
 # Package for stdlib
 add_custom_target(stdlib_package
-                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR})
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR})
 
 option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
 option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
@@ -184,25 +242,25 @@ list(APPEND RSLANG_BUILD_ARGS --dist-compression-formats=gz)
 message(STATUS "Configuring rslang")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
 execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/libs/rslang/configure ${RSLANG_BUILD_ARGS}
-                COMMAND_ERROR_IS_FATAL ANY
-                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
+        COMMAND_ERROR_IS_FATAL ANY
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
 
 add_custom_target(cargo
-                  COMMAND cargo build --release --target-dir ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target --package cargo
-                  COMMENT "Building cargo"
-                  USES_TERMINAL
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+        COMMAND cargo build --release --target-dir ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target --package cargo
+        COMMENT "Building cargo"
+        USES_TERMINAL
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
 
 add_custom_target(rslang
-                  COMMAND ./x build --config ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml --stage ${RSLANG_BUILD_STAGE}
-                  DEPENDS llvm-libraries llvm-config llvm-link FileCheck cargo
-                  COMMENT "Building rslang"
-                  USES_TERMINAL
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+        COMMAND ./x build --config ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml --stage ${RSLANG_BUILD_STAGE}
+        DEPENDS llvm-libraries llvm-config llvm-link FileCheck cargo
+        COMMENT "Building rslang"
+        USES_TERMINAL
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
 
 add_custom_target(rslang_dist
-                  COMMAND ./x dist --config ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml
-                  DEPENDS rslang
-                  COMMENT "Building rslang distribution package"
-                  USES_TERMINAL
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+        COMMAND ./x dist --config ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml
+        DEPENDS rslang
+        COMMENT "Building rslang distribution package"
+        USES_TERMINAL
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
