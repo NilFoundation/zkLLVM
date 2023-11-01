@@ -254,7 +254,7 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 35;
+    constexpr std::size_t SelectorColumns = 100;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -379,14 +379,13 @@ int main(int argc, char *argv[]) {
         constraint_system, assignment_table.public_table(), table_description, lpc_scheme, permutation_size);
 
     if (mode == "gen-evm-verifier") {
-        std::size_t gates_contract_size_threshold = 0;
+        std::size_t gates_contract_size_threshold = 800;
         std::size_t lookups_library_threshold = 0;
         std::size_t lookups_inline_threshold = 0;
         bool deduce_horner = false;
         bool optimize_powers = false;
 
         if ( vm.count("optimize-gates") >0 ) {
-            gates_contract_size_threshold = 800;
             lookups_library_threshold = 1000;
             lookups_inline_threshold = 1000;
             deduce_horner = true;
