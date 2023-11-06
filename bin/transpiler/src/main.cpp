@@ -116,7 +116,7 @@ typename FRIScheme::params_type create_fri_params(std::size_t degree_log, const 
     typename FRIScheme::params_type params;
     nil::crypto3::math::polynomial<typename FieldType::value_type> q = {0, 0, 1};
 
-    constexpr std::size_t expand_factor = 1;
+    constexpr std::size_t expand_factor = 2;
     std::size_t r = degree_log - 1;
 
     std::vector<std::shared_ptr<nil::crypto3::math::evaluation_domain<FieldType>>> domain_set =

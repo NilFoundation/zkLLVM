@@ -116,7 +116,7 @@ typename FRIScheme::params_type create_fri_params(std::size_t degree_log, const 
     typename FRIScheme::params_type params;
     nil::crypto3::math::polynomial<typename FieldType::value_type> q = {0, 0, 1};
 
-    constexpr std::size_t expand_factor = 1;
+    constexpr std::size_t expand_factor = 2;
     std::size_t r = degree_log - 1;
 
     std::vector<std::shared_ptr<nil::crypto3::math::evaluation_domain<FieldType>>> domain_set =
@@ -253,7 +253,7 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 35;
+    constexpr std::size_t SelectorColumns = 60;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -407,20 +407,6 @@ int main(int argc, char *argv[]) {
             ASSERT_MSG(verification_result, "Proof is not verified" );
             std::cout << "Proof is verified" << std::endl;
         }
-
-        if( !vm.count("skip-verification") ) {
-            std::cout << "Verifying proof..." << std::endl;
-            bool verification_result =
-                nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                    public_preprocessed_data, proof, constraint_system, lpc_scheme
-                );
-
-            ASSERT_MSG(verification_result, "Proof is not verified" );
-            std::cout << "Proof is verified" << std::endl;
-        }
-
-        typename BlueprintFieldType::value_type test_poseidon(0x2fadbe2852044d028597455bc2abbd1bc873af205dfabb8a304600f3e09eeba8_cppui255);
-        auto result = nil::crypto3::hash<Hash>(test_poseidon, test_poseidon);
 
         std::string inp_path = output_folder_path + "/placeholder_verifier.inp";
         std::ofstream output_file;

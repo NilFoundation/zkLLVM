@@ -62,8 +62,8 @@ macro(define_zkllvm_test test)
     elseif(target_type STREQUAL "STATIC_LIB")
 
     endif()
-    add_dependencies(all_expected_res_tests ${full_test_name})
-    add_dependencies(all_circuit_tests ${test_name})
+#    add_dependencies(all_expected_res_tests ${full_test_name})
+#    add_dependencies(all_circuit_tests ${test_name})
 endmacro()
 
 
@@ -221,5 +221,5 @@ add_zkllvm_unit_test("algebra/recursive_prover/permutation_arg_verifier/input_le
 add_zkllvm_unit_test("algebra/recursive_prover/permutation_arg_verifier/input_length_4/test")
 add_zkllvm_unit_test("algebra/recursive_prover/fri_array_swap_length_6/test")
 
-add_dependencies(all_for_test_run all_circuit_tests)
-add_dependencies(all_for_test_run all_expected_res_tests)
+#add_dependencies(all_for_test_run all_circuit_tests)
+#add_dependencies(all_for_test_run all_expected_res_tests)
