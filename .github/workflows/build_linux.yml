@@ -3,19 +3,7 @@ name: build-linux
 on:
   push:
     branches: [ master ]
-    paths-ignore:
-      - '.github/workflows/*macos.yml'
-      - 'docs/**'
-      - '.clang-format'
-      - '.gitignore'
-      - 'README.md'
   pull_request:
-    paths-ignore:
-      - '.github/workflows/*macos.yml'
-      - 'docs/**'
-      - '.clang-format'
-      - '.gitignore'
-      - 'README.md'
 
 concurrency:
   group: ${{
