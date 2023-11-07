@@ -12,6 +12,14 @@ apt update
 apt install -y zkllvm cmake libboost-all-dev
 ```
 
+For Ubuntu, use the following commands:
+
+```bash
+sudo bash -c "echo 'deb [trusted=yes]  http://deb.nil.foundation/ubuntu/ all main' >>/etc/apt/sources.list"
+sudo apt update
+sudo apt install -y zkllvm cmake libboost-all-dev
+```
+
 # Installation from sources
 
 ## Clone repository
