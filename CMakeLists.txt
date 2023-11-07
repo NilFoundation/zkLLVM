@@ -143,17 +143,23 @@ add_custom_target(stdlib_package
                   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR}
                   DEPENDS zkllvm-libc)
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+message(STATUS "Configuring rslang")
+
+execute_process(COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/detect-platform.py
+                RESULT_VARIABLE DETECT_PLATFORM_RESULT
+                OUTPUT_VARIABLE RUSTC_HOST_TRIPLE
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+if(NOT ${DETECT_PLATFORM_RESULT} EQUAL 0)
+    message(FATAL_ERROR "Failed to detect host platform")
+endif()
+
 option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
 option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
 
 set(RSLANG_BUILD_STAGE "1" CACHE STRING "Stage to build (see --stage)")
-
-set(RUSTC_HOST_TRIPLE ${LLVM_HOST_TRIPLE})
-string(FIND "${RUSTC_HOST_TRIPLE}" "-apple-darwin" FIND_DARWIN)
-if(NOT FIND_DARWIN EQUAL -1)
-    string(REGEX MATCH "^.*-apple-darwin" RUSTC_HOST_TRIPLE ${RUSTC_HOST_TRIPLE})
-endif()
-message(STATUS "Rust host triple: ${RUSTC_HOST_TRIPLE}")
 
 list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
 list(APPEND RSLANG_BUILD_ARGS --release-channel=nightly)
@@ -183,7 +189,6 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 list(APPEND RSLANG_BUILD_ARGS --dist-compression-formats=gz)
 
-message(STATUS "Configuring rslang")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
 execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/libs/rslang/configure ${RSLANG_BUILD_ARGS}
                 COMMAND_ERROR_IS_FATAL ANY
