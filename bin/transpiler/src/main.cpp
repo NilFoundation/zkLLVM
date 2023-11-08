@@ -254,7 +254,7 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 100;
+    constexpr std::size_t SelectorColumns = 35;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -336,7 +336,7 @@ int main(int argc, char *argv[]) {
 
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
-    const std::size_t Lambda = 2;
+    const std::size_t Lambda = 9;
     using Hash = nil::crypto3::hashes::keccak_1600<256>;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
         BlueprintFieldType, ArithmetizationParams
