@@ -34,12 +34,18 @@ jobs:
             spdlog \
             bash
 
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
       - name: Print toolchain information
         run: |
           git --version
           cc --version
           cmake --version
           bash --version
+          python3 --version
           which -a bash
           echo PATH: $PATH
 
