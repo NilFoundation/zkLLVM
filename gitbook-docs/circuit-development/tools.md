@@ -21,8 +21,8 @@ Here `.crct` and `.tbl` files are the results of the circuit generation process 
 
 ## Circuit debugger
 
-ETA: Mid August 2023
+ETA: Mid Dec 2023
 
 ## IDE extensions
 
-ETA: Mid August 2023
+ETA: Mid Dec 2023
