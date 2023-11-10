@@ -6,4 +6,24 @@ This mode is useful when you have a complex circuit that can be split into multi
 
 ## How to trigger aggregation
 
+For use aggregation mode need to define which prover should execute each blocks of code by adding `#pragma zk_multi_prover <PROVER_INDEX>`.
+PROVER_INDEX may have value [0, MAX_NUM_PROVERS). The pragma affect follow code block enclosed in `{...}`.
+For example:
+```
+a = b + c;
+a = a * 10;
+a = a + c * 10;
+```
+will be executed by one prover with index 0
+```
+a = b + c;
+#pragma zk_multi_prover 1
+{
+    a = a * 10;
+    a = a + c * 10;
+}
+
+```
+will be executed by 2 provers: first line - by prover with index 0, second and third - by prover with index 1.
+
 ## How to run local prover in aggregated mode
