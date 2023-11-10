@@ -462,9 +462,9 @@ int curve_dependent_main(std::string bytecode_file_name,
         for (auto& it : parser_instance.circuits) {
             ASSERT_MSG(assignment_it != parser_instance.assignments.end(), "Not found assignment for circuit" );
             assignment_it->set_check(true);
-            // bool is_accessible = nil::blueprint::is_accessible(it, *assignment_it);
+            bool is_accessible = nil::blueprint::is_accessible(it, *assignment_it);
             assignment_it->set_check(false);
-            // ASSERT_MSG(is_accessible, ("The circuit is not satisfied on prover " + std::to_string(it.get_id())).c_str() );
+            ASSERT_MSG(is_accessible, ("The circuit is not satisfied on prover " + std::to_string(it.get_id())).c_str() );
             assignment_it++;
         }
     }
