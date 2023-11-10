@@ -41,8 +41,9 @@ Languages currently supported are:
 * [CMake](https://cmake.org/) >= 3.5
 * [Clang](https://clang.llvm.org/) >= 12.0
 * [Python](https://www.python.org/) >= 3.7
+* [Rust](https://www.rust-lang.org/) >= 1.68 (if you want to build Rust compiler)
 
-On Debian systems, everything except Boost can be installed with the following command:
+On Debian systems, everything except Boost and Rust can be installed with the following command:
 
 ```
 sudo apt install build-essential libssl-dev cmake clang-12 git curl pkg-config libspdlog-dev
@@ -53,8 +54,8 @@ sudo apt install build-essential libssl-dev cmake clang-12 git curl pkg-config l
 Clone the repository and all the submodules via:
 
 ```
-git clone --recurse-submodules git@github.com:NilFoundation/zkllvm.git
-cd zkllvm
+git clone --recurse-submodules https://github.com/NilFoundation/zkLLVM.git
+cd zkLLVM
 ```
 
 #### **2. Configure CMake**
@@ -66,22 +67,43 @@ cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release .
 Proof Market requires the IR files in the *.ll format. If you are generating circuit/statement
 to publish on proof market. Please use the below command instead.
 
-```
+```bash
 cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
 ```
 
-**3. Build the compiler**
+#### **3. Build C++ compiler**
 
 ```bash
 make -C ${ZKLLVM_BUILD:-build} assigner clang -j$(nproc)
 ```
 
-**4. Build the Rust toolchain**
+#### **4. Build Rust compiler**
 
 Make sure you have [`rustc`](https://www.rust-lang.org/tools/install) with `cargo` installed first.
 
+##### **4.1 Reconfigure CMake, adding Rust tools**
+
+```bash
+cmake -G "Unix Makefiles" -B ${ZKLLVM_BUILD:-build} -DCMAKE_BUILD_TYPE=Release -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE -DRSLANG_BUILD_EXTENDED=TRUE -DRSLANG_BUILD_TOOLS=cargo .
+```
+
+##### **4.2 Export path for loading LLVM libraries**
+
+```bash
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib"
+```
+
+##### **4.3 Build Rust compiler and Cargo**
+
 ```bash
 make -C ${ZKLLVM_BUILD:-build} rslang -j$(nproc)
+```
+
+After that you will be able to call Cargo like that:
+
+```bash
+export RSLANG="$(pwd)/build/libs/rslang/build/host"
+RUSTC=$RSLANG/stage1/bin/rustc $RSLANG/stage1-tools-bin/cargo --version
 ```
 
 Note: if you want an advanced Rust compilation, you can build `zkllvm` first:
