@@ -6,9 +6,9 @@ Before generating the circuit, `assigner` will try to simplify the data structur
 
 # Reduce amount of if-else statements
 
-# Integer types are field types
+# Integer types are Galois field types
 
-When developing the algorithm remember that all integer types by default are being treated as field types.
+When developing the algorithm remember that all integer types by default are being treated as field types. Unless they are being used by an intrinsic function that takes bit size into account.
 
 # Remember to use compile-time evaluations when possible
 

@@ -22,21 +22,124 @@ Fields integral types:
 
 Most fields present in to forms - base and scalar. This is due to the fact that we use a lot of elliptic curves cryptography. Every elleptic curve has one base and one scalar field for its operations, and thus, we provide two types of fields (two `pallas` fields for `pallas` curve, two `bls12-381` fields for `bls12-381` curve etc.).
 
-## Built-in functions
+# Built-in functions
 
-* `__builtin_assigner_poseidon_pallas_base` for Poseidon hash function over `pallas` base field
-* `__builtin_assigner_sha2_256_pallas_base` for SHA2-256 hash function over `pallas` base field
-* `__builtin_assigner_sha2_512_pallas_base` for SHA2-512 hash function over `pallas` base field
-* `__builtin_assigner_bls12_optimal_ate_pairing` for BLS12-381 optimal ate pairing
-* `__builtin_assigner_zkml_convolution` for zk-ML convolution operation
-* `__builtin_assigner_zkml_pooling` for zk-ML pooling operation
-* `__builtin_assigner_zkml_ReLU` for zk-ML ReLU activation function
-* `__builtin_assigner_zkml_batch_norm` for zk-ML batch normalization operation
+## SHA2-256 built-in hash function
 
-### Elliptic curve operations built-ins
+Apart from a general case sha2-256 hash funciton, we have a circuit-friendly implementation of it. It takes 
 
-Elliptic curve operations implemented in form of built-ins to give more control over the coordinates used by the curve element. Each curve has 4 built-ins for each operation:
-* `__builtin_assigner_curve25519_affine_addition` for curve25519 affine addition operation
-* `__builtin_assigner_curve25519_affine_subtraction` for curve25519 affine subtraction operation
-* `__builtin_assigner_curve25519_affine_double` for curve25519 affine double operation
-* `__builtin_assigner_curve25519_affine_scalar_mul` for curve25519 affine scalar multiplication operation
+* Input: two blocks, each block is packed in two `pallas` field elements.
+* Ourput: one block packed in two `pallas` field elements.
+
+Code example:
+
+```cpp
+#include <nil/crypto3/hash/algorithm/hash.hpp>
+#include <nil/crypto3/hash/sha2.hpp>
+
+using namespace nil::crypto3::hashes;
+
+struct block_data_type {
+    typename hashes::sha2<256>::block_type prev_block_hash;
+    typename hashes::sha2<256>::block_type data;
+};
+
+[[circuit]] typename sha2<256>::block_type sha256_example(
+        std::array<block_data_type, 64> input_blocks) {
+    
+    typename sha2<256>::block_type result = input_blocks[0];
+    for (int i = 1; i < input_blocks.size(); i++) {
+        result = hash<sha2<256>>(result, input_blocks[i]);
+    }
+
+    return result;
+}
+
+```
+
+## SHA2-512 built-in hash function
+
+This function is also implemented in SDK and also has an optimized circuit version. This optimized version was designed to being used as part of EDDSA signature algorithm, so it has tricky interface.
+
+* Input: one `eddsa` curve group element (point) `R`, one `eddsa` curve group element (point) representing the public key `pk` and one message block `M`.
+* Ourput: one `eddsa` scalar field element
+
+Code example:
+
+```cpp
+#include <nil/crypto3/hash/algorithm/hash.hpp>
+#include <nil/crypto3/hash/sha2.hpp>
+
+using namespace nil::crypto3;
+using namespace nil::crypto3::algebra::curves;
+
+typedef __attribute__((ext_vector_type(4)))
+                typename pallas::base_field_type::value_type eddsa_message_block_type;
+
+
+[[circuit]] __zkllvm_field_curve25519_scalar verify_eddsa_signature (
+    __zkllvm_curve_curve25519 R, 
+    __zkllvm_curve_curve25519 pk, 
+    eddsa_message_block_type M
+    ) {
+
+        __zkllvm_field_curve25519_scalar k = __builtin_assigner_sha2_512_curve25519(R, pk, M);
+
+        return k;
+}
+```
+
+## Bit de/composition built-in functions
+
+Circuit algorithms usually operate with Galois field elements. (Read more about efficient circuit development in the [corresponding section](optimizations.md). But since sometimes you need to operate with bits representation, we have dedicated functions for that. They can be used, for example, to serialize/deserialize sha2-256 input and output.
+
+### Bit composition:
+
+* Input: pointer to input data, number of bits to compose, bit order mode (MSB or LSB).
+* Ourput: one `pallas` field element.
+
+Code example is below. Bits are composed in MSB (most significant bit) order and stored in pallas elements for circuit efficiency.
+
+```cpp
+
+include <nil/crypto3/algebra/curves/pallas.hpp>
+
+using namespace nil::crypto3::algebra::curves;
+
+constexpr bool is_msb = false;
+
+[[circuit]] typename pallas::base_field_type::value_type compose(
+    std::array<typename pallas::base_field_type::value_type, 128> input) {
+
+    return __builtin_assigner_bit_composition(input.data(), 128, is_msb);
+}
+
+```
+
+### Bit decomposition:
+
+* Input: pointer to ouptut  data, number of bits to compose, one `pallas` field element and bit order mode (MSB or LSB).
+* Ourput: no output, result is being written to the pointer.
+
+Code example is below. Bits are composed in MSB (most significant bit) order and stored in pallas elements for circuit efficiency.
+
+```cpp
+
+#include <nil/crypto3/algebra/curves/pallas.hpp>
+
+using namespace nil::crypto3::algebra::curves;
+
+constexpr bool is_msb = true;
+constexpr std::size_t bits_amount = 64;
+
+[[circuit]] std::array<typename pallas::base_field_type::value_type, bits_amount>
+        decompose(uint64_t input) {
+
+    std::array<typename pallas::base_field_type::value_type, bits_amount> result;
+
+    __builtin_assigner_bit_decomposition(result.data(), bits_amount, input, is_msb);
+
+    return result;
+}
+
+```
