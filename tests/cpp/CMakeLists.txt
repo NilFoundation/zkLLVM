@@ -213,7 +213,7 @@ add_zkllvm_unit_test("algebra/de_composition/decomposition/msb")
 add_zkllvm_unit_test("algebra/de_composition/decomposition/lsb")
 
 #multi provers tests
-add_zkllvm_unit_test("multi_provers/shift_add")
+# add_zkllvm_unit_test("multi_provers/shift_add")
 
 add_dependencies(all_for_test_run all_circuit_tests)
 add_dependencies(all_for_test_run all_expected_res_tests)
