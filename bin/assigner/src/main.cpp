@@ -344,13 +344,13 @@ int curve_dependent_main(std::string bytecode_file_name,
                           long stack_size,
                           bool check_validity,
                           bool verbose,
-                          const std::string &policy) {
+                          const std::string &policy,
+                          std::uint32_t max_num_provers) {
     using BlueprintFieldType = typename CurveType::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
     constexpr std::size_t SelectorColumns = 35;
-    constexpr std::uint32_t MaxNumProvers = 2;
 
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
@@ -391,7 +391,7 @@ int curve_dependent_main(std::string bytecode_file_name,
     }
 
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams, PrintCircuitOutput> parser_instance(stack_size,
-                                                                                                          verbose, MaxNumProvers, policy);
+                                                                                                          verbose, max_num_provers, policy);
 
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
     if (module == nullptr) {
@@ -490,7 +490,8 @@ int main(int argc, char *argv[]) {
             ("check", "Check satisfiability of the generated circuit")
             ("verbose", "Print detailed log")
             ("print_circuit_output", "print output of the circuit")
-            ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default");
+            ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
+            ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1");
     // clang-format on
 
     boost::program_options::variables_map vm;
@@ -590,6 +591,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    std::uint32_t max_num_provers = 1;
+    if (vm.count("max-num-provers")) {
+        max_num_provers = vm["max-num-provers"].as<int>();
+        if (max_num_provers < 1) {
+            std::cerr << "Invalid command line argument - max-num-provers. " << max_num_provers << " is wrong value." << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
+    }
+
     switch (curve_options[elliptic_curve]) {
         case 0: {
             if (vm.count("print_circuit_output")) {
@@ -601,7 +612,8 @@ int main(int argc, char *argv[]) {
                                                                           stack_size,
                                                                           vm.count("check"),
                                                                           vm.count("verbose"),
-                                                                          policy);
+                                                                          policy,
+                                                                          max_num_provers);
             }
             else {
                 return curve_dependent_main<typename algebra::curves::pallas, false>(
@@ -612,7 +624,8 @@ int main(int argc, char *argv[]) {
                                                                           stack_size,
                                                                           vm.count("check"),
                                                                           vm.count("verbose"),
-                                                                          policy);
+                                                                          policy,
+                                                                          max_num_provers);
             }
             break;
         }
