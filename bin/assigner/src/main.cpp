@@ -349,8 +349,8 @@ int curve_dependent_main(std::string bytecode_file_name,
     using BlueprintFieldType = typename CurveType::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
-    constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 35;
+    constexpr std::size_t ConstantColumns = 100;
+    constexpr std::size_t SelectorColumns = 50;
 
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
