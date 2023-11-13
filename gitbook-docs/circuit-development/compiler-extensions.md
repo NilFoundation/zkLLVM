@@ -60,7 +60,7 @@ typename pallas::base_field_type::value_type pow(typename pallas::base_field_typ
 Apart from a general case sha2-256 hash funciton, we have a circuit-friendly implementation of it. It takes 
 
 * Input: two blocks, each block is packed in two `pallas` field elements.
-* Ourput: one block packed in two `pallas` field elements.
+* Output: one block packed in two `pallas` field elements.
 
 Code example:
 
@@ -93,7 +93,7 @@ struct block_data_type {
 This function is also implemented in SDK and also has an optimized circuit version. This optimized version was designed to being used as part of EDDSA signature algorithm, so it has tricky interface.
 
 * Input: one `eddsa` curve group element (point) `R`, one `eddsa` curve group element (point) representing the public key `pk` and one message block `M`.
-* Ourput: one `eddsa` scalar field element
+* Output: one `eddsa` scalar field element
 
 Code example:
 
@@ -127,7 +127,7 @@ Circuit algorithms usually operate with Galois field elements. (Read more about 
 #### Bit composition:
 
 * Input: pointer to input data, number of bits to compose, bit order mode (MSB or LSB).
-* Ourput: one `pallas` field element.
+* Output: one `pallas` field element.
 
 Code example is below. Bits are composed in MSB (most significant bit) order and stored in pallas elements for circuit efficiency.
 
@@ -150,7 +150,7 @@ constexpr bool is_msb = false;
 #### Bit decomposition:
 
 * Input: pointer to ouptut  data, number of bits to compose, one `pallas` field element and bit order mode (MSB or LSB).
-* Ourput: no output, result is being written to the pointer.
+* Output: no output, result is being written to the pointer.
 
 Code example is below. Bits are composed in MSB (most significant bit) order and stored in pallas elements for circuit efficiency.
 
@@ -173,4 +173,19 @@ constexpr std::size_t bits_amount = 64;
     return result;
 }
 
+```
+
+### Enforced check built-in function
+
+Sometimes you need to enforce some condition in the middle of the circuit. For example, you need to check that the signature is valid. If it is not, you need the circuit to be stopped and the proof to be rejected. This can be done with the `__builtin_assigner_exit_check` function.
+
+* Input: one `bool`.
+* Output: no output.
+
+Code example:
+
+```cpp
+[[circuit]] void exit_check(bool condition) {
+    __builtin_assigner_exit_check(condition);
+}
 ```
