@@ -7,9 +7,9 @@ description: Install zkLLVM toolchain
 zkLLVM is distributed as a deb package, so you can install it using the following commands:
 
 ```bash
-echo 'deb [trusted=yes]  http://deb.nil.foundation/ubuntu/ all main' >>/etc/apt/sources.list
-apt update
-apt install -y zkllvm cmake libboost-all-dev
+sudo bash -c "echo 'deb [trusted=yes]  http://deb.nil.foundation/ubuntu/ all main' >>/etc/apt/sources.list"
+sudo apt update
+sudo apt install -y zkllvm cmake libboost-all-dev
 ```
 
 # Installation from sources
