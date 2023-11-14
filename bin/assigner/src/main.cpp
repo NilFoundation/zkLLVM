@@ -313,9 +313,9 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                 (table_values, table_proxy, print_column_kind::SELECTOR, selector_size, usable_rows_amount, padding);
     } else if (print_kind == print_table_kind::SHARED) {
         fill_vector_value<typename AssignmentTableType::field_type::value_type, ArithmetizationType>
-                (table_values, table_proxy, print_column_kind::SHARED, shared_size, usable_rows_amount, padding);
-        fill_vector_value<typename AssignmentTableType::field_type::value_type, ArithmetizationType>
                 (table_values, table_proxy, print_column_kind::PUBLIC_INPUT, public_input_size, usable_rows_amount, padding);
+        fill_vector_value<typename AssignmentTableType::field_type::value_type, ArithmetizationType>
+                (table_values, table_proxy, print_column_kind::SHARED, shared_size, usable_rows_amount, padding);
     } else {
         const auto rows = table_proxy.get_used_rows();
         for( std::size_t i = 0; i < AssignmentTableType::arithmetization_params::witness_columns; i++ ){
