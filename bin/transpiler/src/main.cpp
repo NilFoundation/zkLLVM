@@ -45,6 +45,8 @@
 #include <nil/blueprint/transpiler/evm_verifier_gen.hpp>
 #include <nil/blueprint/transpiler/public_input.hpp>
 
+#include <nil/blueprint/utils/satisfiability_check.hpp>
+
 bool read_buffer_from_file(std::ifstream &ifile, std::vector<std::uint8_t> &v) {
     char c;
     char c1;
@@ -205,6 +207,7 @@ int main(int argc, char *argv[]) {
 
     std::string mode;
     std::string assignment_table_file_name;
+    std::string shared_table_file_name;
     std::string circuit_file_name;
     std::string output_folder_path;
     std::string public_input;
@@ -231,6 +234,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    if( vm.count("shared-assignment-table")){
+        shared_table_file_name = vm["shared-assignment-table"].as<std::string>();
+        std::cout << "Shared table file: " << shared_table_file_name << std::endl;
+    }
+
     if (vm.count("circuit")) {
         circuit_file_name = vm["circuit"].as<std::string>();
     } else {
@@ -254,7 +262,7 @@ int main(int argc, char *argv[]) {
 
     if( mode == "gen-shared-proof" ){
         if (vm.count("shared-assignment-table")) {
-            assignment_table_file_name = vm["shared-assignment-table"].as<std::string>();
+            shared_table_file_name = vm["shared-assignment-table"].as<std::string>();
         } else {
             std::cerr << "Invalid command line argument - shared assignment table file name is not specified" << std::endl;
             std::cout << options_desc << std::endl;
@@ -295,56 +303,72 @@ int main(int argc, char *argv[]) {
         using table_value_marshalling_type =
             nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
 
-        std::size_t source_table_usable_rows;
-        SourceAssignmentTableType source_table;
-        std::ifstream iassignment;
-        iassignment.open(assignment_table_file_name);
-        if (!iassignment) {
-            std::cout << "Cannot open " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        std::vector<std::uint8_t> source_v;
-        if (!read_buffer_from_file(iassignment, source_v)) {
-            std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        iassignment.close();
-        source_table_value_marshalling_type source_marshalled_table_data;
-        auto read_iter = source_v.begin();
-        auto status = source_marshalled_table_data.read(read_iter, source_v.size());
-        std::tie(source_table_usable_rows, source_table) =
-            nil::crypto3::marshalling::types::make_assignment_table<Endianness, SourceAssignmentTableType>(
-                source_marshalled_table_data
-            );
-
-
         std::size_t shared_table_usable_rows;
         SharedAssignmentTableType shared_table;
-        iassignment.open(assignment_table_file_name);
-        if (!iassignment) {
-            std::cout << "Cannot open " << assignment_table_file_name << std::endl;
-            return 1;
+        {
+            std::cout << "Source table file: " << shared_table_file_name << std::endl;
+            std::ifstream shared_iassignment;
+            shared_iassignment.open(shared_table_file_name);
+            if (!shared_iassignment) {
+                std::cout << "Cannot open " << shared_table_file_name << std::endl;
+                return 1;
+            }
+            std::vector<std::uint8_t> shared_v;
+            if (!read_buffer_from_file(shared_iassignment, shared_v)) {
+                std::cout << "Cannot parse input file " << shared_table_file_name << std::endl;
+                return 1;
+            }
+            shared_iassignment.close();
+            shared_table_value_marshalling_type shared_marshalled_table_data;
+            auto read_iter = shared_v.begin();
+            auto status = shared_marshalled_table_data.read(read_iter, shared_v.size());
+            std::tie(shared_table_usable_rows, shared_table) =
+                nil::crypto3::marshalling::types::make_assignment_table<Endianness, SharedAssignmentTableType>(
+                    shared_marshalled_table_data
+                );
+            std::cout << "Shared table usable rows = " << shared_table_usable_rows << std::endl;
+            for(std::size_t i = 0; i < SharedArithmetizationParams::public_input_columns; i++){
+                std::cout << "Public input : ";
+                for(std::size_t j = 0; j < shared_table.public_inputs()[i].size(); j++){
+                    std::cout << shared_table.public_inputs()[i][j] << " ";
+                }
+                std::cout << std::endl;
+            }
         }
-        std::vector<std::uint8_t> shared_v;
-        if (!read_buffer_from_file(iassignment, shared_v)) {
-            std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        iassignment.close();
-        shared_table_value_marshalling_type shared_marshalled_table_data;
-        read_iter = shared_v.begin();
-        status = shared_marshalled_table_data.read(read_iter, shared_v.size());
-        std::tie(shared_table_usable_rows, shared_table) =
-            nil::crypto3::marshalling::types::make_assignment_table<Endianness, SharedAssignmentTableType>(
-                shared_marshalled_table_data
-            );
 
-        std::cout << "Source table usable rows = " << source_table_usable_rows << std::endl;
-        std::cout << "Shared table usable rows = " << shared_table_usable_rows << std::endl;
+        std::size_t source_table_usable_rows;
+        SourceAssignmentTableType source_table;
+        {
+            std::cout << "Source table file: " << assignment_table_file_name << std::endl;
+            std::ifstream source_iassignment;
+            source_iassignment.open(assignment_table_file_name);
+            if (!source_iassignment) {
+                std::cout << "Cannot open " << assignment_table_file_name << std::endl;
+                return 1;
+            }
+            std::vector<std::uint8_t> source_v;
+            if (!read_buffer_from_file(source_iassignment, source_v)) {
+                std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
+                return 1;
+            }
+            source_iassignment.close();
+            source_table_value_marshalling_type source_marshalled_table_data;
+            auto read_iter = source_v.begin();
+            auto status = source_marshalled_table_data.read(read_iter, source_v.size());
+            std::tie(source_table_usable_rows, source_table) =
+                nil::crypto3::marshalling::types::make_assignment_table<Endianness, SourceAssignmentTableType>(
+                    source_marshalled_table_data
+                );
+            std::cout << "Source table usable rows = " << source_table_usable_rows << std::endl;
+        }
 
         AssignmentTableType assignment(
             nil::crypto3::zk::snark::plonk_private_table<BlueprintFieldType, ArithmetizationParams, ColumnType>(source_table.witnesses()),
-            nil::crypto3::zk::snark::plonk_public_table<BlueprintFieldType, ArithmetizationParams, ColumnType>(shared_table.public_inputs(), source_table.constants(), source_table.selectors())
+            nil::crypto3::zk::snark::plonk_public_table<BlueprintFieldType, ArithmetizationParams, ColumnType>(
+                {shared_table.public_inputs()[1],shared_table.public_inputs()[0]},
+                source_table.constants(),
+                source_table.selectors()
+            )
         );
 
         using ConstraintSystemType =
@@ -354,7 +378,39 @@ int main(int argc, char *argv[]) {
         TableDescriptionType table_description;
         table_description.usable_rows_amount = std::max(source_table_usable_rows, shared_table_usable_rows);
         table_description.rows_amount = std::max(source_table.rows_amount(), shared_table.rows_amount());
+        std::cout << "Rows amount before = " << table_description.rows_amount << std::endl;
         table_description.rows_amount = nil::crypto3::zk::snark::basic_padding(assignment);
+        std::cout << "Rows amount after = " << table_description.rows_amount << std::endl;
+
+        std::cout << "Real table usable rows = " << table_description.usable_rows_amount << std::endl;
+        for(std::size_t i = 0; i < ArithmetizationParams::witness_columns; i++){
+            std::cout << "Witness "<< i << " : " ;
+            for(std::size_t j = 0; j < assignment.witnesses()[i].size(); j++){
+                std::cout << assignment.witnesses()[i][j] << " ";
+            }
+            std::cout << std::endl;
+        }
+        for(std::size_t i = 0; i < ArithmetizationParams::public_input_columns; i++){
+            std::cout << "Public_input " << i << " : " ;
+            for(std::size_t j = 0; j < assignment.public_inputs()[i].size(); j++){
+                std::cout << assignment.public_inputs()[i][j] << " ";
+            }
+            std::cout << std::endl;
+        }
+        for(std::size_t i = 0; i < ArithmetizationParams::constant_columns; i++){
+            std::cout << "Constant " << i << " : " ;
+            for(std::size_t j = 0; j < assignment.constants()[i].size(); j++){
+                std::cout << assignment.constants()[i][j] << " ";
+            }
+            std::cout << std::endl;
+        }
+        for(std::size_t i = 0; i < ArithmetizationParams::selector_columns; i++){
+            std::cout << "Selector " << i << " : ";
+            for(std::size_t j = 0; j < assignment.selectors()[i].size(); j++){
+                std::cout << assignment.selectors()[i][j] << " ";
+            }
+            std::cout << std::endl;
+        }
 
         std::cout << "Rows amount = " << table_description.rows_amount << std::endl;
 
@@ -383,6 +439,15 @@ int main(int argc, char *argv[]) {
             constraint_system = nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
                     marshalled_data
             );
+
+            for(std::size_t i = 0; i < constraint_system.copy_constraints().size(); i++){
+                std::cout << "Copy_constraint " << i << " : " << constraint_system.copy_constraints()[i].first << " " << constraint_system.copy_constraints()[i].second << std::endl;
+            }
+            for(std::size_t i = 0; i < constraint_system.gates().size(); i++){
+                for(std::size_t j = 0; j < constraint_system.gates()[i].constraints.size(); j++){
+                    std::cout << "Gate " << i << " constraint " << j << " : " << constraint_system.gates()[i].constraints[j] << std::endl;
+                }
+            }
         }
 
         using ColumnsRotationsType = std::array<std::set<int>, ArithmetizationParams::total_columns>;
@@ -438,6 +503,18 @@ int main(int argc, char *argv[]) {
             nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
         proof_print<Endianness, ProofType>(proof, proof_path);
         std::cout << "Proof written" << std::endl;
+
+
+        if( !vm.count("skip-verification") ) {
+            std::cout << "Verifying proof..." << std::endl;
+            bool verification_result =
+                nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
+                    public_preprocessed_data, proof, constraint_system, lpc_scheme
+                );
+
+            ASSERT_MSG(verification_result, "Proof is not verified" );
+            std::cout << "Proof is verified" << std::endl;
+        }
         return 0;
     }
 
@@ -563,6 +640,8 @@ int main(int argc, char *argv[]) {
     if ((mode != "gen-circuit-params") && (mode != "gen-test-proof") && (mode != "gen-evm-verifier")) {
         return 0;
     }
+
+    table_description.rows_amount = nil::crypto3::zk::snark::basic_padding(assignment_table);
 
     std::cout << "Preprocessing public data..." << std::endl;
     typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
