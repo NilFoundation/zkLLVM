@@ -169,3 +169,15 @@ PointType read_curve(boost::json::value& input_json_value, std::size_t position)
     }
     return res;
 }
+
+std::string read_string(boost::json::value& input_json_value, std::size_t position) {
+
+    const boost::json::object &current_value = input_json_value.as_array()[position].as_object();
+    if(!current_value.contains("string"))
+        assert(false && "json value must contain \"string\"");
+    if (current_value.at("string").is_string()) {
+        assert(false && "value is not string.");
+    }
+
+    return current_value.at("string").as_string().c_str();
+}
