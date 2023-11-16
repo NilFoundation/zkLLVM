@@ -9,27 +9,49 @@ https://github.com/NilFoundation/zkllvm/actions/workflows/build_macos.yml)
 [![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-square&logo=telegram&logoColor=dark)](https://t.me/nilfoundation)
 [![Twitter](https://img.shields.io/twitter/follow/nil_foundation)](https://twitter.com/nil_foundation)
 
-zkLLVM is a compiler from high-level programming languages into an input for provable computations protocols. 
-It can be used to generate input for any arbitrary zero-knowledge proof system or protocol, which accepts 
-input data in form of algebraic circuits It assumed to be used together with `Placeholder` proof system or 
-any other arithmetization compatible with `Placeholder` proof system.
+zkLLVM is a compiler from high-level programming languages into an input for provable computation protocols.
+It's tailored for using with the 
+[Placeholder zero-knowledge proof system](https://nil.foundation/blog/post/placeholder-proofsystem)
+or other compatible arithmetizations.
 
-Every proof output from zkLLVM is **an in-EVM verifiable** one through the [Proof Market](https://proof.market). Use the Proof Market Toolchain repository (https://github.com/NilFoundation/proof-market-toolchain) to generate in-EVM verifiers.
+Every proof output from zkLLVM is **verifiable in-EVM** through the [Proof Market](https://proof.market).
+Use the Proof Market Toolchain repository (https://github.com/NilFoundation/proof-market-toolchain) to generate in-EVM verifiers.
 
-**Notice**: zkLLVM is **NOT** a virtual machine and has nothing to do with it. It, moreover, with its existence proves the absence of necessity in zkVMs, posing them as redundant.
+**Notice**: zkLLVM is **NOT** a virtual machine and has nothing to do with it.
+It, moreover, with its existence proves the absence of necessity in zkVMs, posing them as redundant.
 
-zkLLVM is designed as an extension to LLVM toolchain, thus supports any front end which compiles to LLVM IR. This 
-enables developers to write code in native language instead of DSL's specific to other libraries.
+zkLLVM is an extension of LLVM toolchain and can support any frontend which compiles to LLVM IR.
+This enables developers to write code in mainstream languages instead of using specific DSLs, as in other zk solutions.
 
-zkLLVM extends:
-1. `clang/clang++` : Compiles the program into general intermediate representation byte-code from C/C++.
-2. `rustc`: Compiles the program into general intermediate representation byte-code from Rust. (https://github.com/NilFoundation/zkllvm-rslang)
-3. `assigner` Creates the circuit execution trace (a.k.a. assignment table) and produces data, needed by the prover to produce proof.
+zkLLVM extends several components of LLVM:
+1. `clang/clang++` compiles the program code in C/C++ into general intermediate representation byte-code.
+2. `rustc` compiles the program code in Rust into general intermediate representation byte-code. (https://github.com/NilFoundation/zkllvm-rslang)
+3. `assigner` creates the circuit execution trace (a.k.a. assignment table),
+   that the proof-generator uses to produce a proof.
 
 Languages currently supported are:
-1. C/C++ (all the standards Clang 15 supports).
-2. Rust (https://github.com/NilFoundation/zkllvm-rslang).
-3. Your language suggestions are warmly welcomed in Telegram (https://t.me/nilfoundation) or on Discord (https://discord.gg/KmTAEjbmM3).
+* C/C++ (all the standards Clang 15 supports). 
+* Rust (https://github.com/NilFoundation/zkllvm-rslang). 
+* Your language suggestions are warmly welcomed in [Telegram](https://t.me/nilfoundation) 
+  or [Discord](https://discord.gg/KmTAEjbmM3).
+
+# Getting started with zkLLVM
+
+To get started with developing zk applications, try the 
+zkLLVM tutorial and template project at
+[github.com/nilfoundation/zkllvm-template](https://github.com/nilfoundation/zkllvm-template).
+
+# Resources and community
+
+To learn more about zkLLVM, refer to the documentation at
+[docs.nil.foundation/zkllvm](https://docs.nil.foundation/zkllvm).
+
+More resources:
+
+* [`=nil;` YouTube channel](https://www.youtube.com/@nilFoundation-in2bf/playlists)
+* [`=nil;` Discord](https://discord.gg/KmTAEjbmM3)
+
+# Developing zkLLVM
 
 ## Building
 
