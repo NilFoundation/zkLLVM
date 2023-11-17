@@ -103,9 +103,9 @@ add_example_with_proving(uint_shift_right SOURCES bit_operations/shift_right.cpp
 add_example_with_proving(uint_bit_decomposition SOURCES bit_operations/bit_decomposition.cpp INPUT bit_operations/bit_decomposition.inp)
 add_example_with_proving(uint_bit_composition SOURCES bit_operations/bit_composition.cpp INPUT bit_operations/bit_composition.inp)
 
+add_example_with_proving(compare_neq_cpp SOURCES compare/neq.cpp INPUT compare/neq.inp)
+add_example_with_proving(compare_eq_cpp SOURCES compare/eq.cpp INPUT compare/eq.inp)
 # Comparison component is disabled due to issue with negative numbers, so we can't prove an empty circuit
-add_example_without_proving(compare_neq_cpp SOURCES compare/neq.cpp INPUT compare/neq.inp)
-add_example_without_proving(compare_eq_cpp SOURCES compare/eq.cpp INPUT compare/eq.inp)
 add_example_without_proving(compare_grequal_cpp SOURCES compare/grequal.cpp INPUT compare/grequal.inp)
 add_example_without_proving(compare_lequal_cpp SOURCES compare/lequal.cpp INPUT compare/lequal.inp)
 add_example_without_proving(compare_greater_than_cpp SOURCES compare/greater_than.cpp INPUT compare/greater_than.inp)
@@ -116,3 +116,5 @@ add_example_without_proving(balances_tree_cpp_example SOURCES balances_tree.cpp 
 
 add_example_without_proving(eddsa_signature_verification_cpp SOURCES eddsa_signature_verification.cpp INPUT eddsa_signature_verification.inp)
 add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp)
+
+add_example_with_proving(private_input_cpp SOURCES private_input.cpp INPUT private_input.inp)
