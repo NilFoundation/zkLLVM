@@ -9,7 +9,7 @@ bool is_same(typename hashes::sha2<256>::block_type block0,
     return block0[0] == block1[0] && block0[1] == block1[1];
 }
 
-[[circuit]] bool
+[[circuit]] void
     validate_path(std::array<typename hashes::sha2<256>::block_type, 0x05> merkle_path,
         typename hashes::sha2<256>::block_type leave,
         typename hashes::sha2<256>::block_type root) {
@@ -20,5 +20,5 @@ bool is_same(typename hashes::sha2<256>::block_type block0,
         subroot = hash<hashes::sha2<256>>(subroot, merkle_path[i]);
     }
 
-    return is_same(subroot, root);
+    __builtin_assigner_exit_check(is_same(subroot, root));
 }
