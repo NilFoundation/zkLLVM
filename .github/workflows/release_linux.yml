@@ -129,8 +129,7 @@ jobs:
           cmake -G "Unix Makefiles" \
             -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DZKLLVM_VERSION=${{ env.VERSION }} \
-            -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
+            -DZKLLVM_VERSION=${{ env.VERSION }} .
 
       - name: Build packages
         run: |
@@ -147,8 +146,7 @@ jobs:
             -DBUILD_SHARED_LIBS=FALSE \
             -DZKLLVM_VERSION=${{ env.VERSION }} \
             -DRSLANG_BUILD_EXTENDED=TRUE \
-            -DRSLANG_BUILD_TOOLS=cargo \
-            -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE .
+            -DRSLANG_BUILD_TOOLS=cargo .
 
       - name: Build rslang distribution
         run: |
