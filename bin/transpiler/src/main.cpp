@@ -266,7 +266,7 @@ int main(int argc, char *argv[]) {
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 5;
-    constexpr std::size_t SelectorColumns = 60;
+    constexpr std::size_t SelectorColumns = 60;//= 90;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -371,7 +371,7 @@ int main(int argc, char *argv[]) {
 
     auto fri_params = create_fri_params<typename lpc_type::fri_type, BlueprintFieldType>(table_rows_log);
     std::size_t permutation_size =
-        table_description.witness_columns + table_description.public_input_columns + table_description.constant_columns;
+        table_description.witness_columns + table_description.public_input_columns + 2;
     lpc_scheme_type lpc_scheme(fri_params);
 
 
@@ -388,21 +388,13 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    std::cout << "Rows amount = " << table_description.rows_amount << std::endl;
+    std::cout << "Usable rows amount = " << table_description.usable_rows_amount << std::endl;
     std::cout << "Preprocessing public data..." << std::endl;
     typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
         BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
     nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
         constraint_system, assignment_table.public_table(), table_description, lpc_scheme, permutation_size);
-    if( mode == "gen-recursive-verifier-main"){
-        std::string cpp_path = output_folder_path + "/placeholder_verifier.cpp";
-        std::ofstream output_file;
-        output_file.open(cpp_path);
-        output_file << nil::blueprint::recursive_verifier_generator<placeholder_params>::generate_recursive_verifier(
-            constraint_system, public_preprocessed_data.common_data, lpc_scheme, permutation_size
-        );
-        output_file.close();
-        return 0;
-    }
 
     if (mode == "gen-evm-verifier") {
         std::size_t gates_contract_size_threshold = 800;
@@ -431,7 +423,7 @@ int main(int argc, char *argv[]) {
             deduce_horner = true;
         }
         if ( vm.count("optimize-powers") > 0 ) {
-            optimize_powers = true;
+
         }
         nil::blueprint::evm_verifier_printer<placeholder_params>(
             constraint_system,

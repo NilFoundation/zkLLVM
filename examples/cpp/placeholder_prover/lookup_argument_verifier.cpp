@@ -70,10 +70,10 @@ typedef __attribute__((ext_vector_type(4)))
     ) {
 
     return __builtin_assigner_lookup_arg_verifier(
-        (int*)lookup_table_lookup_options_sizes.data(), lookup_table_size,
-        (int*)lookup_table_columns_numbers.data(), lookup_table_size,
-        (int*)lookup_gate_constraints_sizes.data(), lookup_gate_size,
-        (int*)lookup_gate_constraints_lookup_input_sizes.data(), lookup_constraints_size, //sum of the lookup_gate_constraints_sizes elements
+        (int*)&lookup_table_lookup_options_sizes, lookup_table_size,
+        (int*)&lookup_table_columns_numbers, lookup_table_size,
+        (int*)&lookup_gate_constraints_sizes, lookup_gate_size,
+        (int*)&lookup_gate_constraints_lookup_input_sizes, lookup_constraints_size, //sum of the lookup_gate_constraints_sizes elements
 
         alphas.data(), input_size_alphas,
         lookup_gate_selectors.data(), input_size_lookup_gate_selectors,

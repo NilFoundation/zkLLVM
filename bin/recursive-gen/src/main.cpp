@@ -22,6 +22,9 @@
 
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
+#include <nil/crypto3/zk/math/expression.hpp>
+#include <nil/crypto3/zk/math/expression_visitors.hpp>
+#include <nil/crypto3/zk/math/expression_evaluator.hpp>
 
 #include <nil/crypto3/hash/algorithm/hash.hpp>
 #include <nil/crypto3/hash/sha2.hpp>
@@ -358,7 +361,7 @@ int main(int argc, char *argv[]) {
 
     auto fri_params = create_fri_params<typename lpc_type::fri_type, BlueprintFieldType>(table_rows_log);
     std::size_t permutation_size =
-        table_description.witness_columns + table_description.public_input_columns + table_description.constant_columns;
+        table_description.witness_columns + table_description.public_input_columns + 2;
     lpc_scheme_type lpc_scheme(fri_params);
 
 
@@ -375,7 +378,11 @@ int main(int argc, char *argv[]) {
         std::string cpp_path = output_folder_path + "/placeholder_verifier.cpp";
         std::ofstream output_file;
         output_file.open(cpp_path);
-        output_file << nil::blueprint::recursive_verifier_generator<placeholder_params>::generate_recursive_verifier(
+        output_file << nil::blueprint::recursive_verifier_generator<
+            placeholder_params,
+            nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>,
+            typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type
+        >::generate_recursive_verifier(
             constraint_system, public_preprocessed_data.common_data, lpc_scheme, permutation_size
         );
         output_file.close();
@@ -411,7 +418,11 @@ int main(int argc, char *argv[]) {
         std::string inp_path = output_folder_path + "/placeholder_verifier.inp";
         std::ofstream output_file;
         output_file.open(inp_path);
-        output_file << nil::blueprint::recursive_verifier_generator<placeholder_params>::generate_input(
+        output_file << nil::blueprint::recursive_verifier_generator<
+            placeholder_params,
+            nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>,
+            typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type
+        >::generate_input(
             {}, public_preprocessed_data.common_data.vk, proof
         );
         output_file.close();
