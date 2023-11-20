@@ -38,7 +38,7 @@ option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
 option(BUILD_WITH_BOOST_STATIC_LIBS "Build using Boost static libraries" TRUE)
 option(BUILD_TESTS "Build unit tests" FALSE)
 option(BUILD_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
-option(CIRCUIT_ASSEMBLY_OUTPUT "Emit circuit IR as assembly file" TRUE)
+option(CIRCUIT_BINARY_OUTPUT "Emit circuit IR as binary file" FALSE)
 
 set(BUILD_WITH_TARGET_ARCHITECTURE "" CACHE STRING "Target build architecture")
 set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_LIST_DIR}/docs" CACHE STRING "Specify doxygen output directory")
