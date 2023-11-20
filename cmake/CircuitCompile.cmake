@@ -58,13 +58,8 @@ function(add_circuit_no_stdlib name)
     endif()
     list(REMOVE_DUPLICATES INCLUDE_DIRS_LIST)
 
-    if(CIRCUIT_ASSEMBLY_OUTPUT)
-        set(extension ll)
-        set(format_option -S)
+    if (NOT ${CIRCUIT_BINARY_OUTPUT})
         set(link_options "-S")
-    else()
-        set(extension bc)
-        set(format_option -c)
     endif()
 
     if (ZKLLVM_DEV_ENVIRONMENT)
@@ -80,26 +75,26 @@ function(add_circuit_no_stdlib name)
     add_custom_target(${name}_compile_sources)
     foreach(source ${CIRCUIT_SOURCES})
         get_filename_component(source_base_name ${source} NAME)
-        add_custom_target(${name}_${source_base_name}_${extension}
-                        COMMAND ${CLANG} -target assigner
-                        -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 ${format_option} ${ARG_COMPILER_OPTIONS}  -o ${name}_${source_base_name}.${extension} ${source}
+        add_custom_target(${name}_${source_base_name}_ll
+                        COMMAND ${CLANG} -target assigner -Xclang -fpreserve-vec3-type -Werror=unknown-attributes
+                        -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 -S ${ARG_COMPILER_OPTIONS}  -o ${name}_${source_base_name}.ll ${source}
 
                         VERBATIM COMMAND_EXPAND_LISTS
 
                         SOURCES ${source})
-        add_dependencies(${name}_compile_sources ${name}_${source_base_name}_${extension})
-        list(APPEND compiler_outputs "${name}_${source_base_name}.${extension}")
+        add_dependencies(${name}_compile_sources ${name}_${source_base_name}_ll)
+        list(APPEND compiler_outputs "${name}_${source_base_name}.ll")
     endforeach()
 
     # Link sources
     add_custom_target(${name}
-                      COMMAND ${LINKER} ${link_options} -o ${name}.${extension} ${compiler_outputs}
+                      COMMAND ${LINKER} ${link_options} -o ${name}.ll ${compiler_outputs}
                       DEPENDS ${name}_compile_sources
                       VERBATIM COMMAND_EXPAND_LISTS)
     if (${ZKLLVM_DEV_ENVIRONMENT})
         add_dependencies(${name} zkllvm-libc)
     endif()
-    set_target_properties(${name} PROPERTIES OUTPUT_NAME ${name}.${extension})
+    set_target_properties(${name} PROPERTIES OUTPUT_NAME ${name}.ll)
 endfunction(add_circuit_no_stdlib)
 
 function(add_circuit)
@@ -114,7 +109,9 @@ function(add_circuit)
         set(LINKER llvm-link)
         set(libc_stdlib "/usr/lib/zkllvm/zkllvm-libc.ll")
     endif()
-    set(link_options "-S")
+    if (NOT ${CIRCUIT_BINARY_OUTPUT})
+        set(link_options "-S")
+    endif()
 
     add_custom_target(${circuit_name}
                       COMMAND ${LINKER} ${link_options} -o ${circuit_name}.ll ${circuit_name}_no_stdlib.ll ${libc_stdlib}

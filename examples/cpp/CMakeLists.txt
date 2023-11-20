@@ -45,11 +45,7 @@ function(add_example_without_proving example_target)
                 ${Boost_LIBRARIES})
     add_dependencies(circuit_cpp_examples "${example_target}")
 
-    if (CIRCUIT_ASSEMBLY_OUTPUT)
-        set(binary_name ${example_target}.ll)
-    else()
-        set(binary_name ${example_target}.bc)
-    endif()
+    set(binary_name ${example_target}.ll)
 
     assign_ir(${example_target} ${binary_name} ${ARG_INPUT})
     add_dependencies(assign_cpp_examples ${example_target}_assign)
