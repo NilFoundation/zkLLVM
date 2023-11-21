@@ -350,7 +350,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
-template<typename CurveType, bool PrintCircuitOutput>
+template<typename BlueprintFieldType, bool PrintCircuitOutput>
 int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
                           std::string assignment_table_file_name,
@@ -360,7 +360,6 @@ int curve_dependent_main(std::string bytecode_file_name,
                           boost::log::trivial::severity_level log_level,
                           const std::string &policy,
                           std::uint32_t max_num_provers) {
-    using BlueprintFieldType = typename CurveType::base_field_type;
 
     constexpr std::size_t ComponentConstantColumns = 5;
     constexpr std::size_t LookupConstantColumns = 30;
@@ -676,7 +675,7 @@ int main(int argc, char *argv[]) {
     switch (curve_options[elliptic_curve]) {
         case 0: {
             if (vm.count("print_circuit_output")) {
-                return curve_dependent_main<typename algebra::curves::pallas, true>(
+                return curve_dependent_main<typename algebra::curves::pallas::base_field_type, true>(
                                                                           bytecode_file_name,
                                                                           public_input_file_name,
                                                                           assignment_table_file_name,
@@ -688,7 +687,7 @@ int main(int argc, char *argv[]) {
                                                                           max_num_provers);
             }
             else {
-                return curve_dependent_main<typename algebra::curves::pallas, false>(
+                return curve_dependent_main<typename algebra::curves::pallas::base_field_type, false>(
                                                                           bytecode_file_name,
                                                                           public_input_file_name,
                                                                           assignment_table_file_name,
@@ -710,7 +709,30 @@ int main(int argc, char *argv[]) {
             break;
         }
         case 3: {
-            UNREACHABLE("bls12-381 curve based circuits are not supported yet");
+            if (vm.count("print_circuit_output")) {
+                return curve_dependent_main<typename algebra::fields::bls12_base_field<381>, true>(
+                                                                          bytecode_file_name,
+                                                                          public_input_file_name,
+                                                                          assignment_table_file_name,
+                                                                          circuit_file_name,
+                                                                          stack_size,
+                                                                          vm.count("check"),
+                                                                          log_options[log_level],
+                                                                          policy,
+                                                                          max_num_provers);
+            }
+            else {
+                return curve_dependent_main<typename algebra::fields::bls12_base_field<381>, false>(
+                                                                          bytecode_file_name,
+                                                                          public_input_file_name,
+                                                                          assignment_table_file_name,
+                                                                          circuit_file_name,
+                                                                          stack_size,
+                                                                          vm.count("check"),
+                                                                          log_options[log_level],
+                                                                          policy,
+                                                                          max_num_provers);
+            }
             break;
         }
     };
