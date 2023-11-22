@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <fstream>
+#include <string>
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -31,6 +32,7 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 #include <nil/crypto3/algebra/fields/arithmetic_params/pallas.hpp>
@@ -370,7 +372,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::string circuit_file_name,
                           long stack_size,
                           bool check_validity,
-                          bool verbose,
+                          boost::log::trivial::severity_level log_level,
                           const std::string &policy,
                           std::uint32_t max_num_provers) {
     using BlueprintFieldType = typename CurveType::base_field_type;
@@ -418,7 +420,7 @@ int curve_dependent_main(std::string bytecode_file_name,
     }
 
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams, PrintCircuitOutput> parser_instance(stack_size,
-                                                                                                          verbose, max_num_provers, policy);
+                                                                                                          log_level, max_num_provers, policy);
 
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
     if (module == nullptr) {
@@ -519,16 +521,24 @@ int main(int argc, char *argv[]) {
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)")
             ("stack-size,s", boost::program_options::value<long>(), "Stack size in bytes")
             ("check", "Check satisfiability of the generated circuit")
-            ("verbose", "Print detailed log")
+            ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)")
             ("print_circuit_output", "print output of the circuit")
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
             ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1");
     // clang-format on
 
+
     boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(),
-                                  vm);
-    boost::program_options::notify(vm);
+    try {
+        boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(),
+                                    vm);
+        boost::program_options::notify(vm);
+    } catch (const boost::program_options::unknown_option &e) {
+        std::cerr << "Invalid command line argument: " << e.what() << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+    
 
     if (vm.count("help")) {
         std::cout << options_desc << std::endl;
@@ -551,6 +561,7 @@ int main(int argc, char *argv[]) {
     std::string assignment_table_file_name;
     std::string circuit_file_name;
     std::string elliptic_curve;
+    std::string log_level;
     long stack_size;
 
     if (vm.count("bytecode")) {
@@ -593,6 +604,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    if (vm.count("log-level")) {
+        log_level = vm["log-level"].as<std::string>();
+    } else {
+        log_level = "info";
+    }
+
+
     std::map<std::string, int> curve_options{
         {"pallas", 0},
         {"vesta", 1},
@@ -632,6 +650,22 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    // We use Boost log trivial severity levels, these are string representations of their names
+    std::map<std::string, boost::log::trivial::severity_level> log_options{
+        {"trace", boost::log::trivial::trace},
+        {"debug", boost::log::trivial::debug},
+        {"info", boost::log::trivial::info},
+        {"warning", boost::log::trivial::warning},
+        {"error", boost::log::trivial::error},
+        {"fatal", boost::log::trivial::fatal}
+    };
+
+    if (log_options.find(log_level) == log_options.end()) {
+        std::cerr << "Invalid command line argument -l (log level): " << log_level << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
     switch (curve_options[elliptic_curve]) {
         case 0: {
             if (vm.count("print_circuit_output")) {
@@ -642,7 +676,7 @@ int main(int argc, char *argv[]) {
                                                                           circuit_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),
-                                                                          vm.count("verbose"),
+                                                                          log_options[log_level],
                                                                           policy,
                                                                           max_num_provers);
             }
@@ -654,7 +688,7 @@ int main(int argc, char *argv[]) {
                                                                           circuit_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),
-                                                                          vm.count("verbose"),
+                                                                          log_options[log_level],
                                                                           policy,
                                                                           max_num_provers);
             }
