@@ -73,8 +73,7 @@ void print_hex_byteblob(std::ostream &os, TIter iter_begin, TIter iter_end, bool
 
 template<typename Endianness, typename ArithmetizationType, typename ConstraintSystemType>
 void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
-                   const assignment_proxy<ArithmetizationType> &table_proxy,
-                   bool rename_required, std::ostream &out = std::cout) {
+                   std::ostream &out = std::cout) {
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using plonk_constraint_system = nil::marshalling::types::bundle<
         TTypeBase, std::tuple<
@@ -100,29 +99,6 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
     const std::set<std::uint32_t>& used_copy_constraints_idx = circuit_proxy.get_used_copy_constraints();
     for (const auto &it : used_copy_constraints_idx) {
         used_copy_constraints.push_back(copy_constraints[it]);
-    }
-    if (rename_required) {
-        const auto used_rows = table_proxy.get_used_rows();
-        std::uint32_t local_row = 0;
-        for (const auto &row : used_rows) {
-            for (auto &constraint : used_copy_constraints) {
-                const auto first_var = constraint.first;
-                const auto second_var = constraint.second;
-                if ((first_var.type == variable_type::column_type::witness ||
-                     first_var.type == variable_type::column_type::constant) &&
-                    first_var.rotation == row) {
-                    constraint.first = variable_type(first_var.index, local_row, first_var.relative,
-                                                     first_var.type);
-                }
-                if ((second_var.type == variable_type::column_type::witness ||
-                     second_var.type == variable_type::column_type::constant) &&
-                    second_var.rotation == row) {
-                    constraint.second = variable_type(second_var.index, local_row,
-                                                      second_var.relative, second_var.type);
-                }
-            }
-            local_row++;
-        }
     }
 
     const auto lookup_gates = circuit_proxy.lookup_gates();
@@ -281,6 +257,25 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     const std::uint32_t padding = padded_rows_amount - usable_rows_amount;
 
     using TTypeBase = nil::marshalling::field_type<Endianness>;
+    using plonk_assignment_private_table = nil::marshalling::types::bundle<
+        TTypeBase,
+        std::tuple<
+            nil::marshalling::types::integral<TTypeBase, std::size_t>, // usable_rows
+            nil::marshalling::types::integral<TTypeBase, std::size_t>, // columns_number
+            // row offsets
+            nil::marshalling::types::array_list<
+                TTypeBase,
+                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
+                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
+            >,
+            // table_values
+            nil::marshalling::types::array_list<
+                TTypeBase,
+                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
+                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
+            >
+        >
+    >;
     using plonk_assignment_table = nil::marshalling::types::bundle<
         TTypeBase,
         std::tuple<
@@ -296,6 +291,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     >;
 
     std::vector<typename AssignmentTableType::field_type::value_type> table_values;
+    std::vector<typename AssignmentTableType::field_type::value_type> row_offsets;
     if (print_kind == print_table_kind::FULL) {
         fill_vector_value<typename AssignmentTableType::field_type::value_type, ArithmetizationType>
                 (table_values, table_proxy, print_column_kind::WITNESS, witness_size, usable_rows_amount, padding);
@@ -314,6 +310,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         const auto rows = table_proxy.get_used_rows();
         for( std::size_t i = 0; i < AssignmentTableType::arithmetization_params::witness_columns; i++ ){
             for(const auto& j : rows){
+                row_offsets.push_back(j);
                 if (j < table_proxy.witness_column_size(i)) {
                     table_values.push_back(table_proxy.witness(i, j));
                 } else {
@@ -350,16 +347,33 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         }
     }
 
-    auto filled_val = plonk_assignment_table(std::make_tuple(
-            nil::marshalling::types::integral<TTypeBase, std::size_t>(usable_rows_amount),
-            nil::marshalling::types::integral<TTypeBase, std::size_t>(total_columns),
-            nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(table_values)
-    ));
-
     std::vector<std::uint8_t> cv;
-    cv.resize(filled_val.length(), 0x00);
-    auto write_iter = cv.begin();
-    nil::marshalling::status_type status = filled_val.write(write_iter, cv.size());
+    if (print_kind == print_table_kind::PRIVATE) {
+        auto filled_val = plonk_assignment_private_table(std::make_tuple(
+                nil::marshalling::types::integral<TTypeBase, std::size_t>(usable_rows_amount),
+                nil::marshalling::types::integral<TTypeBase, std::size_t>(total_columns),
+                nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(
+                        row_offsets),
+                nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(
+                        table_values)
+        ));
+
+        cv.resize(filled_val.length(), 0x00);
+        auto write_iter = cv.begin();
+        nil::marshalling::status_type status = filled_val.write(write_iter, cv.size());
+    } else {
+        auto filled_val = plonk_assignment_table(std::make_tuple(
+                nil::marshalling::types::integral<TTypeBase, std::size_t>(usable_rows_amount),
+                nil::marshalling::types::integral<TTypeBase, std::size_t>(total_columns),
+                nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(
+                        table_values)
+        ));
+
+        cv.resize(filled_val.length(), 0x00);
+        auto write_iter = cv.begin();
+        nil::marshalling::status_type status = filled_val.write(write_iter, cv.size());
+    }
+
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
@@ -469,7 +483,6 @@ int curve_dependent_main(std::string bytecode_file_name,
         }
     }
 
-    auto assignment_it = parser_instance.assignments.begin();
     for (auto& it : parser_instance.circuits) {
         std::ofstream ocircuit;
         std::string file_name = parser_instance.circuits.size() > 1 ?
@@ -479,11 +492,9 @@ int curve_dependent_main(std::string bytecode_file_name,
             std::cout << "Something wrong with output " << file_name << std::endl;
             return 1;
         }
-        ASSERT_MSG(assignment_it != parser_instance.assignments.end(), "Not found assignment for circuit");
         print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>
-                (it, *assignment_it, (parser_instance.assignments.size() > 1), ocircuit);
+                (it, ocircuit);
         ocircuit.close();
-        assignment_it++;
     }
 
     if (check_validity){
