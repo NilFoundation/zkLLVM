@@ -1,0 +1,11 @@
+[
+    {"field":1},
+    {"array":[
+        {"vector":[{"field":1},{"field":1},{"field":1},{"field":1}]},
+        {"vector":[{"field":1},{"field":1},{"field":1},{"field":1}]},
+        {"vector":[{"field":1},{"field":1},{"field":1},{"field":1}]},
+        {"vector":[{"field":1},{"field":1},{"field":1},{"field":1}]},
+        {"vector":[{"field":1},{"field":1},{"field":1},{"field":1}]}
+    ]},
+    {"curve":[1, 1]}
+]

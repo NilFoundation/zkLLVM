@@ -1,36 +1,29 @@
-namespace nil {
-    namespace crypto3 {
-        namespace hashes {
-            __zkllvm_curve_bls12381 hash_to_curve(__zkllvm_field_bls12381_base a); //to curve
-        }    // namespace hashes
-    }        // namespace crypto3
-}    // namespace nil
+#include <nil/crypto3/algebra/fields/bls12/base_field.hpp>
+#include <nil/crypto3/algebra/curves/bls12.hpp>
+#include <nil/crypto3/algebra/algorithms/pair.hpp>
 
-namespace nil {
-    namespace crypto3 {
-        namespace algebra {
-            typedef __attribute__((ext_vector_type(4)))
-            __zkllvm_field_bls12381_base g2_type;
+using namespace nil::crypto3;
 
-            typedef __attribute__((ext_vector_type(12)))
-            __zkllvm_field_bls12381_base gT_type;
+[[circuit]] bool verify_signature(
+    typename algebra::fields::bls12_base_field<381>::value_type hashed_msg,
+    typename algebra::curves::bls12<381>::template g2_type<>::value_type pubkey,
+    typename algebra::curves::bls12<381>::template g1_type<>::value_type sig) {
 
-            gT_type optimal_ate_pairing(__zkllvm_curve_bls12381 a, g2_type b);
-            __zkllvm_field_bls12381_base check_equality(gT_type a, gT_type b);
-        }    // namespace hashes
-    }        // namespace crypto3
-}    // namespace nil
+        typename algebra::curves::bls12<381>::template g1_type<>::value_type msg_point = __builtin_assigner_hash_to_curve(hashed_msg);
 
-[[circuit]] __zkllvm_field_bls12381_base verify_signature(
-    __zkllvm_field_bls12381_base hashed_msg,
-    typename nil::crypto3::algebra::g2_type pubkey,
-    __zkllvm_curve_bls12381 sig) {
-        __zkllvm_curve_bls12381 msg_point = nil::crypto3::hashes::hash_to_curve(hashed_msg);
+        __builtin_assigner_is_in_g1_check(sig);
+        __builtin_assigner_is_in_g2_check(pubkey);
 
-        typename nil::crypto3::algebra::g2_type g2 = pubkey; // TODO replace with real g2
+        typename algebra::curves::bls12<381>::template g2_type<>::value_type g2_group_generator = algebra::curves::bls12<381>::template g2_type<>::one();
 
-        typename nil::crypto3::algebra::gT_type pairing1 = nil::crypto3::algebra::optimal_ate_pairing(sig, g2);
-        typename nil::crypto3::algebra::gT_type pairing2 = nil::crypto3::algebra::optimal_ate_pairing(msg_point, pubkey);
+        typename algebra::curves::bls12<381>::gt_type::value_type pairing1 = algebra::pair<algebra::curves::bls12<381>>(sig, g2_group_generator);
+        typename algebra::curves::bls12<381>::gt_type::value_type pairing2 = algebra::pair<algebra::curves::bls12<381>>(msg_point, pubkey);
 
-        return nil::crypto3::algebra::check_equality(pairing1, pairing2);
+        bool are_equal = 0;
+        for (std::size_t i = 0; i < 12; i++) {
+            are_equal = are_equal && (pairing1[i] == pairing2[i]);
+        }
+        // __builtin_assigner_exit_check(are_equal);
+
+        return are_equal;
 }
