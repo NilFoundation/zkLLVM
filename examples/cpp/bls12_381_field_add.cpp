@@ -1,10 +1,10 @@
-#include <nil/crypto3/algebra/fields/bls12/base_field.hpp>
+#include <nil/crypto3/algebra/curves/bls12.hpp>
 
-using namespace nil::crypto3::algebra::fields;
+using namespace nil::crypto3::algebra::curves;
 
-[[circuit]] typename bls12_base_field<381>::value_type add(
-    typename bls12_base_field<381>::value_type a,
-    typename bls12_base_field<381>::value_type b) {
+[[circuit]] typename bls12<381>::base_field_type::value_type add(
+    typename bls12<381>::base_field_type::value_type a,
+    typename bls12<381>::base_field_type::value_type b) {
 
     return a + b;
 }

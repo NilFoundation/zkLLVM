@@ -38,6 +38,8 @@
 #include <nil/crypto3/algebra/fields/arithmetic_params/pallas.hpp>
 #include <nil/crypto3/algebra/curves/ed25519.hpp>
 #include <nil/crypto3/algebra/fields/arithmetic_params/ed25519.hpp>
+#include <nil/crypto3/algebra/curves/bls12.hpp>
+#include <nil/crypto3/algebra/fields/arithmetic_params/bls12.hpp>
 
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
