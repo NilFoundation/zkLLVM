@@ -31,7 +31,6 @@ jobs:
             boost@1.76 \
             cmake \
             icu4c \
-            spdlog \
             bash
 
       - name: Install Python
