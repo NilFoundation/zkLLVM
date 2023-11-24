@@ -40,8 +40,7 @@ jobs:
             git \
             libicu-dev \
             curl \
-            pkg-config \
-            libspdlog-dev
+            pkg-config
 
       - name: Print toolchain information
         run: |
