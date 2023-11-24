@@ -14,8 +14,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  handle-syncwith:
+    if: github.event_name == 'pull_request'
+    name: Call Reusable SyncWith Handler
+    uses: NilFoundation/ci-cd/.github/workflows/reusable-handle-syncwith.yml@v1
+    with:
+      ci-cd-ref: 'v1'
+    secrets: inherit
+
   build-linux:
     runs-on: [ self-hosted, Linux, amd64 ]
+
+    needs:
+      - handle-syncwith
 
     env:
       CONTAINER_TMP: /opt/
@@ -49,20 +60,36 @@ jobs:
           cmake --version
 
       - name: Checkout sources
+        # We need full history, because during CMake config stage we are finding the nearest tag
         uses: actions/checkout@v3
         with:
-          submodules: 'recursive'
           fetch-depth: 0
-
-      - name: Clean index.lock files if checkout step was cancelled or failed
-        if: cancelled() || failure()
-        run: |
-          find .git -name 'index.lock' -exec rm -v {} \;
+          submodules: false
 
       # Workaround: https://github.com/actions/checkout/issues/1169
       - name: Mark directory as safe
         run: |
           git config --system --add safe.directory $PWD
+
+      - name: Checkout submodules
+        run: |
+          git submodule update --init --recursive --depth=1
+
+      - name: Checkout modules to specified refs
+        if: needs.handle-syncwith.outputs.prs-refs != ''
+        uses: NilFoundation/ci-cd/actions/recursive-checkout@v1
+        # TODO: figure out the mapping of volumes and use variable here, not hardcoded path
+        with:
+          paths: |
+            /__w/zkLLVM/zkLLVM/**
+            !/__w/zkLLVM/zkLLVM/
+            !/__w/zkLLVM/zkLLVM/**/.git/**
+          refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+
+      - name: Clean index.lock files if checkout step was cancelled or failed
+        if: cancelled() || failure()
+        run: |
+          find .git -name 'index.lock' -exec rm -v {} \;
 
       - name: Install boost
         uses: MarkusJx/install-boost@v2.4.1
