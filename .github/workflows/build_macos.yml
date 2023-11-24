@@ -14,8 +14,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  handle-syncwith:
+    if: github.event_name == 'pull_request'
+    name: Call Reusable SyncWith Handler
+    uses: NilFoundation/ci-cd/.github/workflows/reusable-handle-syncwith.yml@v1
+    with:
+      ci-cd-ref: 'v1'
+      fetch-only: true
+    secrets: inherit
+
   build-macos:
     runs-on: [ macos-11 ]
+
+    needs:
+      - handle-syncwith
 
     steps:
       - name: Install homebrew
@@ -49,10 +61,25 @@ jobs:
           echo PATH: $PATH
 
       - name: Checkout sources
+        # We need full history, because during CMake config stage we are finding the nearest tag
         uses: actions/checkout@v3
         with:
-          submodules: 'recursive'
           fetch-depth: 0
+          submodules: false
+
+      - name: Checkout submodules
+        run: |
+          git submodule update --init --recursive --depth=1
+
+      - name: Checkout modules to specified refs
+        if: needs.handle-syncwith.outputs.prs-refs != ''
+        uses: NilFoundation/ci-cd/actions/recursive-checkout@v1
+        with:
+          paths: |
+            ${{ github.workspace }}/**
+            !${{ github.workspace }}
+            !${{ github.workspace }}/**/.git/**
+          refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
 
       - name: Enable ccache
         uses: hendrikmuhs/ccache-action@v1.2
