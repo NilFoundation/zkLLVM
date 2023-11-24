@@ -222,5 +222,9 @@ add_zkllvm_unit_test("libc/strncmp/strncmp")
 add_zkllvm_unit_test("libc/strcpy/strcpy")
 add_zkllvm_unit_test("libc/strncpy/strncpy")
 
+#hashes
+add_zkllvm_unit_test("hashes/sha256/sha2_256")
+add_zkllvm_unit_test("hashes/poseidon/poseidon")
+
 add_dependencies(all_for_test_run all_circuit_tests)
 add_dependencies(all_for_test_run all_expected_res_tests)
