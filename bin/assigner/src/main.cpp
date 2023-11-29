@@ -198,13 +198,15 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     const auto lookup_constant_cols = table_proxy.get_lookup_constant_cols();
     const auto lookup_selector_cols = table_proxy.get_lookup_selector_cols();
 
-
     if (print_kind == print_table_kind::PRIVATE) {
-        total_columns = witness_size + (constant_size - table_proxy.get_lookup_constant_amount())
-                + (selector_size - table_proxy.get_lookup_selector_amount());
+        constant_size = constant_size - table_proxy.get_lookup_constant_amount();
+        selector_size = selector_size - table_proxy.get_lookup_selector_amount();
+        total_columns = witness_size + constant_size + selector_size;
         usable_rows_amount = table_proxy.get_used_rows().size();
     } else if (print_kind == print_table_kind::SHARED) {
-        total_columns = shared_size + public_input_size + table_proxy.get_lookup_constant_amount() + table_proxy.get_lookup_selector_amount();
+        constant_size = table_proxy.get_lookup_constant_amount();
+        selector_size = table_proxy.get_lookup_selector_amount();
+        total_columns = shared_size + public_input_size + constant_size + selector_size;
         std::uint32_t max_shared_size = 0;
         std::uint32_t max_public_inputs_size = 0;
         std::uint32_t max_constant_size = 0;
@@ -308,14 +310,14 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
 
         std::vector<std::uint32_t> constant_cols;
         const auto& lookup_constant_cols = table_proxy.get_lookup_constant_cols();
-        for (std::uint32_t i = 0; i < constant_size; i++) {
+        for (std::uint32_t i = 0; i < table_proxy.constants_amount(); i++) {
             if (lookup_constant_cols.find(i) == lookup_constant_cols.end()) {
                 constant_cols.push_back(i);
             }
         }
         std::vector<std::uint32_t> selector_cols;
         const auto& lookup_selector_cols = table_proxy.get_lookup_selector_cols();
-        for (std::uint32_t i = 0; i < selector_size; i++) {
+        for (std::uint32_t i = 0; i < table_proxy.selectors_amount(); i++) {
             if (lookup_selector_cols.find(i) == lookup_selector_cols.end()) {
                 selector_cols.push_back(i);
             }
@@ -510,7 +512,6 @@ int curve_dependent_main(std::string bytecode_file_name,
             otable.close();
         }
     }
-
     auto assignment_it = parser_instance.assignments.begin();
     for (auto& it : parser_instance.circuits) {
         std::ofstream ocircuit;
@@ -578,8 +579,6 @@ int main(int argc, char *argv[]) {
         std::cout << options_desc << std::endl;
         return 1;
     }
-
-
     if (vm.count("help")) {
         std::cout << options_desc << std::endl;
         return 0;
