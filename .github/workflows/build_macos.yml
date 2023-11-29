@@ -31,7 +31,6 @@ jobs:
             boost@1.76 \
             cmake \
             icu4c \
-            spdlog \
             bash
 
       - name: Install Python
@@ -70,7 +69,6 @@ jobs:
             -B build \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCIRCUIT_ASSEMBLY_OUTPUT=TRUE \
             -DBUILD_TESTS=TRUE .
 
       - name: Build zkllvm

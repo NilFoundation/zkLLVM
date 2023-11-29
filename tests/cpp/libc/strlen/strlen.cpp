@@ -1,23 +1,14 @@
 #ifndef __ZKLLVM__
-#include "../read_boost_json.hpp"
+#include "../../read_boost_json.hpp"
 #include <cstdint>
 #include <fstream>
 #endif
 
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 
-[[circuit]] uint32_t shift_add(uint32_t a) {
-    uint32_t out = a >> 1;
-#ifdef __ZKLLVM__
-#pragma zk_multi_prover 1
-    {
-        out = out >> 1;
-        out = out + 1;
-    }
-#else
-    out = out >> 1;
-    out = out + 1;
-#endif
+[[circuit]] uint32_t test_func(const char *buf) {
+    uint32_t out = 0;
+    out = strlen(buf);
 
 #ifndef __ZKLLVM__
     std::cout << out <<std::endl;
@@ -36,9 +27,10 @@ int main (int argc, char *argv[]){
 
     boost::json::value input_json = read_boost_json(std::string(argv[1]));
 
-    uint32_t a = read_uint<uint32_t>(input_json, 0);
+    std::string s = read_string(input_json, 0);
 
-    shift_add(a);
+    test_func(s.c_str());
+
     return 0;
 }
 #endif

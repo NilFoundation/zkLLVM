@@ -522,7 +522,7 @@ int main(int argc, char *argv[]) {
     using BlueprintFieldType = typename curve_type::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
-    constexpr std::size_t ConstantColumns = 5;
+    constexpr std::size_t ConstantColumns = 30;
     constexpr std::size_t SelectorColumns = 35;
 
     using ArithmetizationParams =

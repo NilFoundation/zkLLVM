@@ -143,11 +143,7 @@ function(add_test_circuit_assign example_target)
 
                 ${Boost_LIBRARIES})
 
-    if (CIRCUIT_ASSEMBLY_OUTPUT)
-        set(binary_name ${example_target}.ll)
-    else()
-        set(binary_name ${example_target}.bc)
-    endif()
+    set(binary_name ${example_target}.ll)
 
     assign_ir(${example_target} ${binary_name} ${ARG_INPUT})
 endfunction()
@@ -213,7 +209,23 @@ add_zkllvm_unit_test("algebra/de_composition/decomposition/msb")
 add_zkllvm_unit_test("algebra/de_composition/decomposition/lsb")
 
 #multi provers tests
-add_zkllvm_unit_test("multi_provers/shift_add")
+add_zkllvm_unit_test("multi_provers/shift_add/shift_add")
+add_zkllvm_unit_test("multi_provers/sha256/sha256")
+
+#customer's tests
+add_zkllvm_unit_test("custom_cases/getelementptr_as_constant/getelementptr_as_constant")
+
+#libc functions
+add_zkllvm_unit_test("libc/memset/memset")
+add_zkllvm_unit_test("libc/strlen/strlen")
+add_zkllvm_unit_test("libc/strcmp/strcmp")
+add_zkllvm_unit_test("libc/strncmp/strncmp")
+add_zkllvm_unit_test("libc/strcpy/strcpy")
+add_zkllvm_unit_test("libc/strncpy/strncpy")
+
+#hashes
+add_zkllvm_unit_test("hashes/sha256/sha2_256")
+add_zkllvm_unit_test("hashes/poseidon/poseidon")
 
 add_dependencies(all_for_test_run all_circuit_tests)
 add_dependencies(all_for_test_run all_expected_res_tests)

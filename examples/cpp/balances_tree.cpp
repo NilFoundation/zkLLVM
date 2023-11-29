@@ -112,7 +112,7 @@ typename hashes::sha2<256>::block_type hash_layer(std::array<typename hashes::sh
 }
 
 [[circuit]] bool balance_tree(
-    [[private]] std::array<int64_t, precomputed_powers_of_two[validators_amount_log2]> validator_balances,
+    [[private_input]] std::array<int64_t, precomputed_powers_of_two[validators_amount_log2]> validator_balances,
     typename hashes::sha2<256>::block_type expected_root,
     unsigned long long expected_total_balance) {
 
