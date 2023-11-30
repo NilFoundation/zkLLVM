@@ -16,7 +16,7 @@ on:
 
 jobs:
   make-release:
-    runs-on: [ self-hosted, Linux, amd64 ]
+    runs-on: [ self-hosted, Linux, X64, aws_autoscaling ]
     environment: prod
 
     env:

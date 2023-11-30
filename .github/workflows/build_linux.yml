@@ -23,7 +23,7 @@ jobs:
     secrets: inherit
 
   build-linux:
-    runs-on: [ self-hosted, Linux, amd64 ]
+    runs-on: [ self-hosted, Linux, X64, aws_autoscaling ]
 
     needs:
       - handle-syncwith
