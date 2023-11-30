@@ -155,6 +155,105 @@ void proof_print(Proof &proof, const std::string &output_file) {
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
+template<typename MarshallingType>
+MarshallingType read_object_from_file(const std::string& file_name, const std::string& object_name_for_logging) {
+    std::cout << "Reading " << object_name_for_logging << " from " << file_name << std::endl;
+    std::ifstream file;
+    file.open(file_name);
+    if (!file) {
+        throw std::runtime_error("Cannot open file " + file_name);
+    }
+    std::vector<std::uint8_t> buffer;
+    if (!read_buffer_from_file(file, buffer)) {
+        throw std::runtime_error("Cannot parse input file " + file_name);;
+    }
+
+    file.close();
+    MarshallingType marshalled_data;
+    auto read_iter = buffer.begin();
+    auto status = marshalled_data.read(read_iter, buffer.size());
+    return marshalled_data; 
+}
+
+template<typename BlueprintFieldType, typename placeholder_params, typename Endianness, 
+         class T1, class T2, class T3, class T4, class T5, class T6>
+bool generate_proof(
+        const T1& public_preprocessed_data, const T2& private_preprocessed_data, const T3& table_description,
+        const T4& constraint_system, const T5& assignment_table, const T6& lpc_scheme, 
+        std::string output_folder_path, bool skip_verification) {
+    std::cout << "Generating proof..." << std::endl;
+
+    using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
+    ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
+        public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
+        lpc_scheme);
+    std::cout << "Proof generated" << std::endl;
+
+    if (!skip_verification) {
+        std::cout << "Verifying proof..." << std::endl;
+        bool verification_result =
+            nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
+                public_preprocessed_data, proof, constraint_system, lpc_scheme
+            );
+
+        if (!verification_result) {
+            std::cout << "Proof is not verified." << std::endl;
+            return false;
+        }
+
+        std::cout << "Proof is verified" << std::endl;
+    }
+
+    std::string proof_path = output_folder_path + "/proof.bin";
+    std::cout << "Writing proof to " << proof_path << "..." << std::endl;
+
+    auto filled_placeholder_proof =
+        nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
+    proof_print<Endianness, ProofType>(proof, proof_path);
+    std::cout << "Proof written." << std::endl;
+    return true;
+}
+
+template<typename ResultingAssignmentTableType,
+         typename SourceAssignmentTableType,
+         typename SharedAssignmentTableType>
+ResultingAssignmentTableType merge_assignment_tables(const SourceAssignmentTableType& source_table,
+                                                     const SharedAssignmentTableType& shared_table) 
+{
+    typename ResultingAssignmentTableType::witnesses_container_type witnesses;
+    typename ResultingAssignmentTableType::public_input_container_type public_inputs;
+    typename ResultingAssignmentTableType::constant_container_type constants;
+    typename ResultingAssignmentTableType::selector_container_type selectors;
+
+    std::copy(source_table.witnesses().begin(), source_table.witnesses().end(), witnesses.begin());
+    std::copy(shared_table.witnesses().begin(), shared_table.witnesses().end(),
+        witnesses.begin() + source_table.witnesses().size());
+
+    std::copy(source_table.public_inputs().begin(), source_table.public_inputs().end(), public_inputs.begin());
+    std::copy(shared_table.public_inputs().begin(), shared_table.public_inputs().end(),
+        public_inputs.begin() + source_table.public_inputs().size());
+
+    std::copy(source_table.constants().begin(), source_table.constants().end(), constants.begin() );
+    std::copy(shared_table.constants().begin(), shared_table.constants().end(),
+        constants.begin() + source_table.constants().size());
+
+    std::copy(source_table.selectors().begin(), source_table.selectors().end(), selectors.begin());
+    std::copy(shared_table.selectors().begin(), shared_table.selectors().end(),
+        selectors.begin() + source_table.selectors().size());
+
+    using field_type = typename ResultingAssignmentTableType::field_type;
+    using arithmetization_params_type = typename ResultingAssignmentTableType::arithmetization_params;
+    using column_type = nil::crypto3::zk::snark::plonk_column<field_type>;
+
+    ResultingAssignmentTableType result(
+        nil::crypto3::zk::snark::plonk_private_table<field_type, arithmetization_params_type, column_type>(witnesses),
+        nil::crypto3::zk::snark::plonk_public_table<field_type, arithmetization_params_type, column_type>(
+                    public_inputs, constants, selectors)
+    );
+ 
+    return result;
+}
+
 int main(int argc, char *argv[]) {
 
     boost::program_options::options_description options_desc("zkLLVM circuit EVM gate argument transpiler");
@@ -214,27 +313,22 @@ int main(int argc, char *argv[]) {
 
     if (vm.count("mode")) {
         mode = vm["mode"].as<std::string>();
+        if (!(mode == "gen-test-proof" || mode == "gen-gate-argument" || mode == "gen-circuit-params"
+            || mode == "gen-evm-verifier" || mode == "gen-shared-proof")) {
+            throw std::invalid_argument("Invalid mode specified.");
+        }
     } else {
-        std::cerr << "Invalid mode specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
-    }
-
-    if (!(mode == "gen-test-proof" || mode == "gen-gate-argument" || mode == "gen-circuit-params" || mode == "gen-evm-verifier" || mode == "gen-shared-proof")) {
-        std::cerr << "Invalid mode specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
+        throw std::invalid_argument("Invalid mode specified.");
     }
 
     if (vm.count("assignment-table")) {
         assignment_table_file_name = vm["assignment-table"].as<std::string>();
     } else {
-        std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
+        throw std::invalid_argument(
+            "Invalid command line argument - assignment table file name is not specified.");
     }
 
-    if( vm.count("shared-assignment-table")){
+    if (vm.count("shared-assignment-table")) {
         shared_table_file_name = vm["shared-assignment-table"].as<std::string>();
         std::cout << "Shared table file: " << shared_table_file_name << std::endl;
     }
@@ -242,146 +336,115 @@ int main(int argc, char *argv[]) {
     if (vm.count("circuit")) {
         circuit_file_name = vm["circuit"].as<std::string>();
     } else {
-        std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
+        throw std::invalid_argument("Invalid command line argument - circuit file name is not specified.");
     }
 
     if (vm.count("output-folder-path")) {
         output_folder_path = vm["output-folder-path"].as<std::string>();
         boost::filesystem::path dir(output_folder_path);
-        if(boost::filesystem::create_directory(output_folder_path))
+
+        if (boost::filesystem::create_directory(output_folder_path))
         {
-            std::cerr<< "Directory Created: "<<output_folder_path<<std::endl;
+            std::cerr << "Directory Created: " << output_folder_path << std::endl;
         }
-    } else {
-        std::cerr << "Invalid command line argument - output folder path is not specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
+    }
+    else {
+        throw std::invalid_argument("Invalid command line argument - output folder path is not specified.");
     }
 
-    if( mode == "gen-shared-proof" ){
+    using curve_type = nil::crypto3::algebra::curves::pallas;
+    using BlueprintFieldType = typename curve_type::base_field_type;
+
+    constexpr std::size_t WitnessColumns = 15;
+    constexpr std::size_t PublicInputColumns = 1;
+    constexpr std::size_t ConstantColumns = 30;
+    constexpr std::size_t SelectorColumns = 35;
+
+    using ArithmetizationParams =
+        nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
+                                                              SelectorColumns>;
+    using ConstraintSystemType =
+        nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
+    using TableDescriptionType =
+        nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams>;
+    using Endianness = nil::marshalling::option::big_endian;
+    using TTypeBase = nil::marshalling::field_type<Endianness>;
+    using constraint_system_marshalling_type =
+        nil::crypto3::marshalling::types::plonk_constraint_system<TTypeBase, ConstraintSystemType>;
+
+    using ColumnType = nil::crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+    using AssignmentTableType =
+        nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
+    using table_value_marshalling_type =
+        nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
+
+    using ColumnsRotationsType = std::array<std::set<int>, ArithmetizationParams::total_columns>;
+    using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
+
+
+    if (mode == "gen-shared-proof") {
         if (vm.count("shared-assignment-table")) {
             shared_table_file_name = vm["shared-assignment-table"].as<std::string>();
         } else {
-            std::cerr << "Invalid command line argument - shared assignment table file name is not specified" << std::endl;
-            std::cout << options_desc << std::endl;
-            return 1;
+            throw std::invalid_argument(
+                "Invalid command line argument - shared assignment table file name is not specified, but gen-shared-proof is used.");
         }
-        std::cout << "Generate shared proof" << std::endl;
 
-        using curve_type = nil::crypto3::algebra::curves::pallas;
-        using BlueprintFieldType = typename curve_type::base_field_type;
-        constexpr std::size_t WitnessColumns = 15;
-        constexpr std::size_t PublicInputColumns = 2;
-        constexpr std::size_t ConstantColumns = 5;
-        constexpr std::size_t SelectorColumns = 35;
+        std::cout << "Generating shared proof." << std::endl;
 
-        using ColumnType = nil::crypto3::zk::snark::plonk_column<BlueprintFieldType>;
-        using Endianness = nil::marshalling::option::big_endian;
-        using TTypeBase = nil::marshalling::field_type<Endianness>;
-
+        // These arithmetization params are not always going to be like this. We will have constant columns and selectors
+        // in both shared and source/private arithmetizaton params.
         using SourceArithmetizationParams =
             nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, 0, ConstantColumns, SelectorColumns>;
         using SourceAssignmentTableType =
             nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, SourceArithmetizationParams, ColumnType>;
         using source_table_value_marshalling_type =
             nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, SourceAssignmentTableType>;
-
-         using SharedArithmetizationParams =
+        using SharedArithmetizationParams =
             nil::crypto3::zk::snark::plonk_arithmetization_params<0, PublicInputColumns, 0, 0>;
         using SharedAssignmentTableType =
             nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, SharedArithmetizationParams, ColumnType>;
         using shared_table_value_marshalling_type =
             nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, SharedAssignmentTableType>;
 
-        using ArithmetizationParams =
-            nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
-                                                                  SelectorColumns>;
-        using AssignmentTableType =
-            nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
-        using table_value_marshalling_type =
-            nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
-
-        std::size_t shared_table_usable_rows;
-        SharedAssignmentTableType shared_table;
-        {
-            std::cout << "Source table file: " << shared_table_file_name << std::endl;
-            std::ifstream shared_iassignment;
-            shared_iassignment.open(shared_table_file_name);
-            if (!shared_iassignment) {
-                std::cout << "Cannot open " << shared_table_file_name << std::endl;
-                return 1;
-            }
-            std::vector<std::uint8_t> shared_v;
-            if (!read_buffer_from_file(shared_iassignment, shared_v)) {
-                std::cout << "Cannot parse input file " << shared_table_file_name << std::endl;
-                return 1;
-            }
-            shared_iassignment.close();
-            shared_table_value_marshalling_type shared_marshalled_table_data;
-            auto read_iter = shared_v.begin();
-            auto status = shared_marshalled_table_data.read(read_iter, shared_v.size());
-            std::tie(shared_table_usable_rows, shared_table) =
+        shared_table_value_marshalling_type shared_marshalled_table_data = 
+            read_object_from_file<shared_table_value_marshalling_type>(
+                shared_table_file_name, "Shared assignment table");
+        auto [shared_table_usable_rows, shared_table] =
                 nil::crypto3::marshalling::types::make_assignment_table<Endianness, SharedAssignmentTableType>(
                     shared_marshalled_table_data
                 );
-            std::cout << "Shared table usable rows = " << shared_table_usable_rows << std::endl;
-            for(std::size_t i = 0; i < SharedArithmetizationParams::public_input_columns; i++){
-                std::cout << "Public input : ";
-                for(std::size_t j = 0; j < shared_table.public_inputs()[i].size(); j++){
-                    std::cout << shared_table.public_inputs()[i][j] << " ";
-                }
-                std::cout << std::endl;
-            }
-        }
 
-        std::size_t source_table_usable_rows;
-        SourceAssignmentTableType source_table;
-        {
-            std::cout << "Source table file: " << assignment_table_file_name << std::endl;
-            std::ifstream source_iassignment;
-            source_iassignment.open(assignment_table_file_name);
-            if (!source_iassignment) {
-                std::cout << "Cannot open " << assignment_table_file_name << std::endl;
-                return 1;
+        std::cout << "Shared table usable rows = " << shared_table_usable_rows << std::endl;
+
+#if 0
+        for(std::size_t i = 0; i < SharedArithmetizationParams::public_input_columns; i++){
+            std::cout << "Public input : ";
+            for(std::size_t j = 0; j < shared_table.public_inputs()[i].size(); j++){
+                std::cout << shared_table.public_inputs()[i][j] << " ";
             }
-            std::vector<std::uint8_t> source_v;
-            if (!read_buffer_from_file(source_iassignment, source_v)) {
-                std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
-                return 1;
-            }
-            source_iassignment.close();
-            source_table_value_marshalling_type source_marshalled_table_data;
-            auto read_iter = source_v.begin();
-            auto status = source_marshalled_table_data.read(read_iter, source_v.size());
-            std::tie(source_table_usable_rows, source_table) =
+            std::cout << std::endl;
+        }
+#endif
+        source_table_value_marshalling_type source_marshalled_table_data = 
+            read_object_from_file<source_table_value_marshalling_type>(
+                assignment_table_file_name, "Source assignment table");
+        auto [source_table_usable_rows, source_table] =
                 nil::crypto3::marshalling::types::make_assignment_table<Endianness, SourceAssignmentTableType>(
                     source_marshalled_table_data
                 );
-            std::cout << "Source table usable rows = " << source_table_usable_rows << std::endl;
-        }
+        std::cout << "Source table usable rows = " << source_table_usable_rows << std::endl;
+        AssignmentTableType assignment_table = merge_assignment_tables<AssignmentTableType>(source_table, shared_table);
 
-        AssignmentTableType assignment(
-            nil::crypto3::zk::snark::plonk_private_table<BlueprintFieldType, ArithmetizationParams, ColumnType>(source_table.witnesses()),
-            nil::crypto3::zk::snark::plonk_public_table<BlueprintFieldType, ArithmetizationParams, ColumnType>(
-                {shared_table.public_inputs()[1],shared_table.public_inputs()[0]},
-                source_table.constants(),
-                source_table.selectors()
-            )
-        );
-
-        using ConstraintSystemType =
-            nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
-        using TableDescriptionType =
-            nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams>;
         TableDescriptionType table_description;
         table_description.usable_rows_amount = std::max(source_table_usable_rows, shared_table_usable_rows);
         table_description.rows_amount = std::max(source_table.rows_amount(), shared_table.rows_amount());
-        std::cout << "Rows amount before = " << table_description.rows_amount << std::endl;
-        table_description.rows_amount = nil::crypto3::zk::snark::basic_padding(assignment);
-        std::cout << "Rows amount after = " << table_description.rows_amount << std::endl;
 
+        std::cout << "Rows amount before padding = " << table_description.rows_amount << std::endl;
+        table_description.rows_amount = nil::crypto3::zk::snark::basic_padding(assignment_table);
+        std::cout << "Rows amount after padding = " << table_description.rows_amount << std::endl;
+
+#if 0
         std::cout << "Real table usable rows = " << table_description.usable_rows_amount << std::endl;
         for(std::size_t i = 0; i < ArithmetizationParams::witness_columns; i++){
             std::cout << "Witness "<< i << " : " ;
@@ -411,47 +474,28 @@ int main(int argc, char *argv[]) {
             }
             std::cout << std::endl;
         }
+#endif
 
         std::cout << "Rows amount = " << table_description.rows_amount << std::endl;
 
-        using value_marshalling_type =
-            nil::crypto3::marshalling::types::plonk_constraint_system<TTypeBase, ConstraintSystemType>;
+        constraint_system_marshalling_type circuit_marshalled_data = 
+            read_object_from_file<constraint_system_marshalling_type>(
+                circuit_file_name, "Constraint system");
 
-
-        ConstraintSystemType constraint_system;
-        {
-            std::ifstream ifile;
-            ifile.open(circuit_file_name);
-            if (!ifile.is_open()) {
-                std::cout << "Cannot find input file " << circuit_file_name << std::endl;
-                return 1;
-            }
-            std::vector<std::uint8_t> v;
-            if (!read_buffer_from_file(ifile, v)) {
-                std::cout << "Cannot parse input file " << circuit_file_name << std::endl;
-                return 1;
-            }
-            ifile.close();
-
-            value_marshalling_type marshalled_data;
-            auto read_iter = v.begin();
-            auto status = marshalled_data.read(read_iter, v.size());
-            constraint_system = nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
-                    marshalled_data
-            );
-
-            for(std::size_t i = 0; i < constraint_system.copy_constraints().size(); i++){
-                std::cout << "Copy_constraint " << i << " : " << constraint_system.copy_constraints()[i].first << " " << constraint_system.copy_constraints()[i].second << std::endl;
-            }
-            for(std::size_t i = 0; i < constraint_system.gates().size(); i++){
-                for(std::size_t j = 0; j < constraint_system.gates()[i].constraints.size(); j++){
-                    std::cout << "Gate " << i << " constraint " << j << " : " << constraint_system.gates()[i].constraints[j] << std::endl;
-                }
+        ConstraintSystemType constraint_system = 
+            nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
+                circuit_marshalled_data);
+#if 0
+        for(std::size_t i = 0; i < constraint_system.copy_constraints().size(); i++){
+            std::cout << "Copy_constraint " << i << " : " << constraint_system.copy_constraints()[i].first << " " << constraint_system.copy_constraints()[i].second << std::endl;
+        }
+        for(std::size_t i = 0; i < constraint_system.gates().size(); i++){
+            for(std::size_t j = 0; j < constraint_system.gates()[i].constraints.size(); j++){
+                std::cout << "Gate " << i << " constraint " << j << " : " << constraint_system.gates()[i].constraints[j] << std::endl;
             }
         }
+#endif
 
-        using ColumnsRotationsType = std::array<std::set<int>, ArithmetizationParams::total_columns>;
-        using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
         auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
         const std::size_t Lambda = 9;
@@ -481,127 +525,53 @@ int main(int argc, char *argv[]) {
         typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
         nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
-            constraint_system, assignment.public_table(), table_description, lpc_scheme, permutation_size);
+            constraint_system, assignment_table.public_table(), table_description, lpc_scheme, permutation_size);
 
         std::cout << "Preprocessing private data..." << std::endl;
         typename nil::crypto3::zk::snark::placeholder_private_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type private_preprocessed_data =
             nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
-                constraint_system, assignment.private_table(), table_description
+                constraint_system, assignment_table.private_table(), table_description
             );
 
-        std::cout << "Generating proof..." << std::endl;
-        using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
-        ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
-            public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment,
-            lpc_scheme);
-        std::cout << "Proof generated" << std::endl;
+        if (!generate_proof<BlueprintFieldType, placeholder_params, Endianness>(
+            public_preprocessed_data, private_preprocessed_data, table_description,
+            constraint_system, assignment_table, lpc_scheme, output_folder_path, vm.count("skip-verification"))) {
+            return 1;
+        };
 
-        std::string proof_path = output_folder_path + "/proof.bin";
-        std::cout << "Writing proof to " << proof_path << "..." << std::endl;
-        auto filled_placeholder_proof =
-            nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
-        proof_print<Endianness, ProofType>(proof, proof_path);
-        std::cout << "Proof written" << std::endl;
-
-
-        if( !vm.count("skip-verification") ) {
-            std::cout << "Verifying proof..." << std::endl;
-            bool verification_result =
-                nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                    public_preprocessed_data, proof, constraint_system, lpc_scheme
-                );
-
-            ASSERT_MSG(verification_result, "Proof is not verified" );
-            std::cout << "Proof is verified" << std::endl;
-        }
         return 0;
     }
 
-    using curve_type = nil::crypto3::algebra::curves::pallas;
-    using BlueprintFieldType = typename curve_type::base_field_type;
-    constexpr std::size_t WitnessColumns = 15;
-    constexpr std::size_t PublicInputColumns = 1;
-    constexpr std::size_t ConstantColumns = 30;
-    constexpr std::size_t SelectorColumns = 35;
-
-    using ArithmetizationParams =
-        nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
-                                                              SelectorColumns>;
-    using ConstraintSystemType =
-        nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
-    using TableDescriptionType =
-        nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams>;
-    using Endianness = nil::marshalling::option::big_endian;
-    using TTypeBase = nil::marshalling::field_type<Endianness>;
-    using value_marshalling_type =
-        nil::crypto3::marshalling::types::plonk_constraint_system<TTypeBase, ConstraintSystemType>;
-
-    using ColumnType = nil::crypto3::zk::snark::plonk_column<BlueprintFieldType>;
-    using AssignmentTableType =
-        nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
-    using table_value_marshalling_type =
-        nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
-
-    using ColumnsRotationsType = std::array<std::set<int>, ArithmetizationParams::total_columns>;
-    using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
-
-    if( vm.count("public-input") ){
+    if (vm.count("public-input")) {
         public_input = vm["public-input"].as<std::string>();
-        if( !boost::filesystem::exists(public_input) ){
-            std::cerr << "Invalid command line argument - public input file does not exist" << std::endl;
-            return 1;
+        if (!boost::filesystem::exists(public_input) ) {
+            throw std::invalid_argument("public input file " + public_input + " not found");
         }
-        boost::filesystem::copy(public_input, output_folder_path+"/public_input.json", boost::filesystem::copy_options::overwrite_existing);
+
+        boost::filesystem::copy(public_input, output_folder_path+"/public_input.json",
+            boost::filesystem::copy_options::overwrite_existing);
     }
 
-    ConstraintSystemType constraint_system;
-    {
-        std::ifstream ifile;
-        ifile.open(circuit_file_name);
-        if (!ifile.is_open()) {
-            std::cout << "Cannot find input file " << circuit_file_name << std::endl;
-            return 1;
-        }
-        std::vector<std::uint8_t> v;
-        if (!read_buffer_from_file(ifile, v)) {
-            std::cout << "Cannot parse input file " << circuit_file_name << std::endl;
-            return 1;
-        }
-        ifile.close();
+    // Read Constraint system from file.
+    constraint_system_marshalling_type circuit_marshalled_data = 
+        read_object_from_file<constraint_system_marshalling_type>(
+            circuit_file_name, "Constraint system");
 
-        value_marshalling_type marshalled_data;
-        auto read_iter = v.begin();
-        auto status = marshalled_data.read(read_iter, v.size());
-        constraint_system = nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
-                marshalled_data
-        );
-    }
+    ConstraintSystemType constraint_system = 
+        nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
+            circuit_marshalled_data);
 
+    // Read Assignment table from file.
     TableDescriptionType table_description;
-    AssignmentTableType assignment_table;
-    {
-        std::ifstream iassignment;
-        iassignment.open(assignment_table_file_name);
-        if (!iassignment) {
-            std::cout << "Cannot open " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        std::vector<std::uint8_t> v;
-        if (!read_buffer_from_file(iassignment, v)) {
-            std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        iassignment.close();
-        table_value_marshalling_type marshalled_table_data;
-        auto read_iter = v.begin();
-        auto status = marshalled_table_data.read(read_iter, v.size());
-        std::tie(table_description.usable_rows_amount, assignment_table) =
+    AssignmentTableType assignment_table; 
+    table_value_marshalling_type marshalled_table_data =
+            read_object_from_file<table_value_marshalling_type>(
+                assignment_table_file_name, "Assignment table");
+    std::tie(table_description.usable_rows_amount, assignment_table) =
             nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
                 marshalled_table_data
             );
-        table_description.rows_amount = assignment_table.rows_amount();
-    }
 
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
@@ -628,13 +598,9 @@ int main(int argc, char *argv[]) {
         table_description.witness_columns + table_description.public_input_columns + table_description.constant_columns;
     lpc_scheme_type lpc_scheme(fri_params);
 
-
     if (mode == "gen-gate-argument") {
-        bool optimize_gates = false;
-        if( vm.count("optimize-gates") )
-            optimize_gates = true;
         print_sol_files<ProfilingType, ConstraintSystemType, ColumnsRotationsType, ArithmetizationParams>(
-            constraint_system, columns_rotations, output_folder_path, optimize_gates);
+            constraint_system, columns_rotations, output_folder_path, vm.count("optimize-gates"));
     }
 
     if ((mode != "gen-circuit-params") && (mode != "gen-test-proof") && (mode != "gen-evm-verifier")) {
@@ -656,7 +622,7 @@ int main(int argc, char *argv[]) {
         bool deduce_horner = false;
         bool optimize_powers = false;
 
-        if ( vm.count("optimize-gates") >0 ) {
+        if ( vm.count("optimize-gates") > 0 ) {
             lookups_library_threshold = 1000;
             lookups_inline_threshold = 1000;
             deduce_horner = true;
@@ -694,7 +660,7 @@ int main(int argc, char *argv[]) {
     }
 
     nil::crypto3::zk::snark::print_placeholder_params<placeholder_params>(
-        public_preprocessed_data, lpc_scheme, output_folder_path+"/circuit_params.json");
+        public_preprocessed_data, lpc_scheme, output_folder_path + "/circuit_params.json");
 
     if (mode == "gen-test-proof") {
         std::cout << "Preprocessing private data..." << std::endl;
@@ -704,15 +670,16 @@ int main(int argc, char *argv[]) {
                 constraint_system, assignment_table.private_table(), table_description
             );
 
-        if (constraint_system.num_gates() == 0){
+        if (constraint_system.num_gates() == 0) {
             std::cout << "Generating proof..." << std::endl;
             std::cout << "Proof generated" << std::endl;
-            if( !vm.count("skip-verification") ) {
+            if (!vm.count("skip-verification")) {
                 std::cout << "Verifying proof..." << std::endl;
                 std::cout << "Proof is verified" << std::endl;
             } else {
                 std::cout << "Proof verification skipped" << std::endl;
             }
+
             std::string proof_path = output_folder_path + "/proof.bin";
             std::cout << "Writing proof to " << proof_path << "..." << std::endl;
             std::fstream fs;
@@ -720,31 +687,13 @@ int main(int argc, char *argv[]) {
             fs.close();
             std::cout << "Proof written" << std::endl;
         } else {
-            std::cout << "Generating proof..." << std::endl;
-            using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
-            ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
-                public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
-                lpc_scheme);
-            std::cout << "Proof generated" << std::endl;
-
-            if( !vm.count("skip-verification") ) {
-                std::cout << "Verifying proof..." << std::endl;
-                bool verification_result =
-                    nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                        public_preprocessed_data, proof, constraint_system, lpc_scheme
-                    );
-
-                ASSERT_MSG(verification_result, "Proof is not verified" );
-                std::cout << "Proof is verified" << std::endl;
+            if (!generate_proof<BlueprintFieldType, placeholder_params, Endianness>(
+                public_preprocessed_data, private_preprocessed_data, table_description,
+                constraint_system, assignment_table, lpc_scheme, output_folder_path, vm.count("skip-verification"))) {
+                return 1;
             }
-
-            std::string proof_path = output_folder_path + "/proof.bin";
-            std::cout << "Writing proof to " << proof_path << "..." << std::endl;
-            auto filled_placeholder_proof =
-                nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
-            proof_print<Endianness, ProofType>(proof, proof_path);
-            std::cout << "Proof written" << std::endl;
         }
+
         return 0;
     }
 }
