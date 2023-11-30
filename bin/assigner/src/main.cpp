@@ -181,6 +181,7 @@ void fill_vector_value(std::vector<ValueType> &table_values, const ContainerType
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
 void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_proxy,
                             print_table_kind print_kind,
+                            std::uint32_t ComponentConstantColumns, std::uint32_t ComponentSelectorColumns,
                             std::ostream &out = std::cout) {
     using AssignmentTableType = assignment_proxy<ArithmetizationType>;
     std::uint32_t usable_rows_amount;
@@ -193,13 +194,13 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     const auto lookup_constant_cols = table_proxy.get_lookup_constant_cols();
     const auto lookup_selector_cols = table_proxy.get_lookup_selector_cols();
     if (print_kind == print_table_kind::PRIVATE) {
-        constant_size = constant_size - table_proxy.get_lookup_constant_amount();
-        selector_size = selector_size - table_proxy.get_lookup_selector_amount();
+        constant_size = ComponentConstantColumns;
+        selector_size = ComponentSelectorColumns;
         total_columns = witness_size + constant_size + selector_size;
         usable_rows_amount = table_proxy.get_used_rows().size();
     } else if (print_kind == print_table_kind::SHARED) {
-        constant_size = table_proxy.get_lookup_constant_amount();
-        selector_size = table_proxy.get_lookup_selector_amount();
+        constant_size = constant_size - ComponentConstantColumns;
+        selector_size = selector_size - ComponentSelectorColumns;
         total_columns = shared_size + public_input_size + constant_size + selector_size;
         std::uint32_t max_shared_size = 0;
         std::uint32_t max_public_inputs_size = 0;
@@ -290,32 +291,18 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
                     (table_values, table_proxy.shared(i), padded_rows_amount);
         }
-        for (const auto &i : table_proxy.get_lookup_constant_cols()) {
+        for (std::uint32_t i = 0; i < constant_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.constant(i), padded_rows_amount);
+                    (table_values, table_proxy.constant(i + ComponentConstantColumns), padded_rows_amount);
         }
-        for (const auto &i : table_proxy.get_lookup_selector_cols()) {
+        for (std::uint32_t i = 0; i < selector_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.selector(i), padded_rows_amount);
+                    (table_values, table_proxy.selector(i + ComponentSelectorColumns), padded_rows_amount);
         }
     } else {
         const std::uint32_t padding = padded_rows_amount - usable_rows_amount;
         const auto& rows = table_proxy.get_used_rows();
 
-        std::vector<std::uint32_t> constant_cols;
-        const auto& lookup_constant_cols = table_proxy.get_lookup_constant_cols();
-        for (std::uint32_t i = 0; i < table_proxy.constants_amount(); i++) {
-            if (lookup_constant_cols.find(i) == lookup_constant_cols.end()) {
-                constant_cols.push_back(i);
-            }
-        }
-        std::vector<std::uint32_t> selector_cols;
-        const auto& lookup_selector_cols = table_proxy.get_lookup_selector_cols();
-        for (std::uint32_t i = 0; i < table_proxy.selectors_amount(); i++) {
-            if (lookup_selector_cols.find(i) == lookup_selector_cols.end()) {
-                selector_cols.push_back(i);
-            }
-        }
         for( std::size_t i = 0; i < AssignmentTableType::arithmetization_params::witness_columns; i++ ){
             const auto column_size = table_proxy.witness_column_size(i);
             for(const auto& j : rows){
@@ -329,7 +316,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                 table_values.push_back(0);
             }
         }
-        for(const auto& i : constant_cols) {
+        for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
             const auto column_size = table_proxy.constant_column_size(i);
             for(const auto& j : rows){
                 if (j < column_size) {
@@ -342,7 +329,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                 table_values.push_back(0);
             }
         }
-        for(const auto& i : selector_cols) {
+        for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
             const auto column_size = table_proxy.selector_column_size(i);
             for(const auto& j : rows) {
                 if (j < column_size) {
@@ -382,10 +369,15 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::uint32_t max_num_provers) {
     using BlueprintFieldType = typename CurveType::base_field_type;
 
+    constexpr std::size_t ComponentConstantColumns = 5;
+    constexpr std::size_t LookupConstantColumns = 30;
+    constexpr std::size_t ComponentSelectorColumns = 30;
+    constexpr std::size_t LookupSelectorConstantColumns = 6;
+
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
-    constexpr std::size_t ConstantColumns = 30;
-    constexpr std::size_t SelectorColumns = 35;
+    constexpr std::size_t ConstantColumns = ComponentConstantColumns + LookupConstantColumns;
+    constexpr std::size_t SelectorColumns = ComponentSelectorColumns + LookupSelectorConstantColumns;
 
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
@@ -442,17 +434,10 @@ int curve_dependent_main(std::string bytecode_file_name,
     // pack lookup tables
     if (parser_instance.circuits[0].get_reserved_tables().size() > 0) {
         std::vector <std::size_t> lookup_columns_indices;
-        const auto& lookup_tables = parser_instance.circuits[0].get_reserved_tables();
         const std::uint32_t max_usable_rows = 500000;
-        // looking for free constant columns
-        std::uint32_t max_used_col = 0;
-        for(std::size_t i = 0; i < ConstantColumns; i++) {
-            if(parser_instance.assignments[0].constant_column_size(i) != 0) {
-                max_used_col = i;
-            }
-        }
-        lookup_columns_indices.resize(ConstantColumns - max_used_col - 1);
-        std::iota(lookup_columns_indices.begin(), lookup_columns_indices.end(), max_used_col + 1); // fill max_used_col + 1, max_used_col + 2, ...
+        lookup_columns_indices.resize(LookupConstantColumns);
+        // fill ComponentConstantColumns, ComponentConstantColumns + 1, ...
+        std::iota(lookup_columns_indices.begin(), lookup_columns_indices.end(), ComponentConstantColumns);
 
         auto usable_rows_amount = zk::snark::pack_lookup_tables_horizontal(
                 parser_instance.circuits[0].get_reserved_indices(),
@@ -460,6 +445,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                 parser_instance.circuits[0].get(),
                 parser_instance.assignments[0].get(),
                 lookup_columns_indices,
+                ComponentSelectorColumns,
                 parser_instance.assignments[0].allocated_rows(),
                 max_usable_rows
         );
@@ -479,7 +465,7 @@ int curve_dependent_main(std::string bytecode_file_name,
     print_assignment_table<
             nil::marshalling::option::big_endian,
             ArithmetizationType, BlueprintFieldType
-    >(parser_instance.assignments[0], print_kind, shared_otable);
+    >(parser_instance.assignments[0], print_kind, ComponentConstantColumns, ComponentSelectorColumns, shared_otable);
 
     shared_otable.close();
 
@@ -495,7 +481,7 @@ int curve_dependent_main(std::string bytecode_file_name,
             print_assignment_table<
                     nil::marshalling::option::big_endian,
                     ArithmetizationType, BlueprintFieldType
-            >(it, print_table_kind::PRIVATE, otable);
+            >(it, print_table_kind::PRIVATE, ComponentConstantColumns, ComponentSelectorColumns, otable);
 
 
 //    nil::blueprint::profiling_assignment_table(parser_instance.assignmnt, desc.usable_rows_amount, otable);

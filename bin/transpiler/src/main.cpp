@@ -253,8 +253,8 @@ int main(int argc, char *argv[]) {
     using BlueprintFieldType = typename curve_type::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
-    constexpr std::size_t ConstantColumns = 30;
-    constexpr std::size_t SelectorColumns = 35;
+    constexpr std::size_t ConstantColumns = 35;
+    constexpr std::size_t SelectorColumns = 36;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
