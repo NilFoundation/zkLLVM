@@ -24,7 +24,7 @@ cm_test_link_libraries(
                        ${Boost_LIBRARIES})
 
 
-macro(define_zkllvm_test test)
+macro(define_zkllvm_test test curve_type)
     string(REPLACE "/" "_" test_name ${test})
     string(REPLACE "/" "_" full_test_name ${test}_calculate_expected_res)
 
@@ -39,7 +39,7 @@ macro(define_zkllvm_test test)
         get_filename_component(curr_inp_name ${full_inp_file} NAME_WE)
         get_filename_component(curr_inp_file ${full_inp_file} NAME)
         run_expected_res_calculation(${full_test_name} ${PARENT_PATH} ${curr_inp_name})
-        add_test_circuit_assign(${test_name}_${curr_inp_name} SOURCES ${test}.cpp INPUT ${PARENT_PATH}/${curr_inp_file})
+        add_test_circuit_assign(${test_name}_${curr_inp_name} SOURCES ${test}.cpp INPUT ${PARENT_PATH}/${curr_inp_file} CURVE_TYPE ${curve_type})
     endforeach()
 
     target_include_directories(${full_test_name} PRIVATE
@@ -106,7 +106,7 @@ endfunction()
 function(add_test_circuit_assign example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues INPUT)
+    set(singleValues INPUT CURVE_TYPE)
     set(multiValues SOURCES)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
@@ -146,16 +146,23 @@ function(add_test_circuit_assign example_target)
 
     set(binary_name ${example_target}.ll)
 
-    assign_ir(${example_target} ${binary_name} ${ARG_INPUT})
+    assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_CURVE_TYPE})
 endfunction()
 
 function(add_zkllvm_unit_test TEST_NAME)
-    file(APPEND ../tests_list.txt ${TEST_NAME}\n)
-    define_zkllvm_test(${TEST_NAME})
+    file(APPEND ../tests_list_pallas.txt ${TEST_NAME}\n)
+    define_zkllvm_test(${TEST_NAME} pallas)
     add_test_circuit(${TEST_NAME})
 endfunction()
 
-file(REMOVE ../tests_list.txt)
+function(add_zkllvm_unit_test_bls12381 TEST_NAME)
+    file(APPEND ../tests_list_bls12381.txt ${TEST_NAME}\n)
+    define_zkllvm_test(${TEST_NAME} bls12381)
+    add_test_circuit(${TEST_NAME})
+endfunction()
+
+file(REMOVE ../tests_list_pallas.txt)
+file(REMOVE ../tests_list_bls12381.txt)
 
 
 # curve tests
@@ -235,6 +242,9 @@ add_zkllvm_unit_test("algebra/recursive_prover/permutation_arg_verifier/input_le
 add_zkllvm_unit_test("algebra/recursive_prover/fri_array_swap_length_6/test")
 add_zkllvm_unit_test("algebra/recursive_prover/lookup_arg_verifier/test1/test")
 add_zkllvm_unit_test("algebra/recursive_prover/lookup_arg_verifier/test2/test")
+
+# bls tests
+add_zkllvm_unit_test_bls12381("algebra/fields/bls12381_fp12_arithmetics/mul")
 
 add_dependencies(all_for_test_run assigner)
 add_dependencies(all_for_test_run all_circuit_tests)

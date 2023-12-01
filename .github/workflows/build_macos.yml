@@ -116,15 +116,20 @@ jobs:
           make -C build all_expected_res_tests -j$(sysctl -n hw.logicalcpu)
           make -C build all_circuit_tests -j$(sysctl -n hw.logicalcpu)
 
-      - name: Run tests
+      - name: Run tests pallas
         run: |
           chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh -j$(sysctl -n hw.logicalcpu)
+          bash ./tests/run_tests.sh pallas -j$(sysctl -n hw.logicalcpu)
+
+      - name: Run tests bls12381
+        run: |
+          chmod +x ./tests/run_tests.sh
+          bash ./tests/run_tests.sh bls12381 -j$(sysctl -n hw.logicalcpu)
 
       - name: Run tests on faulty inputs
         run: |
           chmod +x ./tests/run_tests_faulty_input.sh
-          bash ./tests/run_tests_faulty_input.sh -j$(sysctl -n hw.logicalcpu)
+          bash ./tests/run_tests_faulty_input.sh pallas -j$(sysctl -n hw.logicalcpu)
 
       - name: Build proof for the circuit of the C++ examples
         run: |
