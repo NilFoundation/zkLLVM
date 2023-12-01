@@ -213,7 +213,25 @@ std::array<typename OperatingFieldType::value_type, size>
         ASSERT(arr[i].as_object().contains("field"));
         res[i] = parse_scalar<OperatingFieldType>(arr[i].as_object().at("field"));
     }
+    return res;
+}
+
+
+template<typename BlueprintFieldType, typename fp12_element>
+fp12_element read_fp12(boost::json::value& input_json_value, std::size_t position) {
+
+    std::array<typename BlueprintFieldType::value_type, 12> A;
+
+    const boost::json::object &current_obj = input_json_value.as_array()[position].as_object();
+    ASSERT(current_obj.size() == 1 && current_obj.contains("vector"));
+    ASSERT(current_obj.at("vector").is_array());
+    auto &arr = current_obj.at("vector").as_array();
+
+    for(std::size_t i = 0; i < 12; i++) {
+        ASSERT(arr[i].as_object().contains("field"));
+        A[i] = parse_scalar<BlueprintFieldType>(arr[i].as_object().at("field"));
+    }
+    fp12_element res = fp12_element({ {A[0],A[1]}, {A[2],A[3]}, {A[4],A[5]} }, { {A[6],A[7]}, {A[8],A[9]}, {A[10],A[11]} });
 
     return res;
-
 }

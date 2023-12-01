@@ -1,4 +1,4 @@
-readarray test_examples < tests/tests_list.txt
+readarray test_examples < tests/tests_list_$1.txt
 exit_code=0
 at_least_one_test_launched=0
 
@@ -16,14 +16,14 @@ for i in ${!test_examples[*]}; do
   for file in tests/faulty_inputs/$parent_dir/*.inp; do
 
     echo -n "input $file: ";
-    ./build/bin/assigner/assigner  -b build/tests/cpp/${test_example////_}.ll -i "$file"  -t assignment.tbl -c circuit.crct -e pallas
+    ./build/bin/assigner/assigner  -b build/tests/cpp/${test_example////_}.ll -i "$file"  -t assignment.tbl -c circuit.crct -e $1
     if [ $? -ne 0 ]; then
       exit_code=1
       echo -e "\033[31m Assigner failed before constraint check. Test failed! \033[0m";
       continue
     fi
 
-    ./build/bin/assigner/assigner  -b build/tests/cpp/${test_example////_}.ll -i "$file"  -t assignment.tbl -c circuit.crct -e pallas --check
+    ./build/bin/assigner/assigner  -b build/tests/cpp/${test_example////_}.ll -i "$file"  -t assignment.tbl -c circuit.crct -e $1 --check
     if [ $? -eq 0 ]; then
       exit_code=1
       echo -e "\033[31m Circuit must not be satisfied, but it is. Test failed! \033[0m";

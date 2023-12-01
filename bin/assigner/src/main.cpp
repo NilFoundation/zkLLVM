@@ -526,7 +526,7 @@ int main(int argc, char *argv[]) {
             ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
-            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12-381)")
+            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ("stack-size,s", boost::program_options::value<long>(), "Stack size in bytes")
             ("check", "Check satisfiability of the generated circuit")
             ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)")
@@ -623,7 +623,7 @@ int main(int argc, char *argv[]) {
         {"pallas", 0},
         {"vesta", 1},
         {"ed25519", 2},
-        {"bls12-381", 3},
+        {"bls12381", 3},
     };
 
     if (curve_options.find(elliptic_curve) == curve_options.end()) {
