@@ -230,7 +230,7 @@ add_zkllvm_unit_test("libc/strncmp/strncmp")
 add_zkllvm_unit_test("libc/strcpy/strcpy")
 add_zkllvm_unit_test("libc/strncpy/strncpy")
 
-#hashes
+# hashes
 add_zkllvm_unit_test("hashes/sha256/sha2_256")
 add_zkllvm_unit_test("hashes/poseidon/poseidon")
 
@@ -245,6 +245,7 @@ add_zkllvm_unit_test("algebra/recursive_prover/lookup_arg_verifier/test2/test")
 
 # bls tests
 add_zkllvm_unit_test_bls12381("algebra/fields/bls12381_fp12_arithmetics/mul")
+add_zkllvm_unit_test_bls12381("bls_signature/pairing/pairing")
 
 add_dependencies(all_for_test_run assigner)
 add_dependencies(all_for_test_run all_circuit_tests)
