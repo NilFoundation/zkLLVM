@@ -13,7 +13,7 @@ constexpr const std::size_t validators_amount = 5;
     typename algebra::curves::bls12<381>::template g1_type<>::value_type aggregated_signature
 ) {
 
-    __builtin_assigner_is_in_g1_check(aggregated_signature);
+    // __builtin_assigner_exit_check(__builtin_assigner_is_in_g1_check(aggregated_signature));
 
 
     typename algebra::curves::bls12<381>::template g2_type<>::value_type g2_group_generator = algebra::curves::bls12<381>::template g2_type<>::one();
@@ -22,14 +22,14 @@ constexpr const std::size_t validators_amount = 5;
 
     typename algebra::curves::bls12<381>::template g1_type<>::value_type msg_point = __builtin_assigner_hash_to_curve(hashed_msg);
 
-    __builtin_assigner_is_in_g2_check(pubkeys[0]);
+    // __builtin_assigner_exit_check(__builtin_assigner_is_in_g2_check(pubkeys[0]));
     typename algebra::curves::bls12<381>::gt_type::value_type pairing2 =
         algebra::pair<algebra::curves::bls12<381>>(msg_point, pubkeys[0]);
 
     typename algebra::curves::bls12<381>::gt_type::value_type current_pairing;
 
     for (std::size_t i = 1; i < validators_amount; i++) {
-        __builtin_assigner_is_in_g2_check(pubkeys[i]);
+        // __builtin_assigner_exit_check(__builtin_assigner_is_in_g2_check(pubkeys[i]));
         current_pairing = algebra::pair<algebra::curves::bls12<381>>(msg_point, pubkeys[i]);
         pairing2 = __builtin_assigner_gt_multiplication(pairing2, current_pairing);
     }

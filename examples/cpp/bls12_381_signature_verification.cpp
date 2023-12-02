@@ -11,8 +11,8 @@ using namespace nil::crypto3;
 
         typename algebra::curves::bls12<381>::template g1_type<>::value_type msg_point = __builtin_assigner_hash_to_curve(hashed_msg);
 
-        __builtin_assigner_is_in_g1_check(sig);
-        __builtin_assigner_is_in_g2_check(pubkey);
+        // __builtin_assigner_exit_check(__builtin_assigner_is_in_g1_check(sig));
+        // __builtin_assigner_exit_check(__builtin_assigner_is_in_g2_check(pubkey));
 
         typename algebra::curves::bls12<381>::template g2_type<>::value_type g2_group_generator = algebra::curves::bls12<381>::template g2_type<>::one();
 
