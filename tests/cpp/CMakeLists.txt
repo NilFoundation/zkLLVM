@@ -213,7 +213,7 @@ add_zkllvm_unit_test("algebra/de_composition/decomposition/lsb")
 add_zkllvm_unit_test("multi_provers/shift_add")
 
 #customer's tests
-# add_zkllvm_unit_test("custom_cases/getelementptr_as_constant/getelementptr_as_constant")
+add_zkllvm_unit_test("custom_cases/getelementptr_as_constant/getelementptr_as_constant")
 
 #libc functions
 add_zkllvm_unit_test("libc/memset/memset")
