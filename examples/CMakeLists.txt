@@ -1,6 +1,6 @@
 set(INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inputs)
 
-function(assign_ir target binary_name input private_input curve_type max_num_provers_amount)
+function(assign_ir target input private_input curve_type max_num_provers_amount)
 
     if(NOT max_num_provers_amount EQUAL 0)
         set(max_num_provers_flag --max-num-provers)
@@ -14,7 +14,7 @@ function(assign_ir target binary_name input private_input curve_type max_num_pro
 
     add_custom_target(${target}_assign
         COMMAND $<TARGET_FILE:assigner>
-            -b ${binary_name}
+            -b ${target}.ll
             -i ${INPUTS_DIR}/${input}
             ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
