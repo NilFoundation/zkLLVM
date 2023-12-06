@@ -352,7 +352,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
-template<typename BlueprintFieldType, bool PrintCircuitOutput>
+template<typename BlueprintFieldType>
 int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
                           std::string assignment_table_file_name,
@@ -361,7 +361,8 @@ int curve_dependent_main(std::string bytecode_file_name,
                           bool check_validity,
                           boost::log::trivial::severity_level log_level,
                           const std::string &policy,
-                          std::uint32_t max_num_provers) {
+                          std::uint32_t max_num_provers,
+                          std::size_t circuit_output_print_format) {
 
     constexpr std::size_t ComponentConstantColumns = 5;
     constexpr std::size_t LookupConstantColumns = 30;
@@ -411,8 +412,13 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams, PrintCircuitOutput> parser_instance(stack_size,
-                                                                                                          log_level, max_num_provers, policy);
+    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance(
+        stack_size,
+        log_level,
+        max_num_provers,
+        policy,
+        circuit_output_print_format
+    );
 
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
     if (module == nullptr) {
@@ -530,7 +536,8 @@ int main(int argc, char *argv[]) {
             ("stack-size,s", boost::program_options::value<long>(), "Stack size in bytes")
             ("check", "Check satisfiability of the generated circuit")
             ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)")
-            ("print_circuit_output", "print output of the circuit")
+            ("print_circuit_output", "deprecated, use \"-o print_circuit_output\" instead")
+            ("print-circuit-output,o", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
             ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1");
     // clang-format on
@@ -569,6 +576,7 @@ int main(int argc, char *argv[]) {
     std::string assignment_table_file_name;
     std::string circuit_file_name;
     std::string elliptic_curve;
+    std::size_t circuit_output_print_format;
     std::string log_level;
     long stack_size;
 
@@ -632,6 +640,25 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    std::map<std::string, int> print_circuit_output_options{
+        {"print_circuit_output", 1},
+        {"print_circuit_output_hex", 2},
+        // {"print_circuit_output_bin", 3},
+    };
+
+    if (vm.count("print-circuit-output")) {
+        std::string output_format = vm["print-circuit-output"].as<std::string>();
+        if (print_circuit_output_options.find(output_format) == print_circuit_output_options.end()) {
+            std::cerr << "Invalid command line argument -o (print_circuit_output): " << output_format << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        } else {
+            circuit_output_print_format = print_circuit_output_options[output_format];
+        }
+    } else {
+        circuit_output_print_format = 0;
+    }
+
     if (vm.count("stack-size")) {
         stack_size = vm["stack-size"].as<long>();
     } else {
@@ -674,10 +701,15 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    ASSERT_MSG(!vm.count("print_circuit_output"),
+        "\nyou used --print_circuit_output flag,\n"
+        "it is deprecated, use \"-o print_circuit_output\" instead.\n"
+        "Or use \"-o print_circuit_output_hex\", hex output format is also supported now\n"
+    );
+
     switch (curve_options[elliptic_curve]) {
         case 0: {
-            if (vm.count("print_circuit_output")) {
-                return curve_dependent_main<typename algebra::curves::pallas::base_field_type, true>(
+            return curve_dependent_main<typename algebra::curves::pallas::base_field_type>(
                                                                           bytecode_file_name,
                                                                           public_input_file_name,
                                                                           assignment_table_file_name,
@@ -686,20 +718,8 @@ int main(int argc, char *argv[]) {
                                                                           vm.count("check"),
                                                                           log_options[log_level],
                                                                           policy,
-                                                                          max_num_provers);
-            }
-            else {
-                return curve_dependent_main<typename algebra::curves::pallas::base_field_type, false>(
-                                                                          bytecode_file_name,
-                                                                          public_input_file_name,
-                                                                          assignment_table_file_name,
-                                                                          circuit_file_name,
-                                                                          stack_size,
-                                                                          vm.count("check"),
-                                                                          log_options[log_level],
-                                                                          policy,
-                                                                          max_num_provers);
-            }
+                                                                          max_num_provers,
+                                                                          circuit_output_print_format);
             break;
         }
         case 1: {
@@ -711,8 +731,7 @@ int main(int argc, char *argv[]) {
             break;
         }
         case 3: {
-            if (vm.count("print_circuit_output")) {
-                return curve_dependent_main<typename algebra::fields::bls12_base_field<381>, true>(
+            return curve_dependent_main<typename algebra::fields::bls12_base_field<381>>(
                                                                           bytecode_file_name,
                                                                           public_input_file_name,
                                                                           assignment_table_file_name,
@@ -721,20 +740,8 @@ int main(int argc, char *argv[]) {
                                                                           vm.count("check"),
                                                                           log_options[log_level],
                                                                           policy,
-                                                                          max_num_provers);
-            }
-            else {
-                return curve_dependent_main<typename algebra::fields::bls12_base_field<381>, false>(
-                                                                          bytecode_file_name,
-                                                                          public_input_file_name,
-                                                                          assignment_table_file_name,
-                                                                          circuit_file_name,
-                                                                          stack_size,
-                                                                          vm.count("check"),
-                                                                          log_options[log_level],
-                                                                          policy,
-                                                                          max_num_provers);
-            }
+                                                                          max_num_provers,
+                                                                          circuit_output_print_format);
             break;
         }
     };
