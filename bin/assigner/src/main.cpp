@@ -352,9 +352,45 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
+bool read_json(
+    std::string input_file_name,
+    boost::json::value &input_json_value
+) {
+    std::ifstream input_file(input_file_name.c_str());
+    if (!input_file.is_open()) {
+        std::cerr << "Could not open the file - '" << input_file_name << "'" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    boost::json::stream_parser p;
+    boost::json::error_code ec;
+    while (!input_file.eof()) {
+        char input_string[256];
+        input_file.read(input_string, sizeof(input_string) - 1);
+        input_string[input_file.gcount()] = '\0';
+        p.write(input_string, ec);
+        if (ec) {
+            std::cerr << "JSON parsing of input failed" << std::endl;
+            return 1;
+        }
+    }
+    p.finish(ec);
+    if (ec) {
+        std::cerr << "JSON parsing of input failed" << std::endl;
+        return 1;
+    }
+    input_json_value = p.release();
+    if (!input_json_value.is_array()) {
+        std::cerr << "Array of arguments is expected in JSON file" << std::endl;
+        return 1;
+    }
+    return 0;
+}
+
 template<typename BlueprintFieldType>
 int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
+                          std::string private_input_file_name,
                           std::string assignment_table_file_name,
                           std::string circuit_file_name,
                           long stack_size,
@@ -383,33 +419,15 @@ int curve_dependent_main(std::string bytecode_file_name,
     using AssignmentTableType = zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, zk::snark::plonk_column<BlueprintFieldType>>;
 
     std::vector<typename BlueprintFieldType::value_type> public_input;
-    std::ifstream input_file(public_input_file_name.c_str());
-    if (!input_file.is_open()) {
-        std::cerr << "Could not open the file - '" << public_input_file_name << "'" << std::endl;
-        return EXIT_FAILURE;
-    }
 
-    boost::json::stream_parser p;
-    boost::json::error_code ec;
-    while (!input_file.eof()) {
-        char input_string[256];
-        input_file.read(input_string, sizeof(input_string) - 1);
-        input_string[input_file.gcount()] = '\0';
-        p.write(input_string, ec);
-        if (ec) {
-            std::cerr << "JSON parsing of public input failed" << std::endl;
-            return 1;
-        }
-    }
-    p.finish(ec);
-    if (ec) {
-        std::cerr << "JSON parsing of public input failed" << std::endl;
-        return 1;
-    }
-    boost::json::value input_json_value = p.release();
-    if (!input_json_value.is_array()) {
-        std::cerr << "Array of arguments is expected in JSON file" << std::endl;
-        return 1;
+    boost::json::value public_input_json_value;
+    ASSERT(!read_json(public_input_file_name, public_input_json_value));
+
+    boost::json::value private_input_json_value;
+    if(private_input_file_name.empty()) {
+        private_input_json_value = boost::json::array();
+    } else {
+        ASSERT(!read_json(private_input_file_name, private_input_json_value));
     }
 
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance(
@@ -425,7 +443,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    if (!parser_instance.evaluate(*module, input_json_value.as_array())) {
+    if (!parser_instance.evaluate(*module, public_input_json_value.as_array(), private_input_json_value.as_array())) {
         return 1;
     }
 
@@ -530,6 +548,7 @@ int main(int argc, char *argv[]) {
             ("version,v", "Display version")
             ("bytecode,b", boost::program_options::value<std::string>(), "Bytecode input file")
             ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
+            ("private-input,p", boost::program_options::value<std::string>(), "Private input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
@@ -573,6 +592,7 @@ int main(int argc, char *argv[]) {
 
     std::string bytecode_file_name;
     std::string public_input_file_name;
+    std::string private_input_file_name;
     std::string assignment_table_file_name;
     std::string circuit_file_name;
     std::string elliptic_curve;
@@ -595,6 +615,14 @@ int main(int argc, char *argv[]) {
         std::cout << options_desc << std::endl;
         return 1;
     }
+
+    if (vm.count("private-input")) {
+        private_input_file_name = vm["private-input"].as<std::string>();
+    } else {
+        private_input_file_name = "";
+        std::cerr << "private input file was not provided" << std::endl;
+    }
+
 
     if (vm.count("assignment-table")) {
         assignment_table_file_name = vm["assignment-table"].as<std::string>();
@@ -713,6 +741,7 @@ int main(int argc, char *argv[]) {
             return curve_dependent_main<typename algebra::curves::pallas::base_field_type>(
                                                                           bytecode_file_name,
                                                                           public_input_file_name,
+                                                                          private_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
                                                                           stack_size,
@@ -735,6 +764,7 @@ int main(int argc, char *argv[]) {
             return curve_dependent_main<typename algebra::fields::bls12_base_field<381>>(
                                                                           bytecode_file_name,
                                                                           public_input_file_name,
+                                                                          private_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
                                                                           stack_size,
