@@ -193,24 +193,20 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     std::uint32_t selector_size = table_proxy.selectors_amount();
     const auto lookup_constant_cols = table_proxy.get_lookup_constant_cols();
     const auto lookup_selector_cols = table_proxy.get_lookup_selector_cols();
+
+    std::uint32_t max_public_inputs_size = 0;
+    std::uint32_t max_constant_size = 0;
+    std::uint32_t max_selector_size = 0;
+
+    for (std::uint32_t i = 0; i < public_input_size; i++) {
+        max_public_inputs_size = std::max(max_public_inputs_size, table_proxy.public_input_column_size(i));
+    }
+
     if (print_kind == print_table_kind::PRIVATE) {
-        constant_size = ComponentConstantColumns;
-        selector_size = ComponentSelectorColumns;
-        total_columns = witness_size + constant_size + selector_size;
-        usable_rows_amount = table_proxy.get_used_rows().size();
-    } else if (print_kind == print_table_kind::SHARED) {
-        constant_size = constant_size - ComponentConstantColumns;
-        selector_size = selector_size - ComponentSelectorColumns;
-        total_columns = shared_size + public_input_size + constant_size + selector_size;
+        total_columns = witness_size + shared_size + public_input_size + constant_size + selector_size;
         std::uint32_t max_shared_size = 0;
-        std::uint32_t max_public_inputs_size = 0;
-        std::uint32_t max_constant_size = 0;
-        std::uint32_t max_selector_size = 0;
         for (std::uint32_t i = 0; i < shared_size; i++) {
             max_shared_size = std::max(max_shared_size, table_proxy.shared_column_size(i));
-        }
-        for (std::uint32_t i = 0; i < public_input_size; i++) {
-            max_public_inputs_size = std::max(max_public_inputs_size, table_proxy.public_input_column_size(i));
         }
         for (const auto &i : lookup_constant_cols) {
             max_constant_size = std::max(max_constant_size, table_proxy.constant_column_size(i));
@@ -218,18 +214,13 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         for (const auto &i : lookup_selector_cols) {
             max_selector_size = std::max(max_selector_size, table_proxy.selector_column_size(i));
         }
-        usable_rows_amount = std::max({max_shared_size, max_public_inputs_size, max_constant_size, max_selector_size});
+        usable_rows_amount = table_proxy.get_used_rows().size();
+        usable_rows_amount = std::max({usable_rows_amount, max_shared_size, max_public_inputs_size, max_constant_size, max_selector_size});
     } else { // FULL
         total_columns = AssignmentTableType::arithmetization_params::total_columns;
         std::uint32_t max_witness_size = 0;
-        std::uint32_t max_public_inputs_size = 0;
-        std::uint32_t max_constant_size = 0;
-        std::uint32_t max_selector_size = 0;
         for (std::uint32_t i = 0; i < witness_size; i++) {
             max_witness_size = std::max(max_witness_size, table_proxy.witness_column_size(i));
-        }
-        for (std::uint32_t i = 0; i < public_input_size; i++) {
-            max_public_inputs_size = std::max(max_public_inputs_size, table_proxy.public_input_column_size(i));
         }
         for (std::uint32_t i = 0; i < constant_size; i++) {
             max_constant_size = std::max(max_constant_size, table_proxy.constant_column_size(i));
@@ -282,27 +273,10 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
                     (table_values, table_proxy.selector(i), padded_rows_amount);
         }
-    } else if (print_kind == print_table_kind::SHARED) {
-        for (std::uint32_t i = 0; i < public_input_size; i++) {
-            fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.public_input(i), padded_rows_amount);
-        }
-        for (std::uint32_t i = 0; i < shared_size; i++) {
-            fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.shared(i), padded_rows_amount);
-        }
-        for (std::uint32_t i = 0; i < constant_size; i++) {
-            fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.constant(i + ComponentConstantColumns), padded_rows_amount);
-        }
-        for (std::uint32_t i = 0; i < selector_size; i++) {
-            fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.selector(i + ComponentSelectorColumns), padded_rows_amount);
-        }
     } else {
         const std::uint32_t padding = padded_rows_amount - usable_rows_amount;
         const auto& rows = table_proxy.get_used_rows();
-
+        // witness
         for( std::size_t i = 0; i < AssignmentTableType::arithmetization_params::witness_columns; i++ ){
             const auto column_size = table_proxy.witness_column_size(i);
             for(const auto& j : rows){
@@ -316,6 +290,16 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                 table_values.push_back(0);
             }
         }
+        // public input
+        for (std::uint32_t i = 0; i < public_input_size; i++) {
+            fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
+                    (table_values, table_proxy.public_input(i), padded_rows_amount);
+        }
+        for (std::uint32_t i = 0; i < shared_size; i++) {
+            fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
+                    (table_values, table_proxy.shared(i), padded_rows_amount);
+        }
+        // constant
         for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
             const auto column_size = table_proxy.constant_column_size(i);
             for(const auto& j : rows){
@@ -329,9 +313,14 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                 table_values.push_back(0);
             }
         }
+        for (std::uint32_t i = ComponentConstantColumns; i < constant_size; i++) {
+            fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
+                    (table_values, table_proxy.constant(i), padded_rows_amount);
+        }
+        // selector
         for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
             const auto column_size = table_proxy.selector_column_size(i);
-            for(const auto& j : rows) {
+            for(const auto& j : rows){
                 if (j < column_size) {
                     table_values.push_back(table_proxy.selector(i, j));
                 } else {
@@ -341,6 +330,10 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
             for(std::uint32_t j = 0; j < padding; j++){
                 table_values.push_back(0);
             }
+        }
+        for (std::uint32_t i = ComponentSelectorColumns; i < selector_size; i++) {
+            fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
+                    (table_values, table_proxy.selector(i), padded_rows_amount);
         }
     }
 
@@ -451,25 +444,23 @@ int curve_dependent_main(std::string bytecode_file_name,
         );
     }
 
-    // print shared table
-    std::ofstream shared_otable;
-    const auto print_kind = parser_instance.assignments.size() > 1 ? print_table_kind::SHARED : print_table_kind::FULL;
-    std::string shared_otable_file_name = parser_instance.assignments.size() > 1 ?
-                            assignment_table_file_name + "_shared" : assignment_table_file_name;
-    shared_otable.open(shared_otable_file_name);
-    if (!shared_otable) {
-        std::cout << "Something wrong with output " << shared_otable_file_name << std::endl;
-        return 1;
-    }
+    // print full table
+    if (parser_instance.assignments.size() == 1) {
+        std::ofstream otable;
+        otable.open(assignment_table_file_name);
+        if (!otable) {
+            std::cout << "Something wrong with output " << assignment_table_file_name << std::endl;
+            return 1;
+        }
 
-    print_assignment_table<
-            nil::marshalling::option::big_endian,
-            ArithmetizationType, BlueprintFieldType
-    >(parser_instance.assignments[0], print_kind, ComponentConstantColumns, ComponentSelectorColumns, shared_otable);
+        print_assignment_table<
+                nil::marshalling::option::big_endian,
+                ArithmetizationType, BlueprintFieldType
+        >(parser_instance.assignments[0], print_table_kind::FULL, ComponentConstantColumns,
+          ComponentSelectorColumns, otable);
 
-    shared_otable.close();
-
-    if (parser_instance.assignments.size() > 1) {
+        otable.close();
+    } else if (parser_instance.assignments.size() > 1) {
         for (const auto &it: parser_instance.assignments) {
             std::ofstream otable;
             otable.open(assignment_table_file_name + std::to_string(it.get_id()));
@@ -483,11 +474,10 @@ int curve_dependent_main(std::string bytecode_file_name,
                     ArithmetizationType, BlueprintFieldType
             >(it, print_table_kind::PRIVATE, ComponentConstantColumns, ComponentSelectorColumns, otable);
 
-
-//    nil::blueprint::profiling_assignment_table(parser_instance.assignmnt, desc.usable_rows_amount, otable);
             otable.close();
         }
     }
+
     auto assignment_it = parser_instance.assignments.begin();
     for (auto& it : parser_instance.circuits) {
         std::ofstream ocircuit;
