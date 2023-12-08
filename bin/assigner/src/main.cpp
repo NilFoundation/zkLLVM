@@ -274,8 +274,8 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                     (table_values, table_proxy.selector(i), padded_rows_amount);
         }
     } else {
-        const std::uint32_t padding = padded_rows_amount - usable_rows_amount;
         const auto& rows = table_proxy.get_used_rows();
+        const std::uint32_t padding = padded_rows_amount - rows.size();
         // witness
         for( std::size_t i = 0; i < AssignmentTableType::arithmetization_params::witness_columns; i++ ){
             const auto column_size = table_proxy.witness_column_size(i);
