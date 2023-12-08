@@ -32,7 +32,7 @@ function(add_rust_example example_target)
     assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_CURVE_TYPE})
     add_dependencies(assign_rust_examples ${example_target}_assign)
 
-    gen_proof(${example_target} ${ARG_INPUT})
+    gen_proof(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE})
     add_dependencies(prove_rust_examples ${example_target}_prove)
 endfunction()
 
