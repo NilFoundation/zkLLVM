@@ -5,7 +5,7 @@ add_custom_target(prove_cpp_examples)
 function(add_example_without_proving example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues INPUT CURVE_TYPE)
+    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE)
     set(multiValues SOURCES COMPILER_OPTIONS)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
@@ -47,14 +47,19 @@ function(add_example_without_proving example_target)
 
     set(binary_name ${example_target}.ll)
 
-    assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_CURVE_TYPE})
+    if(DEFINED ARG_PRIVATE_INPUT)
+        assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE})
+    else()
+        assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE})
+    endif()
+
     add_dependencies(assign_cpp_examples ${example_target}_assign)
 endfunction()
 
 function(add_example_with_proving example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues INPUT CURVE_TYPE)
+    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE)
     set(multiValues SOURCES)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
@@ -114,12 +119,12 @@ add_example_without_proving(compare_greater_than_cpp SOURCES compare/greater_tha
 add_example_without_proving(compare_less_than_cpp SOURCES compare/less_than.cpp INPUT compare/less_than.inp CURVE_TYPE pallas)
 
 #Balances tree example is too big to be proven in a reasonable time
-add_example_without_proving(balances_tree_cpp_example SOURCES balances_tree.cpp INPUT balances_tree.inp CURVE_TYPE pallas)
+add_example_without_proving(balances_tree_cpp_example SOURCES balances_tree.cpp INPUT balances_tree_public.inp PRIVATE_INPUT balances_tree_private.inp CURVE_TYPE pallas)
 
 add_example_without_proving(eddsa_signature_verification_cpp SOURCES eddsa_signature_verification.cpp INPUT eddsa_signature_verification.inp CURVE_TYPE pallas)
 add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp CURVE_TYPE pallas)
 
-add_example_with_proving(private_input_cpp SOURCES private_input.cpp INPUT private_input.inp CURVE_TYPE pallas)
+add_example_with_proving(private_input_cpp SOURCES private_input.cpp INPUT private_input_public.inp PRIVATE_INPUT private_input_private.inp CURVE_TYPE pallas)
 
 add_example_with_proving(fri_lin_inter SOURCES placeholder_prover/fri_lin_inter.cpp INPUT placeholder_prover/fri_lin_inter.inp CURVE_TYPE pallas)
 add_example_with_proving(fri_array_swap SOURCES placeholder_prover/fri_array_swap.cpp INPUT placeholder_prover/fri_array_swap.inp CURVE_TYPE pallas)

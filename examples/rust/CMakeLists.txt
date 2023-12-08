@@ -14,7 +14,7 @@ set(TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/target")
 function(add_rust_example_without_proving example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues INPUT CURVE_TYPE)
+    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE)
     set(multiValues EXAMPLE_NAME)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
@@ -33,7 +33,12 @@ function(add_rust_example_without_proving example_target)
 
     set(binary_name ${TARGET_DIR}/${TARGET}/release/examples/${ARG_EXAMPLE_NAME}.ll)
 
-    assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_CURVE_TYPE})
+    if(DEFINED PRIVATE_INPUT)
+        assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${private_input} ${ARG_CURVE_TYPE})
+    else()
+        assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE})
+    endif()
+
     add_dependencies(assign_rust_examples ${example_target}_assign)
 endfunction()
 
