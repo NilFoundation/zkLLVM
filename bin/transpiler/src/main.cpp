@@ -146,6 +146,12 @@ void proof_print(Proof &proof, const std::string &output_file) {
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
+template<typename BlueprintFieldType>
+int curve_dependent_main(
+    boost::program_options::options_description options_desc,
+    boost::program_options::variables_map vm
+);
+
 int main(int argc, char *argv[]) {
 
     boost::program_options::options_description options_desc("zkLLVM circuit EVM gate argument transpiler");
@@ -170,6 +176,7 @@ int main(int argc, char *argv[]) {
             ("lookups-inline-threshold", boost::program_options::value<std::size_t>(), "Lookups inline size limit. Default = 0, none of the lookups are inlined")
             ("deduce-horner", "Detect polynomials over one variable and deduce to Horner's formula")
             ("optimize-powers", "Optimize terms that are powers of single variable")
+            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ;
     // clang-format on
 
@@ -177,6 +184,60 @@ int main(int argc, char *argv[]) {
     boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(),
                                   vm);
     boost::program_options::notify(vm);
+
+    std::string elliptic_curve;
+
+    if (vm.count("elliptic-curve-type")) {
+        elliptic_curve = vm["elliptic-curve-type"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - elliptic curve type is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    std::map<std::string, int> curve_options{
+        {"pallas", 0},
+        {"vesta", 1},
+        {"ed25519", 2},
+        {"bls12381", 3},
+    };
+
+    if (curve_options.find(elliptic_curve) == curve_options.end()) {
+        std::cerr << "Invalid command line argument -e (Native elliptic curve type): " << elliptic_curve << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    switch (curve_options[elliptic_curve]) {
+        case 0: {
+            using curve_type = nil::crypto3::algebra::curves::pallas;
+            using BlueprintFieldType = typename curve_type::base_field_type;
+            return curve_dependent_main<BlueprintFieldType>(options_desc, vm);
+            break;
+        }
+        case 1: {
+            UNREACHABLE("vesta curve based circuits are not supported yet");
+            break;
+        }
+        case 2: {
+            UNREACHABLE("ed25519 curve based circuits are not supported yet");
+            break;
+        }
+        case 3: {
+            using curve_type = nil::crypto3::algebra::curves::bls12<381>;
+            using BlueprintFieldType = typename curve_type::base_field_type;
+            return curve_dependent_main<BlueprintFieldType>(options_desc, vm);
+            break;
+        }
+    };
+
+}
+
+template<typename BlueprintFieldType>
+int curve_dependent_main(
+    boost::program_options::options_description options_desc,
+    boost::program_options::variables_map vm
+) {
 
     if (vm.count("help")) {
         std::cout << options_desc << std::endl;
@@ -243,8 +304,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    using curve_type = nil::crypto3::algebra::curves::pallas;
-    using BlueprintFieldType = typename curve_type::base_field_type;
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = 35;

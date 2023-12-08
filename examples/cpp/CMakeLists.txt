@@ -64,7 +64,7 @@ function(add_example_with_proving example_target)
 
     add_example_without_proving(${example_target} ${ARGN})
 
-    gen_proof(${example_target} ${ARG_INPUT})
+    gen_proof(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE})
     add_dependencies(prove_cpp_examples ${example_target}_prove)
 
     if(GENERATE_EVM_VERIFIER)
