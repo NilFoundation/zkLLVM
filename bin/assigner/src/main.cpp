@@ -435,7 +435,8 @@ int curve_dependent_main(std::string bytecode_file_name,
         log_level,
         max_num_provers,
         policy,
-        circuit_output_print_format
+        circuit_output_print_format,
+        check_validity
     );
 
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
