@@ -1,10 +1,17 @@
 set(INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inputs)
 
-function(assign_ir target binary_name input curve_type)
+function(assign_ir target binary_name input private_input curve_type)
+
+    if(NOT private_input STREQUAL "")
+        set (minus_p -p)
+        set(private_input_string ${INPUTS_DIR}/${private_input})
+    endif()
+
     add_custom_target(${target}_assign
         COMMAND $<TARGET_FILE:assigner>
             -b ${binary_name}
             -i ${INPUTS_DIR}/${input}
+            ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
             -t assignment_${target}.tbl -e ${curve_type} --check
         DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
