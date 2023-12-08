@@ -12,13 +12,14 @@ function(assign_ir target binary_name input curve_type)
         VERBATIM)
 endfunction()
 
-function(gen_proof target input)
+function(gen_proof target input curve_type)
     add_custom_target(${target}_prove
         COMMAND $<TARGET_FILE:transpiler> -m gen-test-proof
             -i ${INPUTS_DIR}/${input}
             -c circuit_${target}.crct
             -t assignment_${target}.tbl
             -o transpiler_output_${target}
+            -e ${curve_type}
         DEPENDS ${target}_assign $<TARGET_FILE:transpiler>
         COMMAND_EXPAND_LISTS
         VERBATIM)
