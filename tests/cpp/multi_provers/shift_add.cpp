@@ -8,15 +8,16 @@
 
 [[circuit]] uint32_t shift_add(uint32_t a) {
     uint32_t out = a >> 1;
+    uint32_t tmp = a >> 2;
 #ifdef __ZKLLVM__
 #pragma zk_multi_prover 1
     {
         out = out >> 1;
-        out = out + 1;
+        out = out + tmp;
     }
 #else
     out = out >> 1;
-    out = out + 1;
+    out = out + tmp;
 #endif
 
 #ifndef __ZKLLVM__
