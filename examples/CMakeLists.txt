@@ -25,13 +25,14 @@ function(gen_proof target input curve_type)
         VERBATIM)
 endfunction()
 
-function(gen_evm_verifier target input)
+function(gen_evm_verifier target input curve_type)
     add_custom_target(${target}_evm_verifier
         COMMAND $<TARGET_FILE:transpiler> -m gen-evm-verifier
             -i ${INPUTS_DIR}/${input}
             -c circuit_${target}.crct
             -t assignment_${target}.tbl
             -o transpiler_output_${target}
+            -e ${curve_type}
             --optimize-gates
         DEPENDS ${target}_assign ${target}_prove $<TARGET_FILE:transpiler>
         COMMAND_EXPAND_LISTS
