@@ -117,12 +117,14 @@ jobs:
         env:
           BOOST_ROOT: "${{ steps.install-boost.outputs.BOOST_ROOT }}"
         run: |
-          cmake -G "Ninja" \
+          cmake . \
+            -G "Ninja" \
             -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTS=TRUE \
             -DRSLANG_BUILD_EXTENDED=TRUE \
-            -DRSLANG_BUILD_TOOLS=cargo .
+            -DRSLANG_BUILD_TOOLS=cargo \
+            -DGENERATE_EVM_VERIFIER=TRUE
 
       - name: Build zkllvm
         run: |
@@ -163,6 +165,19 @@ jobs:
       #   run: |
       #     chmod +x ./tests/run_tests_faulty_input.sh
       #     bash ./tests/run_tests_faulty_input.sh pallas -j$(nproc)
+      - name: Get transpiler output for integration testing
+        run: |
+          cmake --build build \
+            -t arithmetics_cpp_example_evm_verifier \
+            -t polynomial_cpp_example_evm_verifier \
+            -t pallas_curve_multiplication_cpp_example_evm_verifier
+
+      - name: Upload examples' circuits and assignments artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: transpiler-output
+          path: |
+            build/examples/cpp/transpiler_output_*
 
       # - name: Build tests
       #   run: |
@@ -220,6 +235,25 @@ jobs:
       - handle-syncwith
     uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs.yml@add-reusable-wflw
     with:
-      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       artifact-name: circuits-and-assignments
-      # targets: |
+      proof-producer-ref: add-reusable-wflw
+      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+      targets: |
+        polynomial_cpp_example
+        arithmetics_cpp_example
+        pallas_curve_multiplication_cpp_example
+
+  verify-proofs:
+    name: Call reusable evm-placeholder-verification workflow
+    needs:
+      - build-and-test-linux
+      - handle-syncwith
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@integration-testing
+    with:
+      artifact-name: transpiler-output
+      evm-placeholder-verification-ref: integration-testing
+      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+      test-names: |
+        transpiler_output_polynomial_cpp_example
+        transpiler_output_arithmetics_cpp_example
+        transpiler_output_pallas_curve_multiplication_cpp_example

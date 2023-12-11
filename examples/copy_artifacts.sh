@@ -10,7 +10,7 @@ if [ "$#" -ne 2 ]; then
 fi
 
 base_dir=$1
-target_dir=$2
+target_dir=$(realpath "$2")
 
 if [ ! -d "$base_dir" ]; then
     echo "Error: Base directory '$base_dir' does not exist."
@@ -28,6 +28,8 @@ for ll_file in *.ll; do
 done
 
 for base_name in "${!base_names[@]}"; do
+    echo "Processing $base_name"
+
     mkdir -p "$target_dir/$base_name"
 
     for variant in "$base_name"*".ll"; do
