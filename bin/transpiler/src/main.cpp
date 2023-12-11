@@ -105,22 +105,16 @@ inline std::vector<std::size_t> generate_random_step_list(const std::size_t r, c
 }
 
 template<typename FRIScheme, typename FieldType>
-typename FRIScheme::params_type create_fri_params(std::size_t degree_log, const int max_step = 1) {
-    typename FRIScheme::params_type params;
-    nil::crypto3::math::polynomial<typename FieldType::value_type> q = {0, 0, 1};
-
-    constexpr std::size_t expand_factor = 0;
+typename FRIScheme::params_type create_fri_params(
+        std::size_t degree_log, const int max_step = 1, std::size_t expand_factor = 0) {
     std::size_t r = degree_log - 1;
 
-    std::vector<std::shared_ptr<nil::crypto3::math::evaluation_domain<FieldType>>> domain_set =
-        nil::crypto3::math::calculate_domain_set<FieldType>(degree_log + expand_factor, r);
-
-    params.r = r;
-    params.D = domain_set;
-    params.max_degree = (1 << degree_log) - 1;
-    params.step_list = generate_random_step_list(r, max_step);
-
-    return params;
+    return typename FRIScheme::params_type(
+        (1 << degree_log) - 1, // max_degree
+        nil::crypto3::math::calculate_domain_set<FieldType>(degree_log + expand_factor, r),
+        generate_random_step_list(r, max_step),
+        expand_factor
+    );
 }
 
 template<typename TIter>
