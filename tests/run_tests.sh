@@ -15,8 +15,11 @@ for i in ${!test_examples[*]}; do
 
     if [[ $test_example == *"multi_provers"* ]]; then
       ./build/bin/assigner/assigner  -b build/tests/cpp/${test_example////_}.ll -i "$file"  -t assignment.tbl -c circuit.crct -e $1 --check -f dec --max-num-provers 2  > real.log
+    else if [[ $test_example == *"private_input"* ]]; then
+      ./build/bin/assigner/assigner  -b build/tests/cpp/${test_example////_}.ll -i "$file" -p "$file" -t assignment.tbl -c circuit.crct -e $1 --check -f dec  > real.log
     else
       ./build/bin/assigner/assigner  -b build/tests/cpp/${test_example////_}.ll -i "$file"  -t assignment.tbl -c circuit.crct -e $1 --check -f dec  > real.log
+    fi
     fi
 
     if [ $? -ne 0 ]; then
