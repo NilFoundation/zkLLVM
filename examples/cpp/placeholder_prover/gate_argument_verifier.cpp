@@ -13,6 +13,6 @@ constexpr std::array<int, gates_amount> gates_sizes = {3,2,4,1};
         typename pallas::base_field_type::value_type theta
     ) {
 
-    return __builtin_assigner_gate_arg_verifier( selectors.data(), (int*)gates_sizes.data(), gates_amount, constraints.data(), constraints_amount, theta);
+    return __builtin_assigner_gate_arg_verifier( selectors.data(), (int*)&gates_sizes, gates_amount, constraints.data(), constraints_amount, theta);
 
 }
