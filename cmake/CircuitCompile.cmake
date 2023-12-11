@@ -24,7 +24,7 @@ function(add_circuit_no_stdlib name)
     endif()
 
     foreach(source ${ARG_SOURCES})
-        if(NOT IS_ABSOLUTE ${include_dir})
+        if(NOT IS_ABSOLUTE ${source})
             list(APPEND CIRCUIT_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/${source}")
         else()
             list(APPEND CIRCUIT_SOURCES "${source}")
@@ -54,7 +54,7 @@ function(add_circuit_no_stdlib name)
         list(APPEND INCLUDE_DIRS_LIST "-I${include_dir}")
     endforeach()
     if (ZKLLVM_DEV_ENVIRONMENT)
-        list(APPEND INCLUDE_DIRS_LIST -I${CMAKE_SOURCE_DIR}/libs/stdlib/libcpp -I${CMAKE_SOURCE_DIR}/libs/stdlib/libc/include)
+        list(APPEND INCLUDE_DIRS_LIST -I${CMAKE_SOURCE_DIR}/libs/stdlib/libcpp -I${CMAKE_SOURCE_DIR}/libs/circifier/clang/lib/Headers -I${CMAKE_SOURCE_DIR}/libs/stdlib/libc/include)
     endif()
     list(REMOVE_DUPLICATES INCLUDE_DIRS_LIST)
 
@@ -76,7 +76,7 @@ function(add_circuit_no_stdlib name)
     foreach(source ${CIRCUIT_SOURCES})
         get_filename_component(source_base_name ${source} NAME)
         add_custom_target(${name}_${source_base_name}_ll
-                        COMMAND ${CLANG} -target assigner -Xclang -fpreserve-vec3-type -Werror=unknown-attributes
+                        COMMAND ${CLANG} -target assigner -Xclang -fpreserve-vec3-type -Werror=unknown-attributes -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION
                         -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 -S ${ARG_COMPILER_OPTIONS}  -o ${name}_${source_base_name}.ll ${source}
 
                         VERBATIM COMMAND_EXPAND_LISTS
@@ -91,9 +91,6 @@ function(add_circuit_no_stdlib name)
                       COMMAND ${LINKER} ${link_options} -o ${name}.ll ${compiler_outputs}
                       DEPENDS ${name}_compile_sources
                       VERBATIM COMMAND_EXPAND_LISTS)
-    if (${ZKLLVM_DEV_ENVIRONMENT})
-        add_dependencies(${name} zkllvm-libc)
-    endif()
     set_target_properties(${name} PROPERTIES OUTPUT_NAME ${name}.ll)
 endfunction(add_circuit_no_stdlib)
 
@@ -105,16 +102,21 @@ function(add_circuit)
     if (ZKLLVM_DEV_ENVIRONMENT)
         set(LINKER $<TARGET_FILE:llvm-link>)
         set(libc_stdlib ${CMAKE_BINARY_DIR}/libs/stdlib/libc/zkllvm-libc.ll)
+        set(libcpp_stdlib ${CMAKE_BINARY_DIR}/libs/stdlib/libcpp/zkllvm-libcpp.ll)
     else()
         set(LINKER llvm-link)
         set(libc_stdlib "/usr/lib/zkllvm/zkllvm-libc.ll")
+        set(libcpp_stdlib "/usr/lib/zkllvm/zkllvm-libcpp.ll")
     endif()
     if (NOT ${CIRCUIT_BINARY_OUTPUT})
         set(link_options "-S")
     endif()
 
     add_custom_target(${circuit_name}
-                      COMMAND ${LINKER} ${link_options} -o ${circuit_name}.ll ${circuit_name}_no_stdlib.ll ${libc_stdlib}
+                      COMMAND ${LINKER} ${link_options} -o ${circuit_name}.ll ${circuit_name}_no_stdlib.ll ${libc_stdlib} ${libcpp_stdlib}
                       DEPENDS ${circuit_name}_no_stdlib
                       VERBATIM COMMAND_EXPAND_LISTS)
+    if (${ZKLLVM_DEV_ENVIRONMENT})
+        add_dependencies(${circuit_name} zkllvm-libc zkllvm-libcpp)
+    endif()
 endfunction(add_circuit)
