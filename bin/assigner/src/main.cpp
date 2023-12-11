@@ -362,7 +362,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                           boost::log::trivial::severity_level log_level,
                           const std::string &policy,
                           std::uint32_t max_num_provers,
-                          std::size_t circuit_output_print_format) {
+                          nil::blueprint::print_format circuit_output_print_format) {
 
     constexpr std::size_t ComponentConstantColumns = 5;
     constexpr std::size_t LookupConstantColumns = 30;
@@ -536,8 +536,8 @@ int main(int argc, char *argv[]) {
             ("stack-size,s", boost::program_options::value<long>(), "Stack size in bytes")
             ("check", "Check satisfiability of the generated circuit")
             ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)")
-            ("print_circuit_output", "deprecated, use \"-o print_circuit_output\" instead")
-            ("print-circuit-output,o", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
+            ("print_circuit_output", "deprecated, use \"-f\" instead")
+            ("print-circuit-output-format,f", boost::program_options::value<std::string>(), "format of the circuit output (dec, hex)")
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
             ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1");
     // clang-format on
@@ -576,7 +576,7 @@ int main(int argc, char *argv[]) {
     std::string assignment_table_file_name;
     std::string circuit_file_name;
     std::string elliptic_curve;
-    std::size_t circuit_output_print_format;
+    nil::blueprint::print_format circuit_output_print_format;
     std::string log_level;
     long stack_size;
 
@@ -640,23 +640,24 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::map<std::string, int> print_circuit_output_options{
-        {"print_circuit_output", 1},
-        {"print_circuit_output_hex", 2},
-        // {"print_circuit_output_bin", 3},
+
+    std::map<std::string, nil::blueprint::print_format> print_circuit_output_options{
+        {"dec", dec},
+        {"hex", hex},
+        // {"print_circuit_output_bin", bin},
     };
 
-    if (vm.count("print-circuit-output")) {
-        std::string output_format = vm["print-circuit-output"].as<std::string>();
+    if (vm.count("print-circuit-output-format")) {
+        std::string output_format = vm["print-circuit-output-format"].as<std::string>();
         if (print_circuit_output_options.find(output_format) == print_circuit_output_options.end()) {
-            std::cerr << "Invalid command line argument -o (print_circuit_output): " << output_format << std::endl;
+            std::cerr << "Invalid command line argument -f (print-circuit-output-format): " << output_format << std::endl;
             std::cout << options_desc << std::endl;
             return 1;
         } else {
             circuit_output_print_format = print_circuit_output_options[output_format];
         }
     } else {
-        circuit_output_print_format = 0;
+        circuit_output_print_format = no_print;
     }
 
     if (vm.count("stack-size")) {
@@ -703,8 +704,8 @@ int main(int argc, char *argv[]) {
 
     ASSERT_MSG(!vm.count("print_circuit_output"),
         "\nyou used --print_circuit_output flag,\n"
-        "it is deprecated, use \"-o print_circuit_output\" instead.\n"
-        "Or use \"-o print_circuit_output_hex\", hex output format is also supported now\n"
+        "it is deprecated, use \"-f dec\" instead.\n"
+        "Or use \"-f hex\", hex output format is also supported now\n"
     );
 
     switch (curve_options[elliptic_curve]) {
