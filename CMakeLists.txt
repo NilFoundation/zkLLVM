@@ -156,33 +156,32 @@ if(NOT ${DETECT_PLATFORM_RESULT} EQUAL 0)
     message(FATAL_ERROR "Failed to detect host platform")
 endif()
 
+option(RSLANG_BUILD_STAGE "Stage to build (see --stage)" "1")
 option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
 option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
 
-set(RSLANG_BUILD_STAGE "1" CACHE STRING "Stage to build (see --stage)")
+set(RSLANG_CONFIG ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml CACHE STRING "Path to Rust config file")
 
 list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
 list(APPEND RSLANG_BUILD_ARGS --release-channel=nightly)
 list(APPEND RSLANG_BUILD_ARGS "--release-description=zkLLVM ${ZKLLVM_VERSION_MAJOR}.${ZKLLVM_VERSION_MINOR}.${ZKLLVM_VERSION_PATCH}")
 list(APPEND RSLANG_BUILD_ARGS --target=${RUSTC_HOST_TRIPLE},assigner-unknown-unknown)
 list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-config=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config)
-list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-filecheck=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/FileCheck)
-list(APPEND RSLANG_BUILD_ARGS --set target.${RUSTC_HOST_TRIPLE}.llvm-has-rust-patches=false)
 list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.llvm-config=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/llvm-config)
-list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.llvm-filecheck=${CMAKE_CURRENT_BINARY_DIR}/libs/circifier/llvm/bin/FileCheck)
-list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.llvm-has-rust-patches=false)
 list(APPEND RSLANG_BUILD_ARGS --set target.assigner-unknown-unknown.linker=llvm-link)
 if(${BUILD_SHARED_LIBS})
     list(APPEND RSLANG_BUILD_ARGS --enable-llvm-link-shared)
 endif()
 list(APPEND RSLANG_BUILD_ARGS --set build.build-dir=${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/build)
+list(APPEND RSLANG_BUILD_ARGS --set build.build-stage=${RSLANG_BUILD_STAGE})
 list(APPEND RSLANG_BUILD_ARGS --set build.cargo=${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target/release/cargo)
-list(APPEND RSLANG_BUILD_ARGS --disable-docs)
 if(${RSLANG_BUILD_EXTENDED})
     list(APPEND RSLANG_BUILD_ARGS --enable-extended)
     if(RSLANG_BUILD_TOOLS)
         list(APPEND RSLANG_BUILD_ARGS --tools=${RSLANG_BUILD_TOOLS})
     endif()
+else()
+    list(APPEND RSLANG_BUILD_ARGS --disable-extended)
 endif()
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     list(APPEND RSLANG_BUILD_ARGS --enable-debug)
@@ -190,25 +189,26 @@ endif()
 list(APPEND RSLANG_BUILD_ARGS --dist-compression-formats=gz)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
+file(REMOVE ${RSLANG_CONFIG})
 execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/libs/rslang/configure ${RSLANG_BUILD_ARGS}
                 COMMAND_ERROR_IS_FATAL ANY
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
 
 add_custom_target(cargo
-                  COMMAND cargo build --release --target-dir ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target --package cargo
+                  COMMAND cargo build --release --target-dir ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/target
                   COMMENT "Building cargo"
                   USES_TERMINAL
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang/src/tools/cargo)
 
 add_custom_target(rslang
-                  COMMAND ./x build --config ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml --stage ${RSLANG_BUILD_STAGE}
+                  COMMAND ./x build --config ${RSLANG_CONFIG}
                   DEPENDS llvm-libraries llvm-config llvm-link FileCheck cargo
                   COMMENT "Building rslang"
                   USES_TERMINAL
                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
 
 add_custom_target(rslang_dist
-                  COMMAND ./x dist --config ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml
+                  COMMAND ./x dist --config ${RSLANG_CONFIG}
                   DEPENDS rslang
                   COMMENT "Building rslang distribution package"
                   USES_TERMINAL
