@@ -4,7 +4,6 @@ set(INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inputs)
 set(PRIVATE_INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/private_inputs)
 
 function(assign_ir target binary_name input curve_type max_num_provers_amount)
-   message(private_input: ${max_num_provers_amount})
    if(NOT max_num_provers_amount EQUAL 0)
       set(max_num_provers_flag --max-num-provers)
       set(max_num_provers_amount ${max_num_provers_amount})
