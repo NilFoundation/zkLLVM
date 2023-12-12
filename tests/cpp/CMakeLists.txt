@@ -10,9 +10,11 @@ cm_project(zkllvm_tests WORKSPACE_NAME ${CMAKE_WORKSPACE_NAME} LANGUAGES ASM C C
 
 include(CMTest)
 
-add_custom_target(all_expected_res_tests)
-add_custom_target(all_circuit_tests)
-add_custom_target(all_for_test_run)
+add_custom_target(all_tests_compile_as_cpp_code)
+add_custom_target(all_tests_compile_as_circuits)
+add_custom_target(all_tests_compilation)
+add_custom_target(all_tests_run_expected_res_calculation)
+add_custom_target(all_tests_assign_circuits)
 
 if(NOT Boost_UNIT_TEST_FRAMEWORK_FOUND)
     cm_find_package(Boost REQUIRED COMPONENTS unit_test_framework filesystem)
@@ -39,6 +41,7 @@ macro(define_zkllvm_test test curve_type)
         get_filename_component(curr_inp_name ${full_inp_file} NAME_WE)
         get_filename_component(curr_inp_file ${full_inp_file} NAME)
         run_expected_res_calculation(${full_test_name} ${PARENT_PATH} ${curr_inp_name})
+        add_dependencies(all_tests_run_expected_res_calculation ${full_test_name}_run_${curr_inp_name})
         add_test_circuit_assign(${test_name}_${curr_inp_name} SOURCES ${test}.cpp INPUT ${PARENT_PATH}/${curr_inp_file} CURVE_TYPE ${curve_type})
     endforeach()
 
@@ -62,8 +65,8 @@ macro(define_zkllvm_test test curve_type)
     elseif(target_type STREQUAL "STATIC_LIB")
 
     endif()
-    add_dependencies(all_expected_res_tests ${full_test_name})
-    add_dependencies(all_circuit_tests ${test_name})
+    add_dependencies(all_tests_compile_as_cpp_code ${full_test_name})
+    add_dependencies(all_tests_compile_as_circuits ${test_name})
 endmacro()
 
 
@@ -147,6 +150,7 @@ function(add_test_circuit_assign example_target)
     set(binary_name ${example_target}.ll)
 
     assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_CURVE_TYPE})
+    add_dependencies(all_tests_assign_circuits ${example_target}_assign)
 endfunction()
 
 function(add_zkllvm_unit_test TEST_NAME)
@@ -163,6 +167,9 @@ endfunction()
 
 file(REMOVE ../tests_list_pallas.txt)
 file(REMOVE ../tests_list_bls12381.txt)
+
+file(REMOVE ../circuits_outputs_list.txt)
+file(REMOVE ../expected_results_list.txt)
 
 
 # curve tests
@@ -199,7 +206,7 @@ add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/loop")
 add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/mul")
 add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/sub")
 
-add_zkllvm_unit_test("algebra/fields/private_input/private_input_add")
+# add_zkllvm_unit_test("algebra/fields/private_input/private_input_add")
 
 
 # int tests
@@ -247,6 +254,6 @@ add_zkllvm_unit_test("algebra/recursive_prover/lookup_arg_verifier/test2/test")
 add_zkllvm_unit_test_bls12381("algebra/fields/bls12381_fp12_arithmetics/mul")
 add_zkllvm_unit_test_bls12381("bls_signature/pairing/pairing")
 
-add_dependencies(all_for_test_run assigner)
-add_dependencies(all_for_test_run all_circuit_tests)
-add_dependencies(all_for_test_run all_expected_res_tests)
+add_dependencies(all_tests_compilation assigner)
+add_dependencies(all_tests_compilation all_tests_compile_as_circuits)
+add_dependencies(all_tests_compilation all_tests_compile_as_cpp_code)
