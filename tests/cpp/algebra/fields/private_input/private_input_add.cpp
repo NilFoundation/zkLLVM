@@ -28,12 +28,27 @@ int main (int argc, char *argv[]){
         std::abort();
     }
 
-    boost::json::value input_json = read_boost_json(std::string(argv[1]));
+    std::string public_input_name = std::string(argv[1]);
+    std::string private_input_name = std::string(argv[1]);
+
+    boost::json::value public_input_json = read_boost_json(public_input_name);
+
+    std::string inputs_str = "/inputs/";
+    std::string priv_inp_str = "/private_inputs/";
+    size_t char_nr = private_input_name.find(inputs_str);
+
+    ASSERT(char_nr != std::string::npos);
+    private_input_name.replace(char_nr, inputs_str.length(), priv_inp_str);
+
+    boost::json::value pubic_input_json = read_boost_json(public_input_name);
+    boost::json::value private_input_json = read_boost_json(private_input_name);
+
 
     using BlueprintFieldType = typename pallas::base_field_type;
-    typename BlueprintFieldType::value_type a = read_field <BlueprintFieldType>(input_json, 0);
+    typename BlueprintFieldType::value_type a = read_field <BlueprintFieldType>(pubic_input_json, 0);
+    typename BlueprintFieldType::value_type b = read_field <BlueprintFieldType>(private_input_json, 0);
 
-    pallas_field_add(a, a);
+    pallas_field_add(a, b);
     return 0;
 }
 #endif
