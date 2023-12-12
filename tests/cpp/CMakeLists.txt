@@ -213,7 +213,7 @@ add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/loop")
 add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/mul")
 add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/sub")
 
-# add_zkllvm_unit_test("algebra/fields/private_input/private_input_add")
+add_zkllvm_unit_test("algebra/fields/private_input/private_input_add")
 
 
 # int tests

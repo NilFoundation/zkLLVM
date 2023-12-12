@@ -1,6 +1,7 @@
 set(${CURRENT_PROJECT_NAME}_HEADERS)
 
 set(INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inputs)
+set(PRIVATE_INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/private_inputs)
 
 function(assign_ir target binary_name input curve_type max_num_provers_amount)
    message(private_input: ${max_num_provers_amount})
@@ -9,11 +10,17 @@ function(assign_ir target binary_name input curve_type max_num_provers_amount)
       set(max_num_provers_amount ${max_num_provers_amount})
    endif()
 
+   if(EXISTS ${PRIVATE_INPUTS_DIR}/${input})
+      set(minus_p -p)
+      set(priv_inp ${PRIVATE_INPUTS_DIR}/${input})
+   endif()
+
    file(APPEND ../circuits_outputs_list.txt circuit_output_${target}.txt\n)
    add_custom_target(${target}_assign
                       COMMAND $<TARGET_FILE:assigner>
                       -b ${binary_name}
                       -i ${INPUTS_DIR}/${input}
+                      ${minus_p} ${priv_inp}
                       -c circuit_${target}.crct
                       -t assignment_${target}.tbl
                       -e ${curve_type}
