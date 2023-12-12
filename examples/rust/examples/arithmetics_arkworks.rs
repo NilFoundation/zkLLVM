@@ -1,6 +1,6 @@
 #![no_main]
 #![feature(const_trait_impl)]
-#![feature(const_convert)]
+#![feature(effects)]
 
 use ark_ff::{Field, MontFp};
 use ark_pallas::Fq;
