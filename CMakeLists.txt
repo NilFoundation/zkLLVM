@@ -159,7 +159,7 @@ endif()
 option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
 option(RSLANG_BUILD_TOOLS "Rust tools to build (see build.tools)" "")
 
-set(RSLANG_BUILD_STAGE "1" CACHE STRING "Stage to build (see --stage)")
+set(RSLANG_BUILD_STAGE "2" CACHE STRING "Stage to build (see --stage)")
 set(RSLANG_CONFIG ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml CACHE STRING "Path to Rust config file")
 
 list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
