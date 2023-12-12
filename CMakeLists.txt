@@ -39,10 +39,14 @@ option(BUILD_WITH_BOOST_STATIC_LIBS "Build using Boost static libraries" TRUE)
 option(BUILD_TESTS "Build unit tests" FALSE)
 option(BUILD_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
 option(CIRCUIT_BINARY_OUTPUT "Emit circuit IR as binary file" FALSE)
+option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
 
 set(BUILD_WITH_TARGET_ARCHITECTURE "" CACHE STRING "Target build architecture")
 set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_LIST_DIR}/docs" CACHE STRING "Specify doxygen output directory")
 set(ZKLLVM_DEV_ENVIRONMENT TRUE)
+set(RSLANG_BUILD_STAGE "2" CACHE STRING "Stage to build (see --stage)")
+set(RSLANG_CONFIG ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml CACHE STRING "Path to Rust config file")
+set(RSLANG_BUILD_TOOLS "<none>" CACHE STRING "Rust tools to build (see build.tools)")
 
 include(TargetArchitecture)
 include(CircuitCompile)
@@ -155,12 +159,6 @@ execute_process(COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_LIST_DIR}/detect-p
 if(NOT ${DETECT_PLATFORM_RESULT} EQUAL 0)
     message(FATAL_ERROR "Failed to detect host platform")
 endif()
-
-option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
-
-set(RSLANG_BUILD_STAGE "2" CACHE STRING "Stage to build (see --stage)")
-set(RSLANG_CONFIG ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang/config.toml CACHE STRING "Path to Rust config file")
-set(RSLANG_BUILD_TOOLS "<none>" CACHE STRING "Rust tools to build (see build.tools)")
 
 list(APPEND RSLANG_BUILD_ARGS --set llvm.download-ci-llvm=false)
 list(APPEND RSLANG_BUILD_ARGS --release-channel=nightly)
