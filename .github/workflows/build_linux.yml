@@ -118,7 +118,9 @@ jobs:
           cmake -G "Unix Makefiles" \
             -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_TESTS=TRUE .
+            -DBUILD_TESTS=TRUE \
+            -DRSLANG_BUILD_EXTENDED=TRUE \
+            -DRSLANG_BUILD_TOOLS=cargo .
 
       - name: Build zkllvm
         run: |
