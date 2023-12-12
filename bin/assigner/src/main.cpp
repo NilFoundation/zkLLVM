@@ -277,6 +277,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         }
     } else {
         const auto& rows = table_proxy.get_used_rows();
+        const auto& selector_rows = table_proxy.get_used_selector_rows();
         const std::uint32_t padding = padded_rows_amount - rows.size();
         // witness
         for( std::size_t i = 0; i < AssignmentTableType::arithmetization_params::witness_columns; i++ ){
@@ -323,7 +324,8 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
             const auto column_size = table_proxy.selector_column_size(i);
             for(const auto& j : rows){
-                if (j < column_size) {
+                bool is_active_selector = (selector_rows.find(j) != selector_rows.end());
+                if (j < column_size && is_active_selector) {
                     table_values.push_back(table_proxy.selector(i, j));
                 } else {
                     table_values.push_back(0);
