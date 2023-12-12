@@ -137,20 +137,26 @@ jobs:
         run: |
           cmake --build build -t assign_cpp_examples
 
-      - name: Build tests
+      - name: Compile tests as cpp code
         run: |
-          cmake --build build -t all_expected_res_tests
-          cmake --build build -t all_circuit_tests
+          cmake --build build -t all_tests_compile_as_cpp_code
 
-      - name: Run tests pallas
+      - name: Compile tests as circuits
         run: |
-          chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh pallas
+          cmake --build build -t all_tests_compile_as_circuits
 
-      - name: Run tests bls12381
+      - name: Run tests as cpp code (expected res calculation)
         run: |
-          chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh bls12381
+          cmake --build build -t all_tests_run_expected_res_calculation -j$(nproc)
+
+      - name: Run tests as circuits (real res calculation)
+        run: |
+          cmake --build build -t all_tests_assign_circuits -j$(nproc)
+
+      - name: Compare expected and real test results
+        run: |
+          chmod +x ./tests/run_test_results_comparison.sh
+          bash ./tests/run_test_results_comparison.sh
 
       - name: Run tests on faulty inputs
         run: |
