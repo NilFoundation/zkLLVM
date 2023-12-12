@@ -2,8 +2,12 @@ add_custom_target(circuit_rust_examples)
 add_custom_target(assign_rust_examples)
 add_custom_target(prove_rust_examples)
 
-set(RUSTC "${CMAKE_BINARY_DIR}/libs/rslang/build/host/stage1/bin/rustc")
-set(CARGO "${CMAKE_BINARY_DIR}/libs/rslang/target/release/cargo")
+set(RUSTC "${CMAKE_BINARY_DIR}/libs/rslang/build/host/stage${RSLANG_BUILD_STAGE}/bin/rustc")
+if(${RSLANG_BUILD_EXTENDED})
+    set(CARGO "${CMAKE_BINARY_DIR}/libs/rslang/build/host/stage${RSLANG_BUILD_STAGE}-tools-bin/cargo")
+else()
+    set(CARGO "${CMAKE_BINARY_DIR}/libs/rslang/target/release/cargo")
+endif()
 set(TARGET "assigner-unknown-unknown")
 set(TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/target")
 
@@ -19,7 +23,7 @@ function(add_rust_example example_target)
                         ${ARGN})
 
     add_custom_target(${example_target}
-                      RUSTC=${RUSTC} ${CARGO} build --target-dir ${TARGET_DIR} --target ${TARGET} --example ${ARG_EXAMPLE_NAME} --release --ignore-rust-version
+                      RUSTC=${RUSTC} ${CARGO} build --target-dir ${TARGET_DIR} --target ${TARGET} --example ${ARG_EXAMPLE_NAME} --release
                       DEPENDS rslang
                       USES_TERMINAL
                       VERBATIM
