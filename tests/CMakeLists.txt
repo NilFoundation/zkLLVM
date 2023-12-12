@@ -2,10 +2,25 @@ set(${CURRENT_PROJECT_NAME}_HEADERS)
 
 set(INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inputs)
 
-function(assign_ir target binary_name input curve_type)
+function(assign_ir target binary_name input curve_type max_num_provers_amount)
+   message(private_input: ${max_num_provers_amount})
+   if(NOT max_num_provers_amount EQUAL 0)
+      set(max_num_provers_flag --max-num-provers)
+      set(max_num_provers_amount ${max_num_provers_amount})
+   endif()
+
    file(APPEND ../circuits_outputs_list.txt circuit_output_${target}.txt\n)
    add_custom_target(${target}_assign
-                      COMMAND $<TARGET_FILE:assigner> -b ${binary_name} -i ${INPUTS_DIR}/${input} -c circuit_${target}.crct -t assignment_${target}.tbl -e ${curve_type} --check -f dec > circuit_output_${target}.txt
+                      COMMAND $<TARGET_FILE:assigner>
+                      -b ${binary_name}
+                      -i ${INPUTS_DIR}/${input}
+                      -c circuit_${target}.crct
+                      -t assignment_${target}.tbl
+                      -e ${curve_type}
+                      --check
+                      -f dec
+                      ${max_num_provers_flag} ${max_num_provers_amount}
+                      > circuit_output_${target}.txt
                       DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
                       COMMAND_EXPAND_LISTS
                       VERBATIM)
