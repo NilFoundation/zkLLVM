@@ -133,20 +133,26 @@ jobs:
         run: |
           make -C build assign_cpp_examples -j$(nproc)
 
-      - name: Build tests
+      - name: Compile tests as cpp code
         run: |
-          make -C build all_expected_res_tests -j$(nproc)
-          make -C build all_circuit_tests -j$(nproc)
+          make -C build all_tests_compile_as_cpp_code -j$(nproc)
 
-      - name: Run tests pallas
+      - name: Compile tests as circuits
         run: |
-          chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh pallas -j$(nproc)
+          make -C build all_tests_compile_as_circuits -j$(nproc)
 
-      - name: Run tests bls12381
+      - name: Run tests as cpp code (expected res calculation)
         run: |
-          chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh bls12381 -j$(nproc)
+          make -C build all_tests_run_expected_res_calculation -j$(nproc)
+
+      - name: Run tests as circuits (real res calculation)
+        run: |
+          make -C build all_tests_assign_circuits -j$(nproc)
+
+      - name: Compare expected and real test results
+        run: |
+          chmod +x ./tests/run_tests_new.sh
+          bash ./tests/run_tests_new.sh
 
       - name: Run tests on faulty inputs
         run: |
