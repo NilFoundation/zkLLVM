@@ -5,7 +5,7 @@ add_custom_target(prove_cpp_examples)
 function(add_example_without_proving example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE)
+    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE MAX_NUM_PROVERS)
     set(multiValues SOURCES COMPILER_OPTIONS)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
@@ -48,9 +48,17 @@ function(add_example_without_proving example_target)
     set(binary_name ${example_target}.ll)
 
     if(DEFINED ARG_PRIVATE_INPUT)
-        assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE})
+        if(DEFINED ARG_MAX_NUM_PROVERS)
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+        else()
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} 0)
+        endif()
     else()
-        assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE})
+        if(DEFINED ARG_MAX_NUM_PROVERS)
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+        else()
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} 0)
+        endif()
     endif()
 
     add_dependencies(assign_cpp_examples ${example_target}_assign)
@@ -59,7 +67,7 @@ endfunction()
 function(add_example_with_proving example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE)
+    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE MAX_NUM_PROVERS)
     set(multiValues SOURCES)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
@@ -69,7 +77,11 @@ function(add_example_with_proving example_target)
 
     add_example_without_proving(${example_target} ${ARGN})
 
-    gen_proof(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE})
+    if(NOT DEFINED ARG_MAX_NUM_PROVERS)
+        set(ARG_MAX_NUM_PROVERS 0)
+    endif()
+
+    gen_proof(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
     add_dependencies(prove_cpp_examples ${example_target}_prove)
 
     if(GENERATE_EVM_VERIFIER)
