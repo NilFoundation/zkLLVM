@@ -290,7 +290,7 @@ jobs:
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       # Update next line if you need new version of proof producer
-      proof-producer-ref: b1e380040b4714b6ad5fe9223555d854c49cf065
+      proof-producer-ref: 0924fe046e08c8ae10e9df226cfd0a39b069d355
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 

@@ -22,11 +22,19 @@
 
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
+#include <nil/crypto3/zk/math/expression.hpp>
+#include <nil/crypto3/zk/math/expression_visitors.hpp>
+#include <nil/crypto3/zk/math/expression_evaluator.hpp>
+
+#include <nil/crypto3/hash/algorithm/hash.hpp>
+#include <nil/crypto3/hash/sha2.hpp>
+#include <nil/crypto3/hash/md5.hpp>
+#include <nil/crypto3/hash/keccak.hpp>
+#include <nil/crypto3/hash/poseidon.hpp>
 
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
-#include <nil/crypto3/marshalling/zk/types/placeholder/proof.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/constraint_system.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/assignment_table.hpp>
 
@@ -43,6 +51,27 @@
 #include <nil/blueprint/transpiler/minimized_profiling_plonk_circuit.hpp>
 #include <nil/blueprint/transpiler/evm_verifier_gen.hpp>
 #include <nil/blueprint/transpiler/public_input.hpp>
+#include <nil/blueprint/transpiler/recursive_verifier_generator.hpp>
+
+
+template<typename BlueprintFieldType>
+struct ParametersPolicy {
+    constexpr static const std::size_t WitnessColumns = RECURSIVE_WITNESS_COLUMNS;
+    constexpr static const std::size_t PublicInputColumns = RECURSIVE_PUBLIC_INPUT_COLUMNS;
+    constexpr static const std::size_t ComponentConstantColumns = RECURSIVE_COMPONENT_CONSTANT_COLUMNS;
+    constexpr static const std::size_t LookupConstantColumns = RECURSIVE_LOOKUP_CONSTANT_COLUMNS;
+    constexpr static const std::size_t ComponentSelectorColumns = RECURSIVE_COMPONENT_SELECTOR_COLUMNS;
+    constexpr static const std::size_t LookupSelectorColumns = RECURSIVE_LOOKUP_SELECTOR_COLUMNS;
+    constexpr static const std::size_t lambda = RECURSIVE_LAMBDA;
+    constexpr static const std::size_t GrindingBits = RECURSIVE_GRINDING_BITS;
+    constexpr static const bool UseGrinding = (GrindingBits != 0);
+
+private:
+    using poseidon_policy = nil::crypto3::hashes::detail::mina_poseidon_policy<BlueprintFieldType>;
+    using default_hash = nil::crypto3::hashes::poseidon<poseidon_policy>;
+public:
+    using hash =default_hash;
+};
 
 template<typename ProfilingType, typename ConstraintSystemType, typename ColumnsRotationsType,
          typename ArithmetizationParams>
@@ -81,13 +110,12 @@ inline std::vector<std::size_t> generate_random_step_list(const std::size_t r, c
 }
 
 template<typename FRIScheme, typename FieldType>
-typename FRIScheme::params_type create_fri_params(
-        std::size_t degree_log, const int max_step = 1, std::size_t expand_factor = 0) {
+typename FRIScheme::params_type create_fri_params(std::size_t degree_log, const int max_step = 1, const int expand_factor = 2) {
     std::size_t r = degree_log - 1;
 
     return typename FRIScheme::params_type(
         (1 << degree_log) - 1, // max_degree
-        nil::crypto3::math::calculate_domain_set<FieldType>(degree_log + expand_factor, r),
+        math::calculate_domain_set<FieldType>(degree_log + expand_factor, r),
         generate_random_step_list(r, max_step),
         expand_factor
     );
@@ -104,14 +132,14 @@ void print_hex_byteblob(std::ostream &os, TIter iter_begin, TIter iter_end, bool
         os << std::endl;
     }
 }
-
-template<typename Endianness, typename Proof, typename CommitmentParamsType>
-void proof_print(Proof &proof, const CommitmentParamsType& commitment_params, const std::string &output_file) {
+/*
+template<typename Endianness, typename Proof>
+void proof_print(Proof &proof, const std::string &output_file) {
     using namespace nil::crypto3::marshalling;
 
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using proof_marshalling_type = nil::crypto3::zk::snark::placeholder_proof<TTypeBase, Proof>;
-    auto filled_placeholder_proof = types::fill_placeholder_proof<Endianness, Proof>(proof, commitment_params);
+    auto filled_placeholder_proof = types::fill_placeholder_proof<Endianness, Proof>(proof);
 
     std::vector<std::uint8_t> cv;
     cv.resize(filled_placeholder_proof.length(), 0x00);
@@ -121,23 +149,7 @@ void proof_print(Proof &proof, const CommitmentParamsType& commitment_params, co
     out.open(output_file);
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
-
-struct ParametersPolicy {
-    constexpr static const std::size_t WitnessColumns = TRANSPILER_WITNESS_COLUMNS;
-    constexpr static const std::size_t PublicInputColumns = TRANSPILER_PUBLIC_INPUT_COLUMNS;
-    constexpr static const std::size_t ComponentConstantColumns = TRANSPILER_COMPONENT_CONSTANT_COLUMNS;
-    constexpr static const std::size_t LookupConstantColumns = TRANSPILER_LOOKUP_CONSTANT_COLUMNS;
-    constexpr static const std::size_t ComponentSelectorColumns = TRANSPILER_COMPONENT_SELECTOR_COLUMNS;
-    constexpr static const std::size_t LookupSelectorColumns = TRANSPILER_LOOKUP_SELECTOR_COLUMNS;
-    constexpr static const std::size_t lambda = TRANSPILER_LAMBDA;
-    constexpr static const std::size_t GrindingBits = TRANSPILER_GRINDING_BITS;
-    constexpr static const bool UseGrinding = GrindingBits != 0;
-private:
-    using default_hash = nil::crypto3::hashes::keccak_1600<256>;
-public:
-    using hash =default_hash;
-};
-
+*/
 template<typename BlueprintFieldType, bool multiprover>
 int curve_dependent_main(
     boost::program_options::options_description options_desc,
@@ -146,53 +158,29 @@ int curve_dependent_main(
 
 int main(int argc, char *argv[]) {
 
-    boost::program_options::options_description options_desc("zkLLVM circuit EVM gate argument transpiler");
+    boost::program_options::options_description options_desc("zkLLVM recursive verifier generator");
 
     // clang-format off
     options_desc.add_options()("help,h", "Display help message")
-            ("version,v", "Display version")
-            ("mode,m", boost::program_options::value<std::string>(), "Transpiler mode (gen-circuit-params, gen-gate-argument, gen-test-proof, gen-evm-verifier).\
-            gen-gate-argument prepares gate argument and some placeholder params.\
-            gen-circuit-params prepares circuit parameters for verification.\
-            gen-test-proof prepares gate argument, placeholder params and sample proof for local testing.\
-            gen-evm-verifier generates all modules for evm verification.")
+            ("mode,m", boost::program_options::value<std::string>(), "Recursive verifier mode (gen-input, gen-verifier).\
+            gen-input generates test proof and recursive verifier input.\
+            gen-verifier generates main.cpp file for recursive verifier for given circuit.\
+             ")
             ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table input file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit input file")
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
-            ("optimize-gates", "Put multiple small gates into several .sol file, sets reasonable threshold limits")
             ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
-            ("gates-contract-size-threshold", boost::program_options::value<std::size_t>(), "Gates library size limit, per module. Default = 0, each constraint in a separate library")
-            ("lookups-library-threshold", boost::program_options::value<std::size_t>(), "Lookups library size limit, per module. Default = 0, each lookup in a separate library")
-            ("lookups-inline-threshold", boost::program_options::value<std::size_t>(), "Lookups inline size limit. Default = 0, none of the lookups are inlined")
-            ("deduce-horner", "Detect polynomials over one variable and deduce to Horner's formula")
-            ("optimize-powers", "Optimize terms that are powers of single variable")
             ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster paralel proving")
-            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
-            ;
+            ("public-input-rows,p", boost::program_options::value<int>(), "Used public input column rows")
+            ("shared-rows,s", boost::program_options::value<int>(), "Used shared rows")
+            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)");
+
     // clang-format on
-
     boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(),
-                                  vm);
+    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(), vm);
     boost::program_options::notify(vm);
-
-    if (vm.count("help")) {
-        std::cout << options_desc << std::endl;
-        return 0;
-    }
-
-    if (vm.count("version")) {
-#ifdef TRANSPILER_VERSION
-#define xstr(s) str(s)
-#define str(s) #s
-        std::cout << xstr(TRANSPILER_VERSION) << std::endl;
-#else
-        std::cout << "Version is not defined" << std::endl;
-#endif
-        return 0;
-    }
 
     std::string elliptic_curve;
 
@@ -235,15 +223,10 @@ int main(int argc, char *argv[]) {
             break;
         }
         case 3: {
-            using curve_type = nil::crypto3::algebra::curves::bls12<381>;
-            using BlueprintFieldType = typename curve_type::base_field_type;
-            return (vm.count("multi-prover") > 0) ?
-                curve_dependent_main<BlueprintFieldType, true>(options_desc, vm) :
-                curve_dependent_main<BlueprintFieldType, false>(options_desc, vm);
+            UNREACHABLE("bls12381 curve based circuits are not supported yet");
             break;
         }
     };
-
 }
 
 template<typename BlueprintFieldType, bool is_multi_prover>
@@ -251,6 +234,21 @@ int curve_dependent_main(
     boost::program_options::options_description options_desc,
     boost::program_options::variables_map vm
 ) {
+    if (vm.count("help")) {
+        std::cout << options_desc << std::endl;
+        return 0;
+    }
+
+    if (vm.count("version")) {
+#ifdef RECURSIVE_VERSION
+#define xstr(s) str(s)
+#define str(s) #s
+        std::cout << xstr(RECURSIVE_VERSION) << std::endl;
+#else
+        std::cout << "undefined" << std::endl;
+#endif
+        return 0;
+    }
 
     std::string mode;
     std::string assignment_table_file_name;
@@ -266,7 +264,7 @@ int curve_dependent_main(
         return 1;
     }
 
-    if (!(mode == "gen-test-proof" || mode == "gen-gate-argument" || mode == "gen-circuit-params" || mode == "gen-evm-verifier")) {
+    if ((mode != "gen-input" && mode != "gen-verifier")) {
         std::cerr << "Invalid mode specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -301,14 +299,39 @@ int curve_dependent_main(
         return 1;
     }
 
-    constexpr std::size_t WitnessColumns = ParametersPolicy::WitnessColumns;
-    constexpr std::size_t PublicInputColumns = is_multi_prover ? ParametersPolicy::PublicInputColumns + 1 : ParametersPolicy::PublicInputColumns;
-    constexpr std::size_t ConstantColumns = ParametersPolicy::ComponentConstantColumns + ParametersPolicy::LookupConstantColumns;;
-    constexpr std::size_t SelectorColumns = ParametersPolicy::ComponentSelectorColumns + ParametersPolicy::LookupSelectorColumns;
+    std::uint32_t public_input_rows = 50;
+    if (vm.count("public-input-rows")) {
+        public_input_rows = vm["public-input-rows"].as<int>();    }
+
+    std::uint32_t shared_rows = 50;
+    if (vm.count("shared-rows")) {
+        if( !vm.count("shared-rows") )
+            std::cout << "shared-rows parameter will be ignored because it is single-prover example" << std::endl;
+        shared_rows = vm["shared-rows"].as<int>();
+    }
+
+    using parameters_policy = ParametersPolicy<BlueprintFieldType>;
+    constexpr std::size_t WitnessColumns = parameters_policy::WitnessColumns;
+    constexpr std::size_t PublicInputColumns = is_multi_prover? parameters_policy::PublicInputColumns + 1: parameters_policy::PublicInputColumns;
+    constexpr std::size_t ConstantColumns = parameters_policy::ComponentConstantColumns + parameters_policy::LookupConstantColumns;
+    constexpr std::size_t SelectorColumns = parameters_policy::ComponentSelectorColumns + parameters_policy::LookupSelectorColumns;
+
+    std::cout << "WitnessColumns = " << WitnessColumns << std::endl;
+    std::cout << "PublicInputColumns = " << PublicInputColumns << std::endl;
+    std::cout << "ConstantColumns = " << ConstantColumns << ": LookupConstantColumns = " << parameters_policy::LookupConstantColumns << std::endl;
+    std::cout << "SelectorColumns = " << SelectorColumns << ": LookupSelectorColumns = " << parameters_policy::LookupSelectorColumns << std::endl;
+
+    std::array<std::size_t, PublicInputColumns> public_input_sizes;
+    for(std::size_t i = 0; i < PublicInputColumns; i++){
+        public_input_sizes[i] = public_input_rows;
+    }
+    if( is_multi_prover )
+        public_input_sizes[PublicInputColumns - 1] = shared_rows;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
                                                               SelectorColumns>;
+    // Circuit-specific parameter
     using ConstraintSystemType =
         nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
     using TableDescriptionType =
@@ -393,24 +416,20 @@ int curve_dependent_main(
             );
         table_description.rows_amount = assignment_table.rows_amount();
     }
-
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
-    const std::size_t Lambda = 9;//ParametersPolicy::lambda;
-    using Hash = nil::crypto3::hashes::keccak_1600<256>;
+    const std::size_t Lambda = parameters_policy::lambda;
+    using Hash = typename parameters_policy::hash;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
         BlueprintFieldType, ArithmetizationParams
     >;
 
     std::size_t table_rows_log = std::ceil(std::log2(table_description.rows_amount));
-
     using lpc_params_type = nil::crypto3::zk::commitments::list_polynomial_commitment_params<
         Hash,
         Hash,
         Lambda,
-        2,
-        ParametersPolicy::UseGrinding,
-        nil::crypto3::zk::commitments::proof_of_work<Hash, std::uint32_t, ParametersPolicy::GrindingBits>
+        2
     >;
     using lpc_type = nil::crypto3::zk::commitments::list_polynomial_commitment<BlueprintFieldType, lpc_params_type>;
     using lpc_scheme_type = typename nil::crypto3::zk::commitments::lpc_commitment_scheme<lpc_type>;
@@ -419,19 +438,11 @@ int curve_dependent_main(
 
     auto fri_params = create_fri_params<typename lpc_type::fri_type, BlueprintFieldType>(table_rows_log);
     std::size_t permutation_size =
-        table_description.witness_columns + table_description.public_input_columns + ParametersPolicy::ComponentConstantColumns;
+        table_description.witness_columns + table_description.public_input_columns + 2;
     lpc_scheme_type lpc_scheme(fri_params);
 
 
-    if (mode == "gen-gate-argument") {
-        bool optimize_gates = false;
-        if( vm.count("optimize-gates") )
-            optimize_gates = true;
-        print_sol_files<ProfilingType, ConstraintSystemType, ColumnsRotationsType, ArithmetizationParams>(
-            constraint_system, columns_rotations, output_folder_path, optimize_gates);
-    }
-
-    if ((mode != "gen-circuit-params") && (mode != "gen-test-proof") && (mode != "gen-evm-verifier")) {
+    if ((mode != "gen-input" && mode != "gen-verifier")) {
         return 0;
     }
 
@@ -440,55 +451,22 @@ int curve_dependent_main(
         BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
     nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
         constraint_system, assignment_table.public_table(), table_description, lpc_scheme, permutation_size);
-
-    if (mode == "gen-evm-verifier") {
-        std::size_t gates_contract_size_threshold = 800;
-        std::size_t lookups_library_threshold = 0;
-        std::size_t lookups_inline_threshold = 0;
-        bool deduce_horner = false;
-        bool optimize_powers = false;
-
-        if ( vm.count("optimize-gates") >0 ) {
-            lookups_library_threshold = 1000;
-            lookups_inline_threshold = 1000;
-            deduce_horner = true;
-            optimize_powers = true;
-        }
-
-        if ( vm.count("gates-contract-size-threshold") ) {
-            gates_contract_size_threshold = vm["gates-contract-size-threshold"].as<std::size_t>();
-        }
-        if ( vm.count("lookups-library-threshold") ) {
-            lookups_library_threshold = vm["lookups-library-threshold"].as<std::size_t>();
-        }
-        if ( vm.count("lookups-inline-threshold") ) {
-            lookups_inline_threshold = vm["lookups-inline-threshold"].as<std::size_t>();
-        }
-        if ( vm.count("deduce-horner") > 0 ) {
-            deduce_horner = true;
-        }
-        if ( vm.count("optimize-powers") > 0 ) {
-            optimize_powers = true;
-        }
-        nil::blueprint::evm_verifier_printer<placeholder_params>(
-            constraint_system,
-            public_preprocessed_data.common_data,
-            lpc_scheme,
-            permutation_size,
-            output_folder_path,
-            gates_contract_size_threshold,
-            lookups_library_threshold,
-            lookups_inline_threshold,
-            deduce_horner,
-            optimize_powers
-        ).print();
+    if( mode == "gen-verifier"){
+        std::string cpp_path = output_folder_path + "/placeholder_verifier.cpp";
+        std::ofstream output_file;
+        output_file.open(cpp_path);
+        output_file << nil::blueprint::recursive_verifier_generator<
+            placeholder_params,
+            nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>,
+            typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type
+        >::generate_recursive_verifier(
+            constraint_system, public_preprocessed_data.common_data, lpc_scheme, permutation_size, public_input_sizes
+        );
+        output_file.close();
         return 0;
     }
 
-    nil::crypto3::zk::snark::print_placeholder_params<placeholder_params>(
-        public_preprocessed_data, lpc_scheme, output_folder_path+"/circuit_params.json");
-
-    if (mode == "gen-test-proof") {
+    if (mode == "gen-input") {
         std::cout << "Preprocessing private data..." << std::endl;
         typename nil::crypto3::zk::snark::placeholder_private_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type private_preprocessed_data =
@@ -496,45 +474,34 @@ int curve_dependent_main(
                 constraint_system, assignment_table.private_table(), table_description
             );
 
-        if (constraint_system.num_gates() == 0){
-            std::cout << "Generating proof..." << std::endl;
-            std::cout << "Proof generated" << std::endl;
-            if( !vm.count("skip-verification") ) {
-                std::cout << "Verifying proof..." << std::endl;
-                std::cout << "Proof is verified" << std::endl;
-            } else {
-                std::cout << "Proof verification skipped" << std::endl;
-            }
-            std::string proof_path = output_folder_path + "/proof.bin";
-            std::cout << "Writing proof to " << proof_path << "..." << std::endl;
-            std::fstream fs;
-            fs.open(proof_path, std::ios::out);
-            fs.close();
-            std::cout << "Proof written" << std::endl;
-        } else {
-            std::cout << "Generating proof..." << std::endl;
-            using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
-            ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
-                public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, lpc_scheme
-            );
-            std::cout << "Proof generated" << std::endl;
+        std::cout << "Generating proof..." << std::endl;
+        using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
+        ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
+            public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, lpc_scheme);
+        std::cout << "Proof generated" << std::endl;
 
-            if( !vm.count("skip-verification") ) {
-                std::cout << "Verifying proof..." << std::endl;
-                bool verification_result =
-                    nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                        public_preprocessed_data, proof, constraint_system, lpc_scheme
-                    );
+        if( !vm.count("skip-verification") ) {
+            std::cout << "Verifying proof..." << std::endl;
+            bool verification_result =
+                nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
+                    public_preprocessed_data, proof, constraint_system, lpc_scheme
+                );
 
-                ASSERT_MSG(verification_result, "Proof is not verified" );
-                std::cout << "Proof is verified" << std::endl;
-            }
-
-            std::string proof_path = output_folder_path + "/proof.bin";
-            std::cout << "Writing proof to " << proof_path << "..." << std::endl;
-            proof_print<Endianness, ProofType>(proof, fri_params, proof_path);
-            std::cout << "Proof written" << std::endl;
+            ASSERT_MSG(verification_result, "Proof is not verified" );
+            std::cout << "Proof is verified" << std::endl;
         }
-        return 0;
+
+        std::string inp_path = output_folder_path + "/placeholder_verifier.inp";
+        std::ofstream output_file;
+        output_file.open(inp_path);
+        output_file << nil::blueprint::recursive_verifier_generator<
+            placeholder_params,
+            nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>,
+            typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type
+        >::generate_input(
+            public_preprocessed_data.common_data.vk, assignment_table.public_inputs(), proof, public_input_sizes
+        );
+        output_file.close();
     }
+    return 0;
 }
