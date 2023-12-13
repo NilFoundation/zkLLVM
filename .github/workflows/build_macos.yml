@@ -42,6 +42,7 @@ jobs:
           brew install \
             boost@1.76 \
             cmake \
+            ninja \
             icu4c \
             bash
 
@@ -55,6 +56,7 @@ jobs:
           git --version
           cc --version
           cmake --version
+          ninja --version
           bash --version
           python3 --version
           which -a bash
@@ -92,7 +94,7 @@ jobs:
           LDFLAGS: "-L/usr/local/opt/icu4c/lib"
           CPPFLAGS: "-I/usr/local/opt/icu4c/include"
         run: |
-          cmake -G "Unix Makefiles" \
+          cmake -G "Ninja" \
             -B build \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_BUILD_TYPE=Release \
@@ -100,37 +102,37 @@ jobs:
 
       - name: Build zkllvm
         run: |
-          make -C build assigner clang transpiler -j$(sysctl -n hw.logicalcpu)
+          cmake --build build -t assigner clang transpiler
 
       - name: Build IR of the C++ examples
         run: |
-          make -C build circuit_cpp_examples -j$(sysctl -n hw.logicalcpu)
+          cmake --build build -t circuit_cpp_examples
           ls -al ./build/examples/cpp
 
       - name: Build circuit and assigner of the C++ examples
         run: |
-          make -C build assign_cpp_examples -j$(sysctl -n hw.logicalcpu)
+          cmake --build build -t assign_cpp_examples
 
       - name: Build tests
         run: |
-          make -C build all_expected_res_tests -j$(sysctl -n hw.logicalcpu)
-          make -C build all_circuit_tests -j$(sysctl -n hw.logicalcpu)
+          cmake --build build -t all_expected_res_tests
+          cmake --build build -t all_circuit_tests
 
       - name: Run tests pallas
         run: |
           chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh pallas -j$(sysctl -n hw.logicalcpu)
+          bash ./tests/run_tests.sh pallas
 
       - name: Run tests bls12381
         run: |
           chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh bls12381 -j$(sysctl -n hw.logicalcpu)
+          bash ./tests/run_tests.sh bls12381
 
       - name: Run tests on faulty inputs
         run: |
           chmod +x ./tests/run_tests_faulty_input.sh
-          bash ./tests/run_tests_faulty_input.sh pallas -j$(sysctl -n hw.logicalcpu)
+          bash ./tests/run_tests_faulty_input.sh pallas
 
       - name: Build proof for the circuit of the C++ examples
         run: |
-          make -C build prove_cpp_examples -j$(sysctl -n hw.logicalcpu)
+          cmake --build build -t prove_cpp_examples
