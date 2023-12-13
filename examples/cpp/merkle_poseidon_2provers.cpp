@@ -43,7 +43,7 @@ bool check_root (
     typename pallas::base_field_type::value_type real_root = hash<hashes::poseidon>(layer_4_leaves[0], layer_4_leaves[1]);
 
     bool res = (real_root == expected_root);
-    // __builtin_assigner_exit_check(res);
+    __builtin_assigner_exit_check(res);
 
     return res;
 }
@@ -56,14 +56,14 @@ bool check_root (
 ) {
 
     bool res1 = check_root(expected_root1, layer_0_leaves1);
-    // __builtin_assigner_exit_check(res1);
+    __builtin_assigner_exit_check(res1);
 
     bool res2;
 
 #pragma zk_multi_prover 1
     {
         res2 = check_root(expected_root2, layer_0_leaves2);
-        // __builtin_assigner_exit_check(res2);
+        __builtin_assigner_exit_check(res2);
     }
 
     return res1 & res2;
