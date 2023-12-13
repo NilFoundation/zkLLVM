@@ -40,6 +40,21 @@ if (CPACK_PACKAGE_VERSION)
     add_compile_definitions(${UPPER_CURRENT_PROJECT_NAME}_VERSION=${CPACK_PACKAGE_VERSION})
 endif()
 
+set(WITNESS_COLUMNS 15 CACHE INT "Number of witness columns")
+set(PUBLIC_INPUT_COLUMNS 1 CACHE INT "Number of public input columns")
+set(COMPONENT_CONSTANT_COLUMNS 5 CACHE INT "Number of component constant columns")
+set(LOOKUP_CONSTANT_COLUMNS 30 CACHE INT "Number of lookup constant columns")
+set(COMPONENT_SELECTOR_COLUMNS 30 CACHE INT "Number of lookup selector columns")
+set(LOOKUP_SELECTOR_COLUMNS 6 CACHE INT "Number of lookup selector columns")
+
+add_definitions(-DASSIGNER_WITNESS_COLUMNS=${WITNESS_COLUMNS})
+add_definitions(-DASSIGNER_PUBLIC_INPUT_COLUMNS=${PUBLIC_INPUT_COLUMNS})
+add_definitions(-DASSIGNER_COMPONENT_CONSTANT_COLUMNS=${COMPONENT_CONSTANT_COLUMNS})
+add_definitions(-DASSIGNER_LOOKUP_CONSTANT_COLUMNS=${LOOKUP_CONSTANT_COLUMNS})
+add_definitions(-DASSIGNER_COMPONENT_SELECTOR_COLUMNS=${COMPONENT_SELECTOR_COLUMNS})
+add_definitions(-DASSIGNER_LOOKUP_SELECTOR_COLUMNS=${LOOKUP_SELECTOR_COLUMNS})
+#HASH, LAMBDA, GRINDING_BITS is not used in the current version of the assigner
+
 # get header files; only needed by CMake generators,
 # expr.g., for creating proper Xcode projects
 set(${CURRENT_PROJECT_NAME}_HEADERS)
