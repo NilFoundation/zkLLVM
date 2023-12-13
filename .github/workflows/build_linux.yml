@@ -48,6 +48,7 @@ jobs:
             build-essential \
             libssl-dev \
             cmake \
+            ninja-build \
             git \
             libicu-dev \
             curl \
@@ -58,6 +59,7 @@ jobs:
           git --version
           cc --version
           cmake --version
+          ninja --version
 
       - name: Checkout sources
         # We need full history, because during CMake config stage we are finding the nearest tag
@@ -115,7 +117,7 @@ jobs:
         env:
           BOOST_ROOT: "${{ steps.install-boost.outputs.BOOST_ROOT }}"
         run: |
-          cmake -G "Unix Makefiles" \
+          cmake -G "Ninja" \
             -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTS=TRUE \
@@ -124,56 +126,56 @@ jobs:
 
       - name: Build zkllvm
         run: |
-          make -C build assigner clang transpiler -j$(nproc)
+          cmake --build build -t assigner clang transpiler
 
       - name: Build IR of the C++ examples
         run: |
-          make -C build circuit_cpp_examples -j$(nproc)
+          cmake --build build -t circuit_cpp_examples
           ls -al ./build/examples/cpp
 
       - name: Build circuit and assigner of the C++ examples
         run: |
-          make -C build assign_cpp_examples -j$(nproc)
+          cmake --build build -t assign_cpp_examples
 
       - name: Build tests
         run: |
-          make -C build all_expected_res_tests -j$(nproc)
-          make -C build all_circuit_tests -j$(nproc)
+          cmake --build build -t all_expected_res_tests
+          cmake --build build -t all_circuit_tests
 
       - name: Run tests pallas
         run: |
           chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh pallas -j$(nproc)
+          bash ./tests/run_tests.sh pallas
 
       - name: Run tests bls12381
         run: |
           chmod +x ./tests/run_tests.sh
-          bash ./tests/run_tests.sh bls12381 -j$(nproc)
+          bash ./tests/run_tests.sh bls12381
 
       - name: Run tests on faulty inputs
         run: |
           chmod +x ./tests/run_tests_faulty_input.sh
-          bash ./tests/run_tests_faulty_input.sh pallas -j$(nproc)
+          bash ./tests/run_tests_faulty_input.sh pallas
 
       - name: Build proof for the circuit of the C++ examples
         run: |
-          make -C build prove_cpp_examples -j$(nproc)
+          cmake --build build -t prove_cpp_examples
 
       - name: Build rslang
         run: |
           export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib"
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib" >> $GITHUB_ENV
-          make -C build rslang -j$(nproc)
+          cmake --build build -t rslang
 
       - name: Build IR of the Rust examples
         run: |
-          make -C build circuit_rust_examples -j$(nproc)
+          cmake --build build -t circuit_rust_examples
           ls -al ./build/examples/rust/target/assigner-unknown-unknown/release/examples
 
       - name: Build circuit and assigner of the Rust examples
         run: |
-          make -C build assign_rust_examples -j$(nproc)
+          cmake --build build -t assign_rust_examples
 
       - name: Build proof for the circuit of the Rust examples
         run: |
-          make -C build prove_rust_examples -j$(nproc)
+          cmake --build build -t prove_rust_examples
