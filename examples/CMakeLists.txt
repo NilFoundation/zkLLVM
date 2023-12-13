@@ -1,6 +1,11 @@
 set(INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inputs)
 
-function(assign_ir target binary_name input private_input curve_type)
+function(assign_ir target binary_name input private_input curve_type max_num_provers_amount)
+
+    if(NOT max_num_provers_amount EQUAL 0)
+        set(max_num_provers_flag --max-num-provers)
+        set(max_num_provers_amount ${max_num_provers_amount})
+    endif()
 
     if(NOT private_input STREQUAL "")
         set (minus_p -p)
@@ -14,6 +19,7 @@ function(assign_ir target binary_name input private_input curve_type)
             ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
             -t assignment_${target}.tbl -e ${curve_type} --check
+            ${max_num_provers_flag} ${max_num_provers_amount}
         DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
         COMMAND_EXPAND_LISTS
         VERBATIM)
