@@ -27,7 +27,7 @@ typename pallas::base_field_type::value_type evaluate_root (
     res1 = evaluate_root(layer_0_leaves1);
 #pragma zk_multi_prover 1
     {
-        res2 = evaluate_root(layer_0_leaves1);
+        res2 = evaluate_root(layer_0_leaves2);
     }
 #pragma zk_multi_prover 2
     {
