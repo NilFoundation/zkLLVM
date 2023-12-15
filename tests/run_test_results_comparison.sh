@@ -1,5 +1,5 @@
-readarray expected_results < tests/expected_results_list.txt
-readarray circuit_outputs < tests/circuits_outputs_list.txt
+readarray expected_results < build/tests/cpp/expected_results_list.txt
+readarray circuit_outputs < build/tests/cpp/circuits_outputs_list.txt
 
 exit_code=0
 at_least_one_test_launched=0

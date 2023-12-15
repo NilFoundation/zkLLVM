@@ -155,28 +155,28 @@ function(add_test_circuit_assign example_target)
 endfunction()
 
 function(add_zkllvm_unit_test TEST_NAME)
-    file(APPEND ../tests_list_pallas.txt ${TEST_NAME}\n)
+    file(APPEND ../../build/tests/cpp/tests_list_pallas.txt ${TEST_NAME}\n)
     define_zkllvm_test(${TEST_NAME} pallas 0)
     add_test_circuit(${TEST_NAME})
 endfunction()
 
 function(add_zkllvm_unit_test_pallas_multiprover TEST_NAME MAX_NUM_PROVERS)
-    file(APPEND ../tests_list_pallas.txt ${TEST_NAME}\n)
+    file(APPEND ../../build/tests/cpp/tests_list_pallas.txt ${TEST_NAME}\n)
     define_zkllvm_test(${TEST_NAME} pallas ${MAX_NUM_PROVERS})
     add_test_circuit(${TEST_NAME})
 endfunction()
 
 function(add_zkllvm_unit_test_bls12381 TEST_NAME)
-    file(APPEND ../tests_list_bls12381.txt ${TEST_NAME}\n)
+    file(APPEND ../../build/tests/cpp/tests_list_bls12381.txt ${TEST_NAME}\n)
     define_zkllvm_test(${TEST_NAME} bls12381 0)
     add_test_circuit(${TEST_NAME})
 endfunction()
 
-file(REMOVE ../tests_list_pallas.txt)
-file(REMOVE ../tests_list_bls12381.txt)
+file(REMOVE ../../build/tests/cpp/tests_list_pallas.txt)
+file(REMOVE ../../build/tests/cpp/tests_list_bls12381.txt)
 
-file(REMOVE ../circuits_outputs_list.txt)
-file(REMOVE ../expected_results_list.txt)
+file(REMOVE ../../build/tests/cpp/circuits_outputs_list.txt)
+file(REMOVE ../../build/tests/cpp/expected_results_list.txt)
 
 
 # curve tests
