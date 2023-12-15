@@ -1,4 +1,4 @@
-readarray test_examples < tests/tests_list_$1.txt
+readarray test_examples < build/tests/cpp/tests_list_$1.txt
 exit_code=0
 at_least_one_test_launched=0
 
