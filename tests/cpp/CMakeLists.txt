@@ -54,6 +54,9 @@ macro(define_zkllvm_test test curve_type provers_max_num)
 
     set_target_properties(${full_test_name} PROPERTIES CXX_STANDARD 17)
 
+    # Ignore "circuit" attribute for native compilation
+    target_compile_options(${full_test_name} PRIVATE "-Wno-attributes")
+
     if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         target_compile_options(${full_test_name} PRIVATE "-fconstexpr-steps=2147483647")
     elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -214,7 +217,7 @@ add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/mul")
 add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/sub")
 
 # add_zkllvm_unit_test("algebra/fields/private_input/private_input_add")
-
+add_zkllvm_unit_test("algebra/fields/conversion/itogf_pallas")
 
 # int tests
 add_zkllvm_unit_test("algebra/integers/division/udiv")
