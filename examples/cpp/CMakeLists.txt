@@ -125,6 +125,7 @@ add_example_without_proving(eddsa_signature_verification_cpp SOURCES eddsa_signa
 add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp CURVE_TYPE pallas)
 
 add_example_with_proving(private_input_cpp SOURCES private_input.cpp INPUT private_input_public.inp PRIVATE_INPUT private_input_private.inp CURVE_TYPE pallas)
+add_example_with_proving(private_input_array_cpp SOURCES private_input_array.cpp INPUT private_input_array_public.inp PRIVATE_INPUT private_input_array_private.inp CURVE_TYPE pallas)
 
 add_example_with_proving(fri_lin_inter SOURCES placeholder_prover/fri_lin_inter.cpp INPUT placeholder_prover/fri_lin_inter.inp CURVE_TYPE pallas)
 add_example_with_proving(fri_array_swap SOURCES placeholder_prover/fri_array_swap.cpp INPUT placeholder_prover/fri_array_swap.inp CURVE_TYPE pallas)
