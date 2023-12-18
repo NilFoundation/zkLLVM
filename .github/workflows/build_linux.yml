@@ -178,7 +178,17 @@ jobs:
           cmake --build build \
             -t arithmetics_cpp_example_evm_verifier \
             -t polynomial_cpp_example_evm_verifier \
-            -t pallas_curve_multiplication_cpp_example_evm_verifier
+            -t poseidon_cpp_example_evm_verifier \
+            -t merkle_tree_poseidon_cpp_example_evm_verifier \
+            -t pallas_curve_addition_cpp_example_evm_verifier \
+            -t strlen_cpp_example_evm_verifier \
+            -t uint_remainder_cpp_evm_verifier \
+            -t uint_shift_left_evm_verifier \
+            -t uint_bit_decomposition_evm_verifier \
+            -t uint_bit_composition_evm_verifier \
+            -t compare_eq_cpp_evm_verifier \
+            -t private_input_cpp_evm_verifier \
+            -t private_input_array_cpp_evm_verifier
 
       - name: Upload examples' circuits and assignments artifact
         uses: actions/upload-artifact@v3
@@ -249,7 +259,17 @@ jobs:
       targets: |
         polynomial_cpp_example
         arithmetics_cpp_example
-        pallas_curve_multiplication_cpp_example
+        poseidon_cpp_example
+        merkle_tree_poseidon_cpp_example
+        pallas_curve_addition_cpp_example
+        strlen_cpp_example
+        uint_remainder_cpp
+        uint_shift_left
+        uint_bit_decomposition
+        uint_bit_composition
+        compare_eq_cpp
+        private_input_cpp
+        private_input_array_cpp
 
 
   verify-zkllvm-proofs:
@@ -265,7 +285,17 @@ jobs:
       test-names: |
         transpiler_output_polynomial_cpp_example
         transpiler_output_arithmetics_cpp_example
-        transpiler_output_pallas_curve_multiplication_cpp_example
+        transpiler_output_poseidon_cpp_example
+        transpiler_output_merkle_tree_poseidon_cpp_example
+        transpiler_output_pallas_curve_addition_cpp_example
+        transpiler_output_strlen_cpp_example
+        transpiler_output_uint_remainder_cpp
+        transpiler_output_uint_shift_left
+        transpiler_output_uint_bit_decomposition
+        transpiler_output_uint_bit_composition
+        transpiler_output_compare_eq_cpp
+        transpiler_output_private_input_cpp
+        transpiler_output_private_input_array_cpp
 
 
   merge-proofs-to-transpiler-output:
@@ -335,4 +365,14 @@ jobs:
       test-names: |
         transpiler_output_polynomial_cpp_example
         transpiler_output_arithmetics_cpp_example
-        transpiler_output_pallas_curve_multiplication_cpp_example
+        transpiler_output_poseidon_cpp_example
+        transpiler_output_merkle_tree_poseidon_cpp_example
+        transpiler_output_pallas_curve_addition_cpp_example
+        transpiler_output_strlen_cpp_example
+        transpiler_output_uint_remainder_cpp
+        transpiler_output_uint_shift_left
+        transpiler_output_uint_bit_decomposition
+        transpiler_output_uint_bit_composition
+        transpiler_output_compare_eq_cpp
+        transpiler_output_private_input_cpp
+        transpiler_output_private_input_array_cpp
