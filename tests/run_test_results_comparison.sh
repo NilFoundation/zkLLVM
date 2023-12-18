@@ -1,89 +1,60 @@
-#!/bin/bash
+readarray expected_results < build/tests/cpp/expected_results_list.txt
+readarray circuit_outputs < build/tests/cpp/circuits_outputs_list.txt
 
-color_red() { echo -e "\033[31m$1\033[0m"; }
-color_green() { echo -e "\033[32m$1\033[0m"; }
-
-get_script_dir() {
-    echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-}
-
-curve_type=$1
-
-test_example_with_file() {
-    local test_example=$1
-    local file=$2
-    local filename=$(basename -- "$file")
-    filename="${filename%.inp}"
-
-    local output_dir="./assigner_results/${test_example}/${filename}"
-    local log_dir="./assigner_real_logs/${test_example}"
-    local expected_log="./assigner_expected_logs/${test_example}/${filename}.log"
-    local real_log="./assigner_real_logs/${test_example}/${filename}.log"
-
-    echo -n "  ${filename}: "
-
-    # Execute and Log
-    mkdir -p "$output_dir" "$log_dir"
-    local assigner_flags="--max-num-provers 2"
-    [[ $test_example != *"multi_provers"* ]] && assigner_flags=""
-
-    if ! "${script_dir}/../build/bin/assigner/assigner" -b "${script_dir}/../build/tests/cpp/${test_example////_}.ll" -i "$file" -t "${output_dir}/assignment.tbl" -c "${output_dir}/circuit.crct" -e $curve_type  --check --print_circuit_output $assigner_flags > "${log_dir}/${filename}.log"; then
-        color_red "Assigner failed"
-        return 1
-
-    fi
-
-    # Compare Logs
-    mkdir -p "$(dirname "$expected_log")"
-    if ! "${script_dir}/../build/tests/cpp/${test_example////_}_calculate_expected_res" "$file" > "$expected_log"; then
-        color_red "Expected result calculation failed"
-        return 1
-    fi
-
-    if ! diff -u "$expected_log" "$real_log" > diff.log; then
-        color_red "Comparison failed"
-        echo "Expected:"
-        cat $expected_log
-        echo "Real:"
-        cat $real_log
-        echo "Diff output:"
-        cat diff.log
-        return 1
-    fi
-
-    color_green "Success"
-}
-
-script_dir=$(get_script_dir)
-at_least_one_test_launched=0
 exit_code=0
-clean_up=0
+at_least_one_test_launched=0
 
-for arg in "$@"; do
-    if [[ $arg == "--clean" ]]; then
-        clean_up=1
+for i in ${!expected_results[*]}; do
+  expected_res="build/tests/cpp/${expected_results[i]//$'\n'/}"
+  circuit_output="build/tests/cpp/${circuit_outputs[i]//$'\n'/}"
+
+  echo ""
+  echo current test: $circuit_output
+  # echo "${pwd}"
+
+
+
+  # qwe="build/tests/cpp/circuit_output_algebra_curves_25519_arithmetics_add_rand_rand_2.txt"
+  qwe=$circuit_output
+  # if [[ -e "pwd/$expected_res" ]]; then
+  # if [[ -e "build/tests/cpp/" ]]; then
+  if [[ ! -e $circuit_output ]]; then
+    echo -e "\033[31m Circuit output file does not exist! \033[0m";
+    exit_code=1
+
+      if [[ ! -e $expected_res ]]; then
+        echo -e "\033[31m expected result file does not exist! \033[0m";
+        exit_code=1
+        continue
+      fi
+    continue
+  fi
+
+
+    diff -u $expected_res $circuit_output >diff.log;
+
+    if [ $? -eq 0 ]; then
+      echo -e "\033[32m succeeded \033[0m";
+    else
+      exit_code=1
+      echo -e "\033[31m Test failed! Real result differs from expected result. \033[0m";
+      echo -e "\nexpected result:";
+      cat $expected_res;
+      echo -e "\nreal circuit output:";
+      cat $circuit_output;
+      echo -e "\ndiff:";
+      cat diff.log;
+      # echo -e "\ninput:";
+      # cat "$file";
+      echo -e "\n--------------------------------------------------------------------------------";
     fi
+    at_least_one_test_launched=1
+    rm $circuit_output $expected_res diff.log
 done
 
-while IFS= read -r test_example || [[ -n "$test_example" ]]; do
-    echo "Testing ${test_example} with inputs:"
-    for file in "$script_dir/inputs/$(dirname "$test_example")"/*.inp; do
-        if ! test_example_with_file "$test_example" "$file"; then
-            exit_code=1
-        fi
-        at_least_one_test_launched=1
-    done
-    echo
-done < "$script_dir/tests_list_$curve_type.txt"
-
-if [[ $clean_up -eq 1 ]]; then
-    echo "Cleaning up generated directories..."
-    rm -rf ./assigner_results ./assigner_real_logs ./assigner_expected_logs
-fi
 
 if [ $at_least_one_test_launched -eq 0 ]; then
-    echo "No tests were launched."
-    exit 1
+  exit 1
+else
+  exit $exit_code
 fi
-
-exit $exit_code
