@@ -28,6 +28,10 @@ jobs:
     needs:
       - handle-syncwith
 
+    outputs:
+      transpiler-artifact-name: ${{ steps.artifact-names.outputs.transpiler }}
+      examples-artifact-name: ${{ steps.artifact-names.outputs.examples }}
+
     env:
       CONTAINER_TMP: /opt/
       HOST_TMP: /home/runner/work/_temp/
@@ -144,10 +148,16 @@ jobs:
           chmod +x ./examples/copy_artifacts.sh
           ./examples/copy_artifacts.sh build/examples/cpp examples_output
 
+      - name: Set aritfacts' names
+        id: artifact-names
+        run: |
+          echo "transpiler=transpiler-output" >> $GITHUB_OUTPUT
+          echo "examples=circuits-and-assignments" >> $GITHUB_OUTPUT
+
       - name: Upload examples' circuits and assignments artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: circuits-and-assignments
+          name: ${{ steps.artifact-names.outputs.examples }}
           path: |
             examples_output
 
@@ -173,9 +183,9 @@ jobs:
             -t pallas_curve_multiplication_cpp_example_evm_verifier
 
       - name: Upload examples' circuits and assignments artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: transpiler-output
+          name: ${{ steps.artifact-names.outputs.transpiler }}
           path: |
             build/examples/cpp/transpiler_output_*
 
@@ -229,13 +239,13 @@ jobs:
 
 
   generate-proofs:
-    name: Call reusable proof-producer workflow
+    name: Generate proofs for cpp examples
     needs:
       - build-and-test-linux
       - handle-syncwith
     uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs.yml@add-reusable-wflw
     with:
-      artifact-name: circuits-and-assignments
+      artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       proof-producer-ref: add-reusable-wflw
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: |
@@ -243,14 +253,85 @@ jobs:
         arithmetics_cpp_example
         pallas_curve_multiplication_cpp_example
 
-  verify-proofs:
-    name: Call reusable evm-placeholder-verification workflow
+
+  verify-zkllvm-proofs:
+    name: Verify built-it proofs with EVM-placeholder
     needs:
       - build-and-test-linux
       - handle-syncwith
     uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@integration-testing
     with:
-      artifact-name: transpiler-output
+      artifact-name: ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
+      evm-placeholder-verification-ref: integration-testing
+      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+      test-names: |
+        transpiler_output_polynomial_cpp_example
+        transpiler_output_arithmetics_cpp_example
+        transpiler_output_pallas_curve_multiplication_cpp_example
+
+
+  merge-proofs-to-transpiler-output:
+    runs-on: ubuntu-22.04
+    needs:
+      - generate-proofs
+      - build-and-test-linux
+    outputs:
+      merged-artifact-name: ${{ steps.artifact-name.outputs.merged }}
+    steps:
+      - name: Download artifact with proofs
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.generate-proofs.outputs.artifact-name }}
+
+      - name: Download artifact with transpiler output
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
+
+      - name: Merge proofs into transpiler output
+        run: |
+          copy_failed=0
+          while read dir; do
+            base_name=${dir#./transpiler_output_}
+
+            if [[ -d "$base_name" ]]; then
+              if ! cp "${base_name}/proof.bin" "${dir}/"; then
+                echo "Failed to copy proof.bin to ${dir}" >&2
+                copy_failed=1
+              else
+                echo "proof.bin added to ${dir}"
+              fi
+            else
+              echo "Error: No matching directory found for ${dir}" >&2
+            fi
+          done < <(find . -type d -name "transpiler_output_*")
+
+          if [ $copy_failed -eq 1 ]; then
+            echo "One or more copy operations failed."
+            exit 1
+          fi
+
+      - name: Set aritfact name
+        id: artifact-name
+        run: |
+          echo "merged=transpiler-output-merged-proofs" >> $GITHUB_OUTPUT
+
+      - name: Upload merged artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.artifact-name.outputs.merged }}
+          path: |
+            transpiler_output_*
+
+
+  verify-proof-producer-proofs:
+    name: Verify proof-producer proofs with EVM-placeholder
+    needs:
+      - handle-syncwith
+      - merge-proofs-to-transpiler-output
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@integration-testing
+    with:
+      artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
       evm-placeholder-verification-ref: integration-testing
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: |
