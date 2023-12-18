@@ -250,10 +250,10 @@ jobs:
     needs:
       - build-and-test-linux
       - handle-syncwith
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@add-reusable-wflw
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@master
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
-      proof-producer-ref: add-reusable-wflw
+      proof-producer-ref: master
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: |
         polynomial_cpp_example
@@ -275,10 +275,10 @@ jobs:
     needs:
       - build-and-test-linux
       - handle-syncwith
-    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@integration-testing
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@master
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
-      evm-placeholder-verification-ref: integration-testing
+      evm-placeholder-verification-ref: master
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: |
         transpiler_output_polynomial_cpp_example
@@ -354,10 +354,10 @@ jobs:
     needs:
       - handle-syncwith
       - merge-proofs-to-transpiler-output
-    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@integration-testing
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@master
     with:
       artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
-      evm-placeholder-verification-ref: integration-testing
+      evm-placeholder-verification-ref: master
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: |
         transpiler_output_polynomial_cpp_example
