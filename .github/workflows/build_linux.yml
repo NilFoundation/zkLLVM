@@ -17,17 +17,15 @@ jobs:
   handle-syncwith:
     if: github.event_name == 'pull_request'
     name: Call Reusable SyncWith Handler
-    uses: NilFoundation/ci-cd/.github/workflows/reusable-handle-syncwith.yml@v1
+    uses: NilFoundation/ci-cd/.github/workflows/reusable-handle-syncwith.yml@v1.1.2
     with:
-      ci-cd-ref: 'v1'
+      ci-cd-ref: 'v1.1.2'
     secrets: inherit
 
   build-and-test-linux:
     runs-on: [ self-hosted, Linux, X64, aws_autoscaling ]
-
     needs:
       - handle-syncwith
-
     outputs:
       transpiler-artifact-name: ${{ steps.artifact-names.outputs.transpiler }}
       examples-artifact-name: ${{ steps.artifact-names.outputs.examples }}
@@ -243,7 +241,7 @@ jobs:
     needs:
       - build-and-test-linux
       - handle-syncwith
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs.yml@add-reusable-wflw
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@add-reusable-wflw
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       proof-producer-ref: add-reusable-wflw
