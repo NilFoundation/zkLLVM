@@ -403,6 +403,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                           boost::log::trivial::severity_level log_level,
                           const std::string &policy,
                           std::uint32_t max_num_provers,
+                          std::uint32_t target_prover,
                           nil::blueprint::print_format circuit_output_print_format) {
 
     constexpr std::size_t ComponentConstantColumns = 5;
@@ -438,6 +439,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         stack_size,
         log_level,
         max_num_provers,
+        target_prover,
         policy,
         circuit_output_print_format,
         check_validity
@@ -474,9 +476,10 @@ int curve_dependent_main(std::string bytecode_file_name,
         );
     }
 
+    constexpr std::uint32_t invalid_target_prover = std::numeric_limits<std::uint32_t>::max();
     // print assignment tables and circuits
     ASSERT_MSG(parser_instance.assignments.size() == parser_instance.circuits.size(), "Missmatch assignments circuits size");
-    if (parser_instance.assignments.size() == 1) {
+    if (parser_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
         // print assignment table
         std::ofstream otable;
         otable.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
@@ -504,8 +507,11 @@ int curve_dependent_main(std::string bytecode_file_name,
         print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
             parser_instance.circuits[0], parser_instance.assignments[0], false, ocircuit);
         ocircuit.close();
-    } else if (parser_instance.assignments.size() > 1) {
-        for (std::uint32_t idx = 0; idx < parser_instance.assignments.size(); idx++) {
+    } else if (parser_instance.assignments.size() > 1 &&
+               (target_prover < parser_instance.assignments.size() || invalid_target_prover == invalid_target_prover)) {
+        std::uint32_t start_idx = (target_prover == invalid_target_prover) ? 0 : target_prover;
+        std::uint32_t end_idx = (target_prover == invalid_target_prover) ? parser_instance.assignments.size() : target_prover + 1;
+        for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
             std::ofstream otable;
             otable.open(assignment_table_file_name + std::to_string(idx), std::ios_base::binary | std::ios_base::out);
@@ -535,22 +541,34 @@ int curve_dependent_main(std::string bytecode_file_name,
 
             ocircuit.close();
         }
+    } else {
+        std::cout << "No data for print: target prover " << target_prover << ", actual number of provers "
+                  << parser_instance.assignments.size() << std::endl;
+        return 1;
     }
 
     if (check_validity){
-        ASSERT_MSG(nil::blueprint::is_satisfied(parser_instance.circuits[0].get(), parser_instance.assignments[0].get()),
-                   "The circuit is not satisfied");
-        auto assignment_it = parser_instance.assignments.begin();
-        for (auto& it : parser_instance.circuits) {
-            ASSERT_MSG(assignment_it != parser_instance.assignments.end(), "Not found assignment for circuit" );
-            assignment_it->set_check(true);
-            bool is_accessible = nil::blueprint::is_accessible(it, *assignment_it);
-            assignment_it->set_check(false);
-            ASSERT_MSG(is_accessible, ("The circuit is not satisfied on prover " + std::to_string(it.get_id())).c_str() );
-            assignment_it++;
+        if (parser_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
+            ASSERT_MSG(nil::blueprint::is_satisfied(parser_instance.circuits[0].get(), parser_instance.assignments[0].get()),
+                       "The circuit is not satisfied");
+        } else if (parser_instance.assignments.size() > 1 &&
+                   (target_prover < parser_instance.assignments.size() || invalid_target_prover == invalid_target_prover)) {
+            //  check only for target prover if set
+            std::uint32_t start_idx = (target_prover == invalid_target_prover) ? 0 : target_prover;
+            std::uint32_t end_idx = (target_prover == invalid_target_prover) ? parser_instance.assignments.size() : target_prover + 1;
+            for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
+                parser_instance.assignments[idx].set_check(true);
+                bool is_accessible =
+                    nil::blueprint::is_satisfied(parser_instance.circuits[idx], parser_instance.assignments[idx]);
+                parser_instance.assignments[idx].set_check(false);
+                ASSERT_MSG(is_accessible, ("The circuit is not satisfied on prover " + std::to_string(idx)).c_str());
+            }
+        } else {
+            std::cout << "No data for check: target prover " << target_prover << ", actual number of provers "
+                      << parser_instance.assignments.size() << std::endl;
+            return 1;
         }
     }
-
     return 0;
 }
 
@@ -575,7 +593,8 @@ int main(int argc, char *argv[]) {
             ("print_circuit_output", "deprecated, use \"-f\" instead")
             ("print-circuit-output-format,f", boost::program_options::value<std::string>(), "print output of the circuit (dec, hex)")
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
-            ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1");
+            ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
+            ("target-prover", boost::program_options::value<int>(), "Assignment table and circuit will be generated only for defined prover. Possible values [0, max-num-provers)");
     // clang-format on
 
 
@@ -728,6 +747,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    std::uint32_t target_prover = std::numeric_limits<std::uint32_t>::max();
+    if (vm.count("target-prover")) {
+        target_prover = vm["target-prover"].as<int>();
+        if (target_prover >= max_num_provers) {
+            std::cerr << "Invalid command line argument - target-prover. " << target_prover << " is wrong value." << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
+    }
+
     // We use Boost log trivial severity levels, these are string representations of their names
     std::map<std::string, boost::log::trivial::severity_level> log_options{
         {"trace", boost::log::trivial::trace},
@@ -763,6 +792,7 @@ int main(int argc, char *argv[]) {
                                                                           log_options[log_level],
                                                                           policy,
                                                                           max_num_provers,
+                                                                          target_prover,
                                                                           circuit_output_print_format);
             break;
         }
@@ -786,6 +816,7 @@ int main(int argc, char *argv[]) {
                                                                           log_options[log_level],
                                                                           policy,
                                                                           max_num_provers,
+                                                                          target_prover,
                                                                           circuit_output_print_format);
             break;
         }
