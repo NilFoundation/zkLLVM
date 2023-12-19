@@ -159,20 +159,18 @@ jobs:
           path: |
             examples_output
 
-      # - name: Run tests pallas
-      #   run: |
-      #     chmod +x ./tests/run_tests.sh
-      #     bash ./tests/run_tests.sh pallas -j$(nproc)
+      - name: Compile tests as cpp code
+        run: |
+          cmake --build build -t all_tests_compile_as_cpp_code
 
-      # - name: Run tests bls12381
-      #   run: |
-      #     chmod +x ./tests/run_tests.sh
-      #     bash ./tests/run_tests.sh bls12381 -j$(nproc)
+      - name: Compile tests as circuits
+        run: |
+          cmake --build build -t all_tests_compile_as_circuits
 
-      # - name: Run tests on faulty inputs
-      #   run: |
-      #     chmod +x ./tests/run_tests_faulty_input.sh
-      #     bash ./tests/run_tests_faulty_input.sh pallas -j$(nproc)
+      - name: Run tests as cpp code (expected res calculation)
+        run: |
+          cmake --build build -t all_tests_run_expected_res_calculation -j$(nproc)
+
       - name: Get transpiler output for integration testing
         run: |
           cmake --build build \
@@ -196,10 +194,19 @@ jobs:
           path: |
             build/examples/cpp/transpiler_output_*
 
-      # - name: Build tests
-      #   run: |
-      #     make -C build all_expected_res_tests -j$(nproc)
-      #     make -C build all_circuit_tests -j$(nproc)
+      - name: Run tests as circuits (real res calculation)
+        run: |
+          cmake --build build -t all_tests_assign_circuits -j$(nproc)
+
+      - name: Compare expected and real test results
+        run: |
+          chmod +x ./tests/run_test_results_comparison.sh
+          bash ./tests/run_test_results_comparison.sh
+
+      - name: Run tests on faulty inputs
+        run: |
+          chmod +x ./tests/run_tests_faulty_input.sh
+          bash ./tests/run_tests_faulty_input.sh pallas
 
       - name: Run assigner tests
         run: |
@@ -211,38 +218,25 @@ jobs:
       - name: Build proof for the circuit of the C++ examples
         run: |
           cmake --build build -t prove_cpp_examples
-      # - name: Run tests
-      #   run: |
-      #     chmod +x ./tests/run_tests.sh
-      #     bash ./tests/run_tests.sh --clean -j$(nproc)
 
-      # - name: Run tests on faulty inputs
-      #   run: |
-      #     chmod +x ./tests/run_tests_faulty_input.sh
-      #     bash ./tests/run_tests_faulty_input.sh -j$(nproc)
+      - name: Build rslang
+        run: |
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib" >> $GITHUB_ENV
+          cmake --build build -t rslang
 
-      # - name: Build proof for the circuit of the C++ examples
-      #   run: |
-      #     make -C build prove_cpp_examples -j$(nproc)
+      - name: Build IR of the Rust examples
+        run: |
+          cmake --build build -t circuit_rust_examples
+          ls -al ./build/examples/rust/target/assigner-unknown-unknown/release/examples
 
-      # - name: Build rslang
-      #   run: |
-      #     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib"
-      #     echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib" >> $GITHUB_ENV
-      #     make -C build rslang -j$(nproc)
+      - name: Build circuit and assigner of the Rust examples
+        run: |
+          cmake --build build -t assign_rust_examples
 
-      # - name: Build IR of the Rust examples
-      #   run: |
-      #     make -C build circuit_rust_examples -j$(nproc)
-      #     ls -al ./build/examples/rust/target/assigner-unknown-unknown/release/examples
-
-      # - name: Build circuit and assigner of the Rust examples
-      #   run: |
-      #     make -C build assign_rust_examples -j$(nproc)
-
-      # - name: Build proof for the circuit of the Rust examples
-      #   run: |
-      #     make -C build prove_rust_examples -j$(nproc)
+      - name: Build proof for the circuit of the Rust examples
+        run: |
+          cmake --build build -t prove_rust_examples
 
 
   generate-proofs:
