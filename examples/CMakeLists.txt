@@ -63,16 +63,41 @@ function(gen_single_proof target input curve_type provers_amount)
         VERBATIM)
 endfunction()
 
-function(gen_evm_verifier target input curve_type)
-    add_custom_target(${target}_evm_verifier
+function(gen_evm_verifier target input curve_type provers_amount)
+
+    if(provers_amount EQUAL 0)
+    gen_single_evm_verifier(${target} ${input} ${curve_type} 0)
+    else()
+        add_custom_target(${target}_evm_verifier)
+
+        foreach(prover_num RANGE 1 ${provers_amount})
+            math(EXPR prover_num_minus_1 "${prover_num} - 1")
+            gen_single_evm_verifier(${target} ${input} ${curve_type} ${prover_num})
+            add_dependencies(${target}_evm_verifier ${target}_evm_verifier${prover_num_minus_1})
+        endforeach()
+
+    endif()
+endfunction()
+
+function(gen_single_evm_verifier target input curve_type provers_amount)
+
+    if(NOT provers_amount EQUAL 0)
+        set(multi_prover_flag --multi-prover)
+        math(EXPR prover_num "${provers_amount} - 1")
+    else()
+        set(prover_num "")
+    endif()
+
+    add_custom_target(${target}_evm_verifier${prover_num}
         COMMAND $<TARGET_FILE:transpiler> -m gen-evm-verifier
             -i ${INPUTS_DIR}/${input}
-            -c circuit_${target}.crct
-            -t assignment_${target}.tbl
-            -o transpiler_output_${target}
+            -c circuit_${target}.crct${prover_num}
+            -t assignment_${target}.tbl${prover_num}
+            -o transpiler_output_${target}${prover_num}
             -e ${curve_type}
+            ${multi_prover_flag}
             --optimize-gates
-        DEPENDS ${target}_assign ${target}_prove $<TARGET_FILE:transpiler>
+        DEPENDS ${target}_assign ${target}_prove${prover_num} $<TARGET_FILE:transpiler>
         COMMAND_EXPAND_LISTS
         VERBATIM)
 endfunction()
