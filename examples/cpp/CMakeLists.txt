@@ -84,10 +84,10 @@ function(add_example_with_proving example_target)
     gen_proof(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
     add_dependencies(prove_cpp_examples ${example_target}_prove)
 
-    if(GENERATE_EVM_VERIFIER)
-        gen_evm_verifier(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE})
+    # if(GENERATE_EVM_VERIFIER)
+        gen_evm_verifier(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
         add_dependencies(prove_cpp_examples ${example_target}_evm_verifier)
-    endif()
+    # endif()
 
 endfunction()
 
