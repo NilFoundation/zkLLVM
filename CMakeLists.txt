@@ -139,7 +139,6 @@ endif()
 include(CPack)
 
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
-install(TARGETS assigner RUNTIME DESTINATION bin)
 install(TARGETS transpiler RUNTIME DESTINATION bin)
 
 # Package for stdlib
