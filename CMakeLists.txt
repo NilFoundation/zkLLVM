@@ -93,10 +93,10 @@ add_subdirectory(libs/stdlib)
 
 install(FILES cmake/CircuitCompile.cmake DESTINATION share/zkllvm)
 
-find_program(GIT_EXE git)
+find_package(Git REQUIRED)
 
 if(NOT ZKLLVM_VERSION)
-    execute_process(COMMAND ${GIT_EXE} describe --tags HEAD
+    execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags HEAD
                     OUTPUT_VARIABLE DESCRIBE_OUTBUT
                     OUTPUT_STRIP_TRAILING_WHITESPACE
                     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
