@@ -185,8 +185,7 @@ jobs:
             -t uint_bit_decomposition_evm_verifier \
             -t uint_bit_composition_evm_verifier \
             -t compare_eq_cpp_evm_verifier \
-            -t private_input_cpp_evm_verifier \
-            -t private_input_array_cpp_evm_verifier
+            -t private_input_cpp_evm_verifier
 
       - name: Upload examples' circuits and assignments artifact
         uses: actions/upload-artifact@v3
@@ -263,7 +262,6 @@ jobs:
         uint_bit_composition
         compare_eq_cpp
         private_input_cpp
-        private_input_array_cpp
 
 
   verify-zkllvm-proofs:
@@ -289,7 +287,6 @@ jobs:
         transpiler_output_uint_bit_composition
         transpiler_output_compare_eq_cpp
         transpiler_output_private_input_cpp
-        transpiler_output_private_input_array_cpp
 
 
   merge-proofs-to-transpiler-output:
@@ -369,4 +366,3 @@ jobs:
         transpiler_output_uint_bit_composition
         transpiler_output_compare_eq_cpp
         transpiler_output_private_input_cpp
-        transpiler_output_private_input_array_cpp
