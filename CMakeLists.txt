@@ -185,6 +185,9 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     list(APPEND RSLANG_BUILD_ARGS --enable-debug)
 endif()
 list(APPEND RSLANG_BUILD_ARGS --dist-compression-formats=gz)
+# TODO: (aleasims) re-enable docs after fixing all errors:
+# Issue: https://github.com/NilFoundation/zkllvm-rslang/issues/74
+list(APPEND RSLANG_BUILD_ARGS --disable-docs)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/rslang)
 file(REMOVE ${RSLANG_CONFIG})
