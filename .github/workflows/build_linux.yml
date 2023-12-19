@@ -29,12 +29,27 @@ jobs:
     outputs:
       transpiler-artifact-name: ${{ steps.artifact-names.outputs.transpiler }}
       examples-artifact-name: ${{ steps.artifact-names.outputs.examples }}
+      evm-targets: ${{ steps.get-targets.outputs.evm-targets }}
+      prover-targets: ${{ steps.get-targets.outputs.prover-targets }}
 
     env:
       CONTAINER_TMP: /opt/
       HOST_TMP: /home/runner/work/_temp/
       DEBIAN_FRONTEND: noninteractive
       BOOST_VERSION: "1.80.0"
+      INTEGRATION_TESTING_TARGETS: |
+        arithmetics_cpp_example
+        polynomial_cpp_example
+        poseidon_cpp_example
+        merkle_tree_poseidon_cpp_example
+        pallas_curve_addition_cpp_example
+        strlen_cpp_example
+        uint_remainder_cpp
+        uint_shift_left
+        uint_bit_decomposition
+        uint_bit_composition
+        compare_eq_cpp
+        private_input_cpp
 
     container:
       image: ubuntu:22.04
@@ -173,19 +188,8 @@ jobs:
 
       - name: Get transpiler output for integration testing
         run: |
-          cmake --build build \
-            -t arithmetics_cpp_example_evm_verifier \
-            -t polynomial_cpp_example_evm_verifier \
-            -t poseidon_cpp_example_evm_verifier \
-            -t merkle_tree_poseidon_cpp_example_evm_verifier \
-            -t pallas_curve_addition_cpp_example_evm_verifier \
-            -t strlen_cpp_example_evm_verifier \
-            -t uint_remainder_cpp_evm_verifier \
-            -t uint_shift_left_evm_verifier \
-            -t uint_bit_decomposition_evm_verifier \
-            -t uint_bit_composition_evm_verifier \
-            -t compare_eq_cpp_evm_verifier \
-            -t private_input_cpp_evm_verifier
+          targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {printf "-t %s_evm_verifier ", $0}' | sed 's/[[:space:]]*$//')
+          cmake --build build ${targets_str}
 
       - name: Upload examples' circuits and assignments artifact
         uses: actions/upload-artifact@v3
@@ -238,6 +242,18 @@ jobs:
         run: |
           cmake --build build -t prove_rust_examples
 
+      - name: Set targets for integration testing
+        id: get-targets
+        run: |
+          targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {print "transpiler_output_" $0}' | sed '/^$/d')
+          echo "evm-targets<<EOF" >> $GITHUB_OUTPUT
+          echo "${targets_str}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "prover-targets<<EOF" >> $GITHUB_OUTPUT
+          echo "${{ env.INTEGRATION_TESTING_TARGETS }}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
 
   generate-proofs:
     name: Generate proofs for cpp examples
@@ -249,19 +265,7 @@ jobs:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       proof-producer-ref: master
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
-      targets: |
-        polynomial_cpp_example
-        arithmetics_cpp_example
-        poseidon_cpp_example
-        merkle_tree_poseidon_cpp_example
-        pallas_curve_addition_cpp_example
-        strlen_cpp_example
-        uint_remainder_cpp
-        uint_shift_left
-        uint_bit_decomposition
-        uint_bit_composition
-        compare_eq_cpp
-        private_input_cpp
+      targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 
 
   verify-zkllvm-proofs:
@@ -274,19 +278,7 @@ jobs:
       artifact-name: ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
       evm-placeholder-verification-ref: master
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
-      test-names: |
-        transpiler_output_polynomial_cpp_example
-        transpiler_output_arithmetics_cpp_example
-        transpiler_output_poseidon_cpp_example
-        transpiler_output_merkle_tree_poseidon_cpp_example
-        transpiler_output_pallas_curve_addition_cpp_example
-        transpiler_output_strlen_cpp_example
-        transpiler_output_uint_remainder_cpp
-        transpiler_output_uint_shift_left
-        transpiler_output_uint_bit_decomposition
-        transpiler_output_uint_bit_composition
-        transpiler_output_compare_eq_cpp
-        transpiler_output_private_input_cpp
+      test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
 
 
   merge-proofs-to-transpiler-output:
@@ -353,16 +345,4 @@ jobs:
       artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
       evm-placeholder-verification-ref: master
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
-      test-names: |
-        transpiler_output_polynomial_cpp_example
-        transpiler_output_arithmetics_cpp_example
-        transpiler_output_poseidon_cpp_example
-        transpiler_output_merkle_tree_poseidon_cpp_example
-        transpiler_output_pallas_curve_addition_cpp_example
-        transpiler_output_strlen_cpp_example
-        transpiler_output_uint_remainder_cpp
-        transpiler_output_uint_shift_left
-        transpiler_output_uint_bit_decomposition
-        transpiler_output_uint_bit_composition
-        transpiler_output_compare_eq_cpp
-        transpiler_output_private_input_cpp
+      test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
