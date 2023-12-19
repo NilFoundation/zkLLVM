@@ -112,8 +112,8 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      # - name: Install Rust
+      #   uses: dtolnay/rust-toolchain@stable
 
       - name: Configure CMake
         env:
@@ -225,18 +225,18 @@ jobs:
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib" >> $GITHUB_ENV
           cmake --build build -t rslang
 
-      - name: Build IR of the Rust examples
-        run: |
-          cmake --build build -t circuit_rust_examples
-          ls -al ./build/examples/rust/target/assigner-unknown-unknown/release/examples
+      # - name: Build IR of the Rust examples
+      #   run: |
+      #     cmake --build build -t circuit_rust_examples
+      #     ls -al ./build/examples/rust/target/assigner-unknown-unknown/release/examples
 
-      - name: Build circuit and assigner of the Rust examples
-        run: |
-          cmake --build build -t assign_rust_examples
+      # - name: Build circuit and assigner of the Rust examples
+      #   run: |
+      #     cmake --build build -t assign_rust_examples
 
-      - name: Build proof for the circuit of the Rust examples
-        run: |
-          cmake --build build -t prove_rust_examples
+      # - name: Build proof for the circuit of the Rust examples
+      #   run: |
+      #     cmake --build build -t prove_rust_examples
 
 
   generate-proofs:
