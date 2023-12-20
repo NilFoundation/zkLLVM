@@ -66,8 +66,8 @@ function(add_circuit_no_stdlib name)
         set(CLANG $<TARGET_FILE:clang>)
         set(LINKER $<TARGET_FILE:llvm-link>)
     else()
-        set(CLANG clang)
-        set(LINKER llvm-link)
+        set(CLANG clang-zkllvm)
+        set(LINKER llvm-link-zkllvm)
     endif()
 
     # Compile sources
