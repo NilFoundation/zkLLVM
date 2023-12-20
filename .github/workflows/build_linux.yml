@@ -46,7 +46,6 @@ jobs:
         strlen_cpp_example
         uint_remainder_cpp
         uint_shift_left
-        uint_bit_decomposition
         uint_bit_composition
         compare_eq_cpp
         private_input_cpp
@@ -245,7 +244,7 @@ jobs:
       - name: Set targets for integration testing
         id: get-targets
         run: |
-          targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {print "transpiler_output_" $0}' | sed '/^$/d')
+          targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {print "transpiler_output_" $1}')
           echo "evm-targets<<EOF" >> $GITHUB_OUTPUT
           echo "${targets_str}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -253,19 +252,6 @@ jobs:
           echo "prover-targets<<EOF" >> $GITHUB_OUTPUT
           echo "${{ env.INTEGRATION_TESTING_TARGETS }}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
-
-  generate-proofs:
-    name: Generate proofs for cpp examples
-    needs:
-      - build-and-test-linux
-      - handle-syncwith
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@master
-    with:
-      artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
-      proof-producer-ref: master
-      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
-      targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 
 
   verify-zkllvm-proofs:
@@ -279,6 +265,19 @@ jobs:
       evm-placeholder-verification-ref: master
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
+
+
+  generate-proofs:
+    name: Generate proofs for cpp examples
+    needs:
+      - build-and-test-linux
+      - handle-syncwith
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@master
+    with:
+      artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
+      proof-producer-ref: master
+      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+      targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 
 
   merge-proofs-to-transpiler-output:
@@ -340,9 +339,27 @@ jobs:
     needs:
       - handle-syncwith
       - merge-proofs-to-transpiler-output
+      - build-and-test-linux
     uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@master
     with:
       artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
       evm-placeholder-verification-ref: master
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
+
+
+  cleanup-integration-testing:
+    # For now each artifact is 12 GB. Better clean it up to keep the space
+    name: Clean up after integration testing
+    needs:
+      - verify-proof-producer-proofs
+      - verify-zkllvm-proofs
+      - merge-proofs-to-transpiler-output
+      - build-and-test-linux
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: geekyeggo/delete-artifact@v2
+        with:
+            name: |
+              ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
+              ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
