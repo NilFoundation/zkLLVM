@@ -23,6 +23,7 @@ jobs:
     secrets: inherit
 
   build-and-test-linux:
+    name: Build zkLLVM, run local tests, prepare for integration testing
     runs-on: [ self-hosted, Linux, X64, aws_autoscaling ]
     needs:
       - handle-syncwith
@@ -167,7 +168,7 @@ jobs:
           echo "examples=circuits-and-assignments" >> $GITHUB_OUTPUT
 
       - name: Upload examples' circuits and assignments artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.artifact-names.outputs.examples }}
           path: |
@@ -191,7 +192,7 @@ jobs:
           cmake --build build ${targets_str}
 
       - name: Upload examples' circuits and assignments artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.artifact-names.outputs.transpiler }}
           path: |
@@ -327,7 +328,7 @@ jobs:
           echo "merged=transpiler-output-merged-proofs" >> $GITHUB_OUTPUT
 
       - name: Upload merged artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.artifact-name.outputs.merged }}
           path: |
