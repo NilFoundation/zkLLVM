@@ -147,7 +147,7 @@ void proof_print(Proof &proof, const std::string &output_file) {
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
-template<typename BlueprintFieldType>
+template<typename BlueprintFieldType, bool multiprover>
 int curve_dependent_main(
     boost::program_options::options_description options_desc,
     boost::program_options::variables_map vm
@@ -177,6 +177,7 @@ int main(int argc, char *argv[]) {
             ("lookups-inline-threshold", boost::program_options::value<std::size_t>(), "Lookups inline size limit. Default = 0, none of the lookups are inlined")
             ("deduce-horner", "Detect polynomials over one variable and deduce to Horner's formula")
             ("optimize-powers", "Optimize terms that are powers of single variable")
+            ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster paralel proving")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ;
     // clang-format on
@@ -213,7 +214,9 @@ int main(int argc, char *argv[]) {
         case 0: {
             using curve_type = nil::crypto3::algebra::curves::pallas;
             using BlueprintFieldType = typename curve_type::base_field_type;
-            return curve_dependent_main<BlueprintFieldType>(options_desc, vm);
+            return (vm.count("multi-prover") > 0) ?
+                curve_dependent_main<BlueprintFieldType, true>(options_desc, vm) :
+                curve_dependent_main<BlueprintFieldType, false>(options_desc, vm);
             break;
         }
         case 1: {
@@ -227,14 +230,16 @@ int main(int argc, char *argv[]) {
         case 3: {
             using curve_type = nil::crypto3::algebra::curves::bls12<381>;
             using BlueprintFieldType = typename curve_type::base_field_type;
-            return curve_dependent_main<BlueprintFieldType>(options_desc, vm);
+            return (vm.count("multi-prover") > 0) ?
+                curve_dependent_main<BlueprintFieldType, true>(options_desc, vm) :
+                curve_dependent_main<BlueprintFieldType, false>(options_desc, vm);
             break;
         }
     };
 
 }
 
-template<typename BlueprintFieldType>
+template<typename BlueprintFieldType, bool is_multi_prover>
 int curve_dependent_main(
     boost::program_options::options_description options_desc,
     boost::program_options::variables_map vm
@@ -306,9 +311,9 @@ int curve_dependent_main(
     }
 
     constexpr std::size_t WitnessColumns = 15;
-    constexpr std::size_t PublicInputColumns = 1;
-    constexpr std::size_t ConstantColumns = 32;
-    constexpr std::size_t SelectorColumns = 66;
+    constexpr std::size_t PublicInputColumns = is_multi_prover ? 2 : 1;
+    constexpr std::size_t ConstantColumns = 35;
+    constexpr std::size_t SelectorColumns = 36;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,

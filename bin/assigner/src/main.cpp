@@ -82,13 +82,13 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using plonk_constraint_system = nil::marshalling::types::bundle<
         TTypeBase, std::tuple<
-            nil::crypto3::marshalling::types::plonk_gates<TTypeBase, typename ConstraintSystemType::gates_container_type::value_type >,               // gates
-            nil::crypto3::marshalling::types::plonk_copy_constraints<TTypeBase, typename ConstraintSystemType::field_type>,                           // copy constraints
-            nil::crypto3::marshalling::types::plonk_lookup_gates<TTypeBase, typename ConstraintSystemType::lookup_gates_container_type::value_type>,  // lookup constraints
-            // If we don't have lookup gates, we don't need lookup tables
-            nil::crypto3::marshalling::types::plonk_lookup_tables< TTypeBase, typename ConstraintSystemType::lookup_tables_type::value_type >         // lookup tables
-        >
-    >;
+                       nil::crypto3::marshalling::types::plonk_gates<TTypeBase, typename ConstraintSystemType::gates_container_type::value_type >,               // gates
+                       nil::crypto3::marshalling::types::plonk_copy_constraints<TTypeBase, typename ConstraintSystemType::field_type>,                           // copy constraints
+                       nil::crypto3::marshalling::types::plonk_lookup_gates<TTypeBase, typename ConstraintSystemType::lookup_gates_container_type::value_type>,  // lookup constraints
+                       // If we don't have lookup gates, we don't need lookup tables
+                       nil::crypto3::marshalling::types::plonk_lookup_tables< TTypeBase, typename ConstraintSystemType::lookup_tables_type::value_type >         // lookup tables
+                       >
+        >;
     using AssignmentTableType = assignment_proxy<ArithmetizationType>;
     using variable_type = crypto3::zk::snark::plonk_variable<typename AssignmentTableType::field_type::value_type>;
 
@@ -105,6 +105,7 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
     for (const auto &it : used_copy_constraints_idx) {
         used_copy_constraints.push_back(copy_constraints[it]);
     }
+
     if (rename_required) {
         const auto& used_rows = table_proxy.get_used_rows();
         std::uint32_t local_row = 0;
@@ -145,11 +146,11 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
 
     auto filled_val =
         plonk_constraint_system(std::make_tuple(
-                nil::crypto3::marshalling::types::fill_plonk_gates<Endianness, typename ConstraintSystemType::gates_container_type::value_type>(used_gates),
-                nil::crypto3::marshalling::types::fill_plonk_copy_constraints<Endianness, typename ConstraintSystemType::variable_type>(used_copy_constraints),
-                nil::crypto3::marshalling::types::fill_plonk_lookup_gates<Endianness, typename ConstraintSystemType::lookup_gates_container_type::value_type>(used_lookup_gates),
-                nil::crypto3::marshalling::types::fill_plonk_lookup_tables<Endianness, typename ConstraintSystemType::lookup_tables_type::value_type>(used_lookup_tables)
-    ));
+            nil::crypto3::marshalling::types::fill_plonk_gates<Endianness, typename ConstraintSystemType::gates_container_type::value_type>(used_gates),
+            nil::crypto3::marshalling::types::fill_plonk_copy_constraints<Endianness, typename ConstraintSystemType::variable_type>(used_copy_constraints),
+            nil::crypto3::marshalling::types::fill_plonk_lookup_gates<Endianness, typename ConstraintSystemType::lookup_gates_container_type::value_type>(used_lookup_gates),
+            nil::crypto3::marshalling::types::fill_plonk_lookup_tables<Endianness, typename ConstraintSystemType::lookup_tables_type::value_type>(used_lookup_tables)
+                ));
 
     std::vector<std::uint8_t> cv;
     cv.resize(filled_val.length(), 0x00);
@@ -173,11 +174,8 @@ enum class print_column_kind {
 };
 
 template<typename ValueType, typename ContainerType>
-void fill_vector_value(std::vector<ValueType> &table_values, const ContainerType &table_col, std::uint32_t padding) {
-        std::copy(table_col.begin(), table_col.end(), std::back_inserter(table_values));
-        for(std::uint32_t j = table_col.size(); j < padding; j++){
-            table_values.push_back(0);
-        }
+void fill_vector_value(std::vector<ValueType> &table_values, const ContainerType &table_col, typename std::vector<ValueType>::iterator start) {
+    std::copy(table_col.begin(), table_col.end(), start);
 }
 
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
@@ -188,6 +186,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     using AssignmentTableType = assignment_proxy<ArithmetizationType>;
     std::uint32_t usable_rows_amount;
     std::uint32_t total_columns;
+    std::uint32_t total_size;
     std::uint32_t shared_size = table_proxy.shareds_amount();
     std::uint32_t public_input_size = table_proxy.public_inputs_amount();
     std::uint32_t witness_size = table_proxy.witnesses_amount();
@@ -240,6 +239,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     if (padded_rows_amount < 8) {
         padded_rows_amount = 8;
     }
+    total_size = padded_rows_amount * total_columns;
 
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using plonk_assignment_table = nil::marshalling::types::bundle<
@@ -252,98 +252,115 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                 TTypeBase,
                 nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
                 nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
+                >
             >
-        >
-    >;
+        >;
     using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
 
-    std::vector<typename AssignmentTableType::field_type::value_type> table_values;
+    std::vector<typename AssignmentTableType::field_type::value_type> table_values(total_size, 0);
     if (print_kind == print_table_kind::FULL) {
+        auto it = table_values.begin();
         for (std::uint32_t i = 0; i < witness_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.witness(i), padded_rows_amount);
+                (table_values, table_proxy.witness(i), it);
+            it += padded_rows_amount;
         }
         for (std::uint32_t i = 0; i < public_input_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.public_input(i), padded_rows_amount);
+                (table_values, table_proxy.public_input(i), it);
+            it += padded_rows_amount;
         }
         for (std::uint32_t i = 0; i < constant_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.constant(i), padded_rows_amount);
+                (table_values, table_proxy.constant(i), it);
+            it += padded_rows_amount;
         }
         for (std::uint32_t i = 0; i < selector_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.selector(i), padded_rows_amount);
+                (table_values, table_proxy.selector(i), it);
+            it += padded_rows_amount;
         }
     } else {
         const auto& rows = table_proxy.get_used_rows();
+        const auto& selector_rows = table_proxy.get_used_selector_rows();
         const std::uint32_t padding = padded_rows_amount - rows.size();
+        std::uint32_t idx = 0;
+        auto it = table_values.begin();
         // witness
         for( std::size_t i = 0; i < AssignmentTableType::arithmetization_params::witness_columns; i++ ){
             const auto column_size = table_proxy.witness_column_size(i);
+            std::uint32_t offset = 0;
             for(const auto& j : rows){
                 if (j < column_size) {
-                    table_values.push_back(table_proxy.witness(i, j));
-                } else {
-                    table_values.push_back(0);
+                    table_values[idx + offset] = table_proxy.witness(i, j);
+                    offset++;
                 }
             }
-            for(std::uint32_t j = 0; j < padding; j++){
-                table_values.push_back(0);
-            }
+            idx += padded_rows_amount;
         }
         // public input
+        it += idx;
         for (std::uint32_t i = 0; i < public_input_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.public_input(i), padded_rows_amount);
+                (table_values, table_proxy.public_input(i), it);
+            it += padded_rows_amount;
+            idx += padded_rows_amount;
         }
         for (std::uint32_t i = 0; i < shared_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.shared(i), padded_rows_amount);
+                (table_values, table_proxy.shared(i), it);
+            it += padded_rows_amount;
+            idx += padded_rows_amount;
         }
         // constant
         for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
             const auto column_size = table_proxy.constant_column_size(i);
+            std::uint32_t offset = 0;
             for(const auto& j : rows){
                 if (j < column_size) {
-                    table_values.push_back(table_proxy.constant(i, j));
-                } else {
-                    table_values.push_back(0);
+                    table_values[idx + offset] = table_proxy.constant(i, j);
+                    offset++;
                 }
             }
-            for(std::uint32_t j = 0; j < padding; j++){
-                table_values.push_back(0);
-            }
+            idx += padded_rows_amount;
         }
+        it += idx;
         for (std::uint32_t i = ComponentConstantColumns; i < constant_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.constant(i), padded_rows_amount);
+                (table_values, table_proxy.constant(i), it);
+            it += padded_rows_amount;
+            idx += padded_rows_amount;
         }
         // selector
         for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
             const auto column_size = table_proxy.selector_column_size(i);
+            std::uint32_t offset = 0;
             for(const auto& j : rows){
                 if (j < column_size) {
-                    table_values.push_back(table_proxy.selector(i, j));
-                } else {
-                    table_values.push_back(0);
+                    if (selector_rows.find(j) != selector_rows.end()) {
+                        table_values[idx + offset] = table_proxy.selector(i, j);
+                    }
+                    offset++;
                 }
             }
-            for(std::uint32_t j = 0; j < padding; j++){
-                table_values.push_back(0);
-            }
+            idx += padded_rows_amount;
         }
         for (std::uint32_t i = ComponentSelectorColumns; i < selector_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                    (table_values, table_proxy.selector(i), padded_rows_amount);
+                (table_values, table_proxy.selector(i), it);
+            it += padded_rows_amount;
+            idx += padded_rows_amount;
         }
+        ASSERT_MSG(idx == total_size, "Printed index not equal required assignment size" );
     }
 
     auto filled_val = plonk_assignment_table(std::make_tuple(
-            nil::marshalling::types::integral<TTypeBase, std::size_t>(usable_rows_amount),
-            nil::marshalling::types::integral<TTypeBase, std::size_t>(total_columns),
-            nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(table_values)
-    ));
+        nil::marshalling::types::integral<TTypeBase, std::size_t>(usable_rows_amount),
+        nil::marshalling::types::integral<TTypeBase, std::size_t>(total_columns),
+        nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(table_values)
+            ));
+    table_values.clear();
+    table_values.shrink_to_fit();
 
     std::vector<std::uint8_t> cv;
     cv.resize(filled_val.length(), 0x00);
@@ -419,7 +436,6 @@ int curve_dependent_main(std::string bytecode_file_name,
     using AssignmentTableType = zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, zk::snark::plonk_column<BlueprintFieldType>>;
 
     std::vector<typename BlueprintFieldType::value_type> public_input;
-
     boost::json::value public_input_json_value;
     ASSERT(read_json(public_input_file_name, public_input_json_value));
 
@@ -465,13 +481,15 @@ int curve_dependent_main(std::string bytecode_file_name,
                 parser_instance.assignments[0].get(),
                 lookup_columns_indices,
                 ComponentSelectorColumns,
-                parser_instance.assignments[0].allocated_rows(),
+                0,
                 max_usable_rows
         );
     }
 
-    // print full table
+    // print assignment tables and circuits
+    ASSERT_MSG(parser_instance.assignments.size() == parser_instance.circuits.size(), "Missmatch assignments circuits size");
     if (parser_instance.assignments.size() == 1) {
+        // print assignment table
         std::ofstream otable;
         otable.open(assignment_table_file_name);
         if (!otable) {
@@ -480,45 +498,55 @@ int curve_dependent_main(std::string bytecode_file_name,
         }
 
         print_assignment_table<
-                nil::marshalling::option::big_endian,
-                ArithmetizationType, BlueprintFieldType
-        >(parser_instance.assignments[0], print_table_kind::FULL, ComponentConstantColumns,
-          ComponentSelectorColumns, otable);
+            nil::marshalling::option::big_endian,
+            ArithmetizationType, BlueprintFieldType
+            >(parser_instance.assignments[0], print_table_kind::FULL, ComponentConstantColumns,
+              ComponentSelectorColumns, otable);
 
         otable.close();
+
+        // print assignment circuit
+        std::ofstream ocircuit;
+        ocircuit.open(circuit_file_name);
+        if (!ocircuit) {
+            std::cout << "Something wrong with output " << circuit_file_name << std::endl;
+            return 1;
+        }
+
+        print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
+            parser_instance.circuits[0], parser_instance.assignments[0], false, ocircuit);
+        ocircuit.close();
     } else if (parser_instance.assignments.size() > 1) {
-        for (const auto &it: parser_instance.assignments) {
+        for (std::uint32_t idx = 0; idx < parser_instance.assignments.size(); idx++) {
+            // print assignment table
             std::ofstream otable;
-            otable.open(assignment_table_file_name + std::to_string(it.get_id()));
+            otable.open(assignment_table_file_name + std::to_string(idx));
             if (!otable) {
-                std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(it.get_id()) << std::endl;
+                std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(idx) << std::endl;
                 return 1;
             }
 
             print_assignment_table<
-                    nil::marshalling::option::big_endian,
-                    ArithmetizationType, BlueprintFieldType
-            >(it, print_table_kind::PRIVATE, ComponentConstantColumns, ComponentSelectorColumns, otable);
+                nil::marshalling::option::big_endian,
+                ArithmetizationType, BlueprintFieldType
+                >(parser_instance.assignments[idx], print_table_kind::PRIVATE, ComponentConstantColumns, ComponentSelectorColumns, otable);
 
             otable.close();
-        }
-    }
 
-    auto assignment_it = parser_instance.assignments.begin();
-    for (auto& it : parser_instance.circuits) {
-        std::ofstream ocircuit;
-        std::string file_name = parser_instance.circuits.size() > 1 ?
-                                circuit_file_name + std::to_string(it.get_id()) : circuit_file_name;
-        ocircuit.open(file_name);
-        if (!ocircuit) {
-            std::cout << "Something wrong with output " << file_name << std::endl;
-            return 1;
+            // print assignment table
+            std::ofstream ocircuit;
+            ocircuit.open(circuit_file_name + std::to_string(idx));
+            if (!ocircuit) {
+                std::cout << "Something wrong with output " << circuit_file_name + std::to_string(idx) << std::endl;
+                return 1;
+            }
+
+            ASSERT_MSG(idx < parser_instance.circuits.size(), "Not found circuit");
+            print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
+                parser_instance.circuits[idx], parser_instance.assignments[idx], (idx > 0), ocircuit);
+
+            ocircuit.close();
         }
-        ASSERT_MSG(assignment_it != parser_instance.assignments.end(), "Not found assignment for circuit");
-        print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>
-                (it, *assignment_it, (parser_instance.assignments.size() > 1), ocircuit);
-        ocircuit.close();
-        assignment_it++;
     }
 
     if (check_validity){
@@ -622,7 +650,6 @@ int main(int argc, char *argv[]) {
     } else {
         private_input_file_name = "";
     }
-
 
     if (vm.count("assignment-table")) {
         assignment_table_file_name = vm["assignment-table"].as<std::string>();
