@@ -137,6 +137,8 @@ if(ZKLLVM_VERSION_INCREMENT)
 endif()
 set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/lib/zkllvm")
 
+install(SCRIPT cmake/create-symlinks.cmake)
+
 include(CPack)
 
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
