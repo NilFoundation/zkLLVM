@@ -142,7 +142,6 @@ install(SCRIPT cmake/create-symlinks.cmake)
 include(CPack)
 
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
-install(TARGETS transpiler RUNTIME DESTINATION bin)
 
 # Package for stdlib
 add_custom_target(stdlib_package

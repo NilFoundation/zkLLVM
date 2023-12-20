@@ -40,7 +40,6 @@ if (CPACK_PACKAGE_VERSION)
     add_compile_definitions(${UPPER_CURRENT_PROJECT_NAME}_VERSION=${CPACK_PACKAGE_VERSION})
 endif()
 
-
 # get header files; only needed by CMake generators,
 # expr.g., for creating proper Xcode projects
 set(${CURRENT_PROJECT_NAME}_HEADERS)
@@ -104,3 +103,5 @@ elseif(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 
     add_dependencies(${CURRENT_PROJECT_NAME} boost)
 endif()
+
+install(TARGETS ${CURRENT_PROJECT_NAME} RUNTIME DESTINATION bin)
