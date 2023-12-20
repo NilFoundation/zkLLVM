@@ -106,7 +106,8 @@ inline std::vector<std::size_t> generate_random_step_list(const std::size_t r, c
 
 template<typename FRIScheme, typename FieldType>
 typename FRIScheme::params_type create_fri_params(
-        std::size_t degree_log, const int max_step = 1, std::size_t expand_factor = 0) {
+        std::size_t degree_log, const std::size_t max_step = 1, const std::size_t expand_factor = 2
+) {
     std::size_t r = degree_log - 1;
 
     return typename FRIScheme::params_type(
@@ -306,8 +307,8 @@ int curve_dependent_main(
 
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
-    constexpr std::size_t ConstantColumns = 35;
-    constexpr std::size_t SelectorColumns = 36;
+    constexpr std::size_t ConstantColumns = 32;
+    constexpr std::size_t SelectorColumns = 66;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -385,6 +386,20 @@ int curve_dependent_main(
                 marshalled_table_data
             );
         table_description.rows_amount = assignment_table.rows_amount();
+    }
+
+    for(std::size_t i = 0; i < ArithmetizationParams::public_input_columns; ++i){
+        std::size_t max_non_zero = 0;
+        for( std::size_t j = 0; j < table_description.usable_rows_amount; ++j ){
+            if( assignment_table.public_input(i)[j] != 0 ){
+                max_non_zero = j;
+            }
+        }
+        std::cout << "Public input " << i << " max non zero row: " << max_non_zero << " : ";
+        for( std::size_t j = 0; j <= max_non_zero; ++j ){
+            std::cout << assignment_table.public_input(i)[j] << " ";
+        }
+        std::cout << std::endl;
     }
 
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
