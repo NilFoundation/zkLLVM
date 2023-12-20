@@ -42,10 +42,10 @@ jobs:
         polynomial_cpp_example
         poseidon_cpp_example
         merkle_tree_poseidon_cpp_example
-        pallas_curve_addition_cpp_example
         strlen_cpp_example
         uint_remainder_cpp
         uint_shift_left
+        uint_bit_decomposition
         uint_bit_composition
         compare_eq_cpp
         private_input_cpp
@@ -167,7 +167,7 @@ jobs:
           echo "examples=circuits-and-assignments" >> $GITHUB_OUTPUT
 
       - name: Upload examples' circuits and assignments artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.artifact-names.outputs.examples }}
           path: |
@@ -191,7 +191,7 @@ jobs:
           cmake --build build ${targets_str}
 
       - name: Upload examples' circuits and assignments artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.artifact-names.outputs.transpiler }}
           path: |
@@ -272,7 +272,7 @@ jobs:
     needs:
       - build-and-test-linux
       - handle-syncwith
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@master
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@fix-uploading
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       proof-producer-ref: master
@@ -327,7 +327,7 @@ jobs:
           echo "merged=transpiler-output-merged-proofs" >> $GITHUB_OUTPUT
 
       - name: Upload merged artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.artifact-name.outputs.merged }}
           path: |
@@ -356,6 +356,7 @@ jobs:
       - verify-zkllvm-proofs
       - merge-proofs-to-transpiler-output
       - build-and-test-linux
+      - generate-proofs
     runs-on: ubuntu-22.04
     steps:
       - uses: geekyeggo/delete-artifact@v2
@@ -363,3 +364,4 @@ jobs:
             name: |
               ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
               ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
+              ${{ needs.generate-proofs.outputs.artifact-name }}
