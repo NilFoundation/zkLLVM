@@ -66,7 +66,7 @@ using namespace nil::blueprint;
 template<typename Endianness, typename ArithmetizationType, typename ConstraintSystemType>
 void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
                    const assignment_proxy<ArithmetizationType> &table_proxy,
-                   bool rename_required, std::ostream &out = std::cout) {
+                   std::ostream &out = std::cout) {
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using plonk_constraint_system = nil::marshalling::types::bundle<
         TTypeBase, std::tuple<
@@ -90,31 +90,28 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
     const auto& copy_constraints = circuit_proxy.copy_constraints();
     typename ConstraintSystemType::copy_constraints_container_type used_copy_constraints;
     const auto& used_copy_constraints_idx = circuit_proxy.get_used_copy_constraints();
-    for (const auto &it : used_copy_constraints_idx) {
-        used_copy_constraints.push_back(copy_constraints[it]);
-    }
-
-    if (rename_required) {
-        const auto& used_rows = table_proxy.get_used_rows();
-        std::uint32_t local_row = 0;
-        for (const auto &row : used_rows) {
-            for (auto &constraint : used_copy_constraints) {
-                const auto first_var = constraint.first;
-                const auto second_var = constraint.second;
-                if ((first_var.type == variable_type::column_type::witness ||
-                     first_var.type == variable_type::column_type::constant) &&
-                    first_var.rotation == row) {
-                    constraint.first = variable_type(first_var.index, local_row, first_var.relative,
-                                                     first_var.type);
-                }
-                if ((second_var.type == variable_type::column_type::witness ||
-                     second_var.type == variable_type::column_type::constant) &&
-                    second_var.rotation == row) {
-                    constraint.second = variable_type(second_var.index, local_row,
-                                                      second_var.relative, second_var.type);
-                }
+    if (circuit_proxy.get_id() > 0) {
+        const auto start_row = table_proxy.get_start_row();
+        for (const auto &it : used_copy_constraints_idx) {
+            auto first_var = copy_constraints[it].first;
+            auto second_var = copy_constraints[it].second;
+            if (first_var.type == variable_type::column_type::witness ||
+                first_var.type == variable_type::column_type::constant) {
+                ASSERT(first_var.rotation >= start_row);
+                first_var =
+                    variable_type(first_var.index, first_var.rotation - start_row, first_var.relative, first_var.type);
             }
-            local_row++;
+            if (second_var.type == variable_type::column_type::witness ||
+                second_var.type == variable_type::column_type::constant) {
+                ASSERT(second_var.rotation >= start_row);
+                second_var = variable_type(second_var.index, second_var.rotation - start_row, second_var.relative,
+                                           second_var.type);
+            }
+            used_copy_constraints.push_back({first_var, second_var});
+        }
+    } else {
+        for (const auto &it : used_copy_constraints_idx) {
+            used_copy_constraints.push_back(copy_constraints[it]);
         }
     }
 
@@ -203,8 +200,9 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         for (const auto &i : lookup_selector_cols) {
             max_selector_size = std::max(max_selector_size, table_proxy.selector_column_size(i));
         }
-        usable_rows_amount = table_proxy.get_used_rows().size();
-        usable_rows_amount = std::max({usable_rows_amount, max_shared_size, max_public_inputs_size, max_constant_size, max_selector_size});
+        max_selector_size = std::max(max_selector_size, (std::uint32_t)table_proxy.get_used_selector_rows().size());
+        usable_rows_amount = std::max({table_proxy.get_num_private_rows(),
+                                       max_shared_size, max_public_inputs_size, max_constant_size, max_selector_size});
     } else { // FULL
         total_columns = AssignmentTableType::arithmetization_params::total_columns;
         std::uint32_t max_witness_size = 0;
@@ -269,19 +267,17 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
             it += padded_rows_amount;
         }
     } else {
-        const auto& rows = table_proxy.get_used_rows();
         const auto& selector_rows = table_proxy.get_used_selector_rows();
-        const std::uint32_t padding = padded_rows_amount - rows.size();
         std::uint32_t idx = 0;
         auto it = table_values.begin();
+        std::uint32_t start_row = table_proxy.get_start_row();
+        std::uint32_t num_private_rows = table_proxy.get_num_private_rows();
         // witness
         for( std::size_t i = 0; i < AssignmentTableType::arithmetization_params::witness_columns; i++ ){
             const auto column_size = table_proxy.witness_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    table_values[idx + offset] = table_proxy.witness(i, j);
-                    offset++;
+            for(std::size_t j = 0; j < num_private_rows; j++){
+                if ((j + start_row) < column_size) {
+                    table_values[idx + j] = table_proxy.witness(i, j + start_row);
                 }
             }
             idx += padded_rows_amount;
@@ -303,11 +299,9 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         // constant
         for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
             const auto column_size = table_proxy.constant_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    table_values[idx + offset] = table_proxy.constant(i, j);
-                    offset++;
+            for(std::size_t j = 0; j < num_private_rows; j++){
+                if ((j + start_row) < column_size) {
+                    table_values[idx + j] = table_proxy.constant(i, j + start_row);
                 }
             }
             idx += padded_rows_amount;
@@ -323,12 +317,10 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
             const auto column_size = table_proxy.selector_column_size(i);
             std::uint32_t offset = 0;
-            for(const auto& j : rows){
+            for(const auto& j : selector_rows){
                 if (j < column_size) {
-                    if (selector_rows.find(j) != selector_rows.end()) {
-                        table_values[idx + offset] = table_proxy.selector(i, j);
-                    }
-                    offset++;
+                    offset = j - start_row;
+                    table_values[idx + offset] = table_proxy.selector(i, j);
                 }
             }
             idx += padded_rows_amount;
@@ -448,9 +440,14 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
+    auto start = std::chrono::system_clock::now();
     if (!parser_instance.evaluate(*module, public_input_json_value.as_array(), private_input_json_value.as_array())) {
         return 1;
     }
+    auto end = std::chrono::system_clock::now();
+    auto elapsed =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    //std::cout << "evaluate: " << elapsed.count() << "\n";
 
     ASSERT_MSG(!parser_instance.assignments.empty() && !parser_instance.circuits.empty(), "Not found any proxy for prover" );
 
@@ -502,7 +499,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         }
 
         print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
-            parser_instance.circuits[0], parser_instance.assignments[0], false, ocircuit);
+            parser_instance.circuits[0], parser_instance.assignments[0], ocircuit);
         ocircuit.close();
     } else if (parser_instance.assignments.size() > 1) {
         for (std::uint32_t idx = 0; idx < parser_instance.assignments.size(); idx++) {
@@ -530,8 +527,13 @@ int curve_dependent_main(std::string bytecode_file_name,
             }
 
             ASSERT_MSG(idx < parser_instance.circuits.size(), "Not found circuit");
+            start = std::chrono::system_clock::now();
             print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
-                parser_instance.circuits[idx], parser_instance.assignments[idx], (idx > 0), ocircuit);
+                parser_instance.circuits[idx], parser_instance.assignments[idx], ocircuit);
+            end = std::chrono::system_clock::now();
+            elapsed =
+                std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            //std::cout << "print: " << elapsed.count() << "\n";
 
             ocircuit.close();
         }
