@@ -63,18 +63,6 @@ using namespace nil;
 using namespace nil::crypto3;
 using namespace nil::blueprint;
 
-template<typename TIter>
-void print_hex_byteblob(std::ostream &os, TIter iter_begin, TIter iter_end, bool endl) {
-    os << "0x" << std::hex;
-    for (TIter it = iter_begin; it != iter_end; it++) {
-        os << std::setfill('0') << std::setw(2) << std::right << int(*it);
-    }
-    os << std::dec;
-    if (endl) {
-        os << std::endl;
-    }
-}
-
 template<typename Endianness, typename ArithmetizationType, typename ConstraintSystemType>
 void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
                    const assignment_proxy<ArithmetizationType> &table_proxy,
@@ -156,7 +144,7 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
     cv.resize(filled_val.length(), 0x00);
     auto write_iter = cv.begin();
     nil::marshalling::status_type status = filled_val.write(write_iter, cv.size());
-    print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
+    out.write(reinterpret_cast<char*>(cv.data()), cv.size());
 }
 
 enum class print_table_kind {
@@ -366,7 +354,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     cv.resize(filled_val.length(), 0x00);
     auto write_iter = cv.begin();
     nil::marshalling::status_type status = filled_val.write(write_iter, cv.size());
-    print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
+    out.write(reinterpret_cast<char*>(cv.data()), cv.size());
 }
 
 bool read_json(
@@ -491,7 +479,7 @@ int curve_dependent_main(std::string bytecode_file_name,
     if (parser_instance.assignments.size() == 1) {
         // print assignment table
         std::ofstream otable;
-        otable.open(assignment_table_file_name);
+        otable.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
         if (!otable) {
             std::cout << "Something wrong with output " << assignment_table_file_name << std::endl;
             return 1;
@@ -507,7 +495,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
         // print assignment circuit
         std::ofstream ocircuit;
-        ocircuit.open(circuit_file_name);
+        ocircuit.open(circuit_file_name, std::ios_base::binary | std::ios_base::out);
         if (!ocircuit) {
             std::cout << "Something wrong with output " << circuit_file_name << std::endl;
             return 1;
@@ -520,7 +508,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         for (std::uint32_t idx = 0; idx < parser_instance.assignments.size(); idx++) {
             // print assignment table
             std::ofstream otable;
-            otable.open(assignment_table_file_name + std::to_string(idx));
+            otable.open(assignment_table_file_name + std::to_string(idx), std::ios_base::binary | std::ios_base::out);
             if (!otable) {
                 std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(idx) << std::endl;
                 return 1;
@@ -535,7 +523,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
             // print assignment table
             std::ofstream ocircuit;
-            ocircuit.open(circuit_file_name + std::to_string(idx));
+            ocircuit.open(circuit_file_name + std::to_string(idx), std::ios_base::binary | std::ios_base::out);
             if (!ocircuit) {
                 std::cout << "Something wrong with output " << circuit_file_name + std::to_string(idx) << std::endl;
                 return 1;
