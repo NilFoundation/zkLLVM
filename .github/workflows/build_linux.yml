@@ -260,10 +260,10 @@ jobs:
     needs:
       - build-and-test-linux
       - handle-syncwith
-    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@master
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@5bb7c4b0790f56b3a339e33ba442816fac17ab88
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
-      evm-placeholder-verification-ref: master
+      evm-placeholder-verification-ref: 5bb7c4b0790f56b3a339e33ba442816fac17ab88
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
 
@@ -273,10 +273,10 @@ jobs:
     needs:
       - build-and-test-linux
       - handle-syncwith
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@fix-uploading
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@af67299b6f1ae991c3295b9eb062601f401a6f86
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
-      proof-producer-ref: master
+      proof-producer-ref: af67299b6f1ae991c3295b9eb062601f401a6f86
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 
@@ -341,10 +341,10 @@ jobs:
       - handle-syncwith
       - merge-proofs-to-transpiler-output
       - build-and-test-linux
-    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@master
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@5bb7c4b0790f56b3a339e33ba442816fac17ab88
     with:
       artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
-      evm-placeholder-verification-ref: master
+      evm-placeholder-verification-ref: 5bb7c4b0790f56b3a339e33ba442816fac17ab88
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
 
