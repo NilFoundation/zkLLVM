@@ -230,9 +230,11 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
             max_selector_size = std::max(max_selector_size, table_proxy.selector_column_size(i));
         }
         usable_rows_amount = std::max({max_witness_size, max_public_inputs_size, max_constant_size, max_selector_size});
+        std::cout << "Usable rows amount = " << usable_rows_amount << std::endl;
     }
 
     std::uint32_t padded_rows_amount = std::pow(2, std::ceil(std::log2(usable_rows_amount)));
+    std::cout << "Padded rows amount = " << padded_rows_amount << std::endl;
     if (padded_rows_amount == usable_rows_amount) {
         padded_rows_amount *= 2;
     }
@@ -417,9 +419,9 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::uint32_t max_num_provers,
                           nil::blueprint::print_format circuit_output_print_format) {
 
-    constexpr std::size_t ComponentConstantColumns = 5;
+    constexpr std::size_t ComponentConstantColumns = 2;
     constexpr std::size_t LookupConstantColumns = 30;
-    constexpr std::size_t ComponentSelectorColumns = 30;
+    constexpr std::size_t ComponentSelectorColumns = 60;
     constexpr std::size_t LookupSelectorConstantColumns = 6;
 
     constexpr std::size_t WitnessColumns = 15;
