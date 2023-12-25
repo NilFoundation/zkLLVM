@@ -46,6 +46,9 @@
 
 #include <ios>
 
+#include <nil/crypto3/hash/sha2.hpp>
+#include <nil/crypto3/hash/poseidon.hpp>
+
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
@@ -392,6 +395,82 @@ bool read_json(
     return true;
 }
 
+struct ParametersPolicy {
+    constexpr static const std::size_t WitnessColumns =
+#ifdef ASSIGNER_WITNESS_COLUMNS
+    ASSIGNER_WITNESS_COLUMNS;
+#else
+    15;
+#endif;
+#undef ASSIGNER_WITNESS_COLUMNS
+
+    constexpr static const std::size_t PublicInputColumns =
+#ifdef ASSIGNER_PUBLIC_INPUT_COLUMNS
+    ASSIGNER_PUBLIC_INPUT_COLUMNS;
+#else
+    1;
+#endif;
+#undef ASSIGNER_PUBLIC_INPUT_COLUMNS
+
+    constexpr static const std::size_t ConstantColumns =
+#ifdef ASSIGNER_CONSTANT_COLUMNS
+    ASSIGNER_CONSTANT_COLUMNS;
+#else
+    35;
+#endif
+#undef ASSIGNER_CONSTANT_COLUMNS
+
+    constexpr static const std::size_t SelectorColumns =
+#ifdef ASSIGNER_SELECTOR_COLUMNS
+    ASSIGNER_SELECTOR_COLUMNS;
+#else
+    36;
+#endif
+#undef ASSIGNER_SELECTOR_COLUMNS
+
+    constexpr static const std::size_t lambda =
+#ifdef ASSIGNER_LAMBDA
+    ASSIGNER_LAMBDA;
+#else
+    40;
+#endif
+#undef ASSIGNER_LAMBDA
+
+    constexpr static const std::size_t GrindingBits =
+#ifdef ASSIGNER_GRINDING_BITS
+    ASSIGNER_GRINDING_BITS;
+#else
+    40;
+#endif
+#undef ASSIGNER_GRINDING_BITS
+
+#define SHA256 0
+#define SHA512 1
+#define SHA3 2
+#define KECCAK 2
+#define POSEIDON 3
+
+private:
+    using default_hash = crypto3::hashes::sha2<256>;
+public:
+    using hash = 
+#if ASSIGNER_HASH == SHA256
+    crypto3::hashes::sha2<256>;
+#elif ASSIGNER_HASH == POSEIDON
+    crypto3::hashes::poseidon;
+#else
+    default_hash;
+#endif
+
+#undef ASSIGNER_HASH
+#undef SHA256
+#undef SHA512
+#undef SHA3
+#undef KECCAK
+#undef POSEIDON
+
+};
+
 template<typename BlueprintFieldType>
 int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
@@ -410,8 +489,8 @@ int curve_dependent_main(std::string bytecode_file_name,
     constexpr std::size_t ComponentSelectorColumns = 30;
     constexpr std::size_t LookupSelectorConstantColumns = 6;
 
-    constexpr std::size_t WitnessColumns = 15;
-    constexpr std::size_t PublicInputColumns = 1;
+    constexpr std::size_t WitnessColumns = ParametersPolicy::WitnessColumns;
+    constexpr std::size_t PublicInputColumns = ParametersPolicy::PublicInputColumns;
     constexpr std::size_t ConstantColumns = ComponentConstantColumns + LookupConstantColumns;
     constexpr std::size_t SelectorColumns = ComponentSelectorColumns + LookupSelectorConstantColumns;
 

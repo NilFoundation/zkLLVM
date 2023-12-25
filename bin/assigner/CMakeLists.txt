@@ -40,6 +40,35 @@ if (CPACK_PACKAGE_VERSION)
     add_compile_definitions(${UPPER_CURRENT_PROJECT_NAME}_VERSION=${CPACK_PACKAGE_VERSION})
 endif()
 
+if (WITNESS_COLUMNS)
+    add_compile_definitions(ASSIGNER_WITNESS_COLUMNS=${WITNESS_COLUMNS})
+endif()
+
+if (PUBLIC_INPUT_COLUMNS)
+    add_compile_definitions(ASSIGNER_PUBLIC_INPUT_COLUMNS=${PUBLIC_INPUT_COLUMNS})
+endif()
+
+if (CONSTANT_COLUMNS)
+    add_compile_definitions(ASSIGNER_CONSTANT_COLUMNS=${CONSTANT_COLUMNS})
+endif()
+
+if (SELECTOR_COLUMNS)
+    add_compile_definitions(ASSIGNER_SELECTOR_COLUMNS=${SELECTOR_COLUMNS})
+endif()
+
+if (SECURITY_PARAMETER_LAMBDA)
+    add_compile_definitions(ASSIGNER_LAMBDA=${SECURITY_PARAMETER_LAMBDA})
+endif()
+
+if (SECURITY_PARAMETER_GRINDING_BITS)
+    add_compile_definitions(ASSIGNER_GRINDING_BITS=${SECURITY_PARAMETER_GRINDING_BITS})
+endif()
+
+#possible values: SHA256, SHA512, SHA3, KECCAK, POSEIDON
+if (SECURITY_PARAMETER_HASH)
+    add_compile_definitions(ASSIGNER_HASH=${SECURITY_PARAMETER_HASH})
+endif()
+
 # get header files; only needed by CMake generators,
 # expr.g., for creating proper Xcode projects
 set(${CURRENT_PROJECT_NAME}_HEADERS)
