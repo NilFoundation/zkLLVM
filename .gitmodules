@@ -1,24 +1,24 @@
-[submodule "cmake-modules"]
+[submodule "cmake_modules"]
 	path = cmake/modules
-	url = ../../BoostCMake/cmake_modules.git
+	url = https://github.com/BoostCMake/cmake_modules.git
 [submodule "zkllvm-assigner"]
 	path = libs/assigner
-	url = ../../NilFoundation/zkllvm-assigner.git
+	url = https://github.com/NilFoundation/zkllvm-assigner.git
 [submodule "zkllvm-circifier"]
 	path = libs/circifier
-	url = ../../NilFoundation/zkllvm-circifier.git
+	url = https://github.com/NilFoundation/zkllvm-circifier.git
 [submodule "zkllvm-blueprint"]
 	path = libs/blueprint
-	url = ../../NilFoundation/zkllvm-blueprint.git
-[submodule "libs/stdlib"]
+	url = https://github.com/NilFoundation/zkllvm-blueprint.git
+[submodule "libs/zkllvm-stdlib"]
 	path = libs/stdlib
-	url = ../../NilFoundation/zkllvm-stdlib.git
-[submodule "libs/transpiler"]
+	url = https://github.com/NilFoundation/zkllvm-stdlib.git
+[submodule "libs/zkllvm-transpiler"]
 	path = libs/transpiler
-	url = ../../NilFoundation/zkllvm-transpiler.git
-[submodule "libs/rslang"]
+	url = https://github.com/NilFoundation/zkllvm-transpiler.git
+[submodule "libs/zkllvm-rslang"]
 	path = libs/rslang
-	url = ../../NilFoundation/zkllvm-rslang.git
+	url = https://github.com/NilFoundation/zkllvm-rslang.git
 [submodule "libs/crypto3"]
 	path = libs/crypto3
-	url = ../../NilFoundation/crypto3.git
+	url = https://github.com/NilFoundation/crypto3.git
