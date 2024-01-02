@@ -105,13 +105,13 @@ void print_hex_byteblob(std::ostream &os, TIter iter_begin, TIter iter_end, bool
     }
 }
 
-template<typename Endianness, typename Proof>
-void proof_print(Proof &proof, const std::string &output_file) {
+template<typename Endianness, typename Proof, typename CommitmentParamsType>
+void proof_print(Proof &proof, const CommitmentParamsType& commitment_params, const std::string &output_file) {
     using namespace nil::crypto3::marshalling;
 
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using proof_marshalling_type = nil::crypto3::zk::snark::placeholder_proof<TTypeBase, Proof>;
-    auto filled_placeholder_proof = types::fill_placeholder_proof<Endianness, Proof>(proof);
+    auto filled_placeholder_proof = types::fill_placeholder_proof<Endianness, Proof>(proof, commitment_params);
 
     std::vector<std::uint8_t> cv;
     cv.resize(filled_placeholder_proof.length(), 0x00);
@@ -513,9 +513,7 @@ int curve_dependent_main(
 
             std::string proof_path = output_folder_path + "/proof.bin";
             std::cout << "Writing proof to " << proof_path << "..." << std::endl;
-            auto filled_placeholder_proof =
-                nil::crypto3::marshalling::types::fill_placeholder_proof<Endianness, ProofType>(proof);
-            proof_print<Endianness, ProofType>(proof, proof_path);
+            proof_print<Endianness, ProofType>(proof, fri_params, proof_path);
             std::cout << "Proof written" << std::endl;
         }
         return 0;
