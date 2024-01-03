@@ -122,6 +122,91 @@ void proof_print(Proof &proof, const CommitmentParamsType& commitment_params, co
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 
+struct ParametersPolicy {
+    constexpr static const std::size_t WitnessColumns =
+#ifdef TRANSPILER_WITNESS_COLUMNS
+    TRANSPILER_WITNESS_COLUMNS;
+#else
+    15;
+#endif
+#undef TRANSPILER_WITNESS_COLUMNS
+
+    constexpr static const std::size_t PublicInputColumns =
+#ifdef TRANSPILER_PUBLIC_INPUT_COLUMNS
+    TRANSPILER_PUBLIC_INPUT_COLUMNS;
+#else
+    1;
+#endif
+#undef TRANSPILER_PUBLIC_INPUT_COLUMNS
+
+    constexpr static const std::size_t ConstantColumns =
+#ifdef TRANSPILER_CONSTANT_COLUMNS
+    TRANSPILER_CONSTANT_COLUMNS;
+#else
+    35;
+#endif
+#undef TRANSPILER_CONSTANT_COLUMNS
+
+    constexpr static const std::size_t SelectorColumns =
+#ifdef TRANSPILER_SELECTOR_COLUMNS
+    TRANSPILER_SELECTOR_COLUMNS;
+#else
+    36;
+#endif
+#undef TRANSPILER_SELECTOR_COLUMNS
+
+    constexpr static const std::size_t lambda =
+#ifdef TRANSPILER_LAMBDA
+    TRANSPILER_LAMBDA;
+#else
+    9;
+#endif
+#undef TRANSPILER_LAMBDA
+
+    constexpr static const bool UseGrinding =
+#ifdef TRANSPILER_GRINDING_BITS
+    true;
+#else
+    false;
+#endif
+
+    constexpr static const std::size_t GrindingBits =
+#ifdef TRANSPILER_GRINDING_BITS
+    TRANSPILER_GRINDING_BITS;
+#else
+    0xFF;
+#endif
+
+#undef TRANSPILER_GRINDING_BITS
+
+#define SHA256 0
+#define SHA512 1
+#define SHA3 2
+#define KECCAK 3
+#define POSEIDON 4
+
+private:
+    using default_hash = nil::crypto3::hashes::keccak_1600<256>;
+public:
+#if  TRANSPILER_HASH == SHA256
+    BOOST_STATIC_ASSERT_MSG(false, "SHA256 is not supported in EVM verifier");
+#elif TRANSPILER_HASH == SHA512
+    BOOST_STATIC_ASSERT_MSG(false, "SHA512 is not supported in EVM verifier");
+#elif TRANSPILER_HASH == SHA3
+    BOOST_STATIC_ASSERT_MSG(false, "SHA3 is not supported in EVM verifier");
+#elif TRANSPILER_HASH == POSEIDON
+    BOOST_STATIC_ASSERT_MSG(false, "Poseidon is not supported in EVM verifier");
+#endif
+    using hash =default_hash;
+
+#undef TRANSPILER_HASH
+#undef SHA256
+#undef SHA512
+#undef SHA3
+#undef KECCAK
+#undef POSEIDON
+};
+
 template<typename BlueprintFieldType, bool multiprover>
 int curve_dependent_main(
     boost::program_options::options_description options_desc,
@@ -285,10 +370,10 @@ int curve_dependent_main(
         return 1;
     }
 
-    constexpr std::size_t WitnessColumns = 15;
-    constexpr std::size_t PublicInputColumns = is_multi_prover ? 2 : 1;
-    constexpr std::size_t ConstantColumns = 35;
-    constexpr std::size_t SelectorColumns = 36;
+    constexpr std::size_t WitnessColumns = ParametersPolicy::WitnessColumns;
+    constexpr std::size_t PublicInputColumns = is_multi_prover ? ParametersPolicy::PublicInputColumns : ParametersPolicy::PublicInputColumns + 1;
+    constexpr std::size_t ConstantColumns = ParametersPolicy::ConstantColumns;
+    constexpr std::size_t SelectorColumns = ParametersPolicy::SelectorColumns;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -380,7 +465,7 @@ int curve_dependent_main(
 
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
-    const std::size_t Lambda = 9;
+    const std::size_t Lambda = ParametersPolicy::lambda;
     using Hash = nil::crypto3::hashes::keccak_1600<256>;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
         BlueprintFieldType, ArithmetizationParams

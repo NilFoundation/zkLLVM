@@ -427,8 +427,10 @@ struct ParametersPolicy {
     36;
 #endif
 #undef ASSIGNER_SELECTOR_COLUMNS
+/*
+Assigner doesn't use hashes, lambdas and grinding.
 
-    constexpr static const std::size_t lambda =
+   constexpr static const std::size_t lambda =
 #ifdef ASSIGNER_LAMBDA
     ASSIGNER_LAMBDA;
 #else
@@ -447,13 +449,13 @@ struct ParametersPolicy {
 #define SHA256 0
 #define SHA512 1
 #define SHA3 2
-#define KECCAK 2
-#define POSEIDON 3
+#define KECCAK 3
+#define POSEIDON 4
 
 private:
     using default_hash = crypto3::hashes::sha2<256>;
 public:
-    using hash = 
+    using hash =
 #if ASSIGNER_HASH == SHA256
     crypto3::hashes::sha2<256>;
 #elif ASSIGNER_HASH == POSEIDON
@@ -468,7 +470,7 @@ public:
 #undef SHA3
 #undef KECCAK
 #undef POSEIDON
-
+*/
 };
 
 template<typename BlueprintFieldType>
