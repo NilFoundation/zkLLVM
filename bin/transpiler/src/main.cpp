@@ -139,21 +139,37 @@ struct ParametersPolicy {
 #endif
 #undef TRANSPILER_PUBLIC_INPUT_COLUMNS
 
-    constexpr static const std::size_t ConstantColumns =
-#ifdef TRANSPILER_CONSTANT_COLUMNS
-    TRANSPILER_CONSTANT_COLUMNS;
+    constexpr static const std::size_t ComponentConstantColumns =
+#ifdef TRANSPILER_COMPONENT_CONSTANT_COLUMNS
+    TRANSPILER_COMPONENT_CONSTANT_COLUMNS;
 #else
-    35;
+    5;
 #endif
-#undef TRANSPILER_CONSTANT_COLUMNS
+#undef TRANSPILER_COMPONENT_CONSTANT_COLUMNS
 
-    constexpr static const std::size_t SelectorColumns =
-#ifdef TRANSPILER_SELECTOR_COLUMNS
-    TRANSPILER_SELECTOR_COLUMNS;
+    constexpr static const std::size_t LookupConstantColumns =
+#ifdef TRANSPILER_LOOKUP_CONSTANT_COLUMNS
+    TRANSPILER_LOOKUP_CONSTANT_COLUMNS;
 #else
-    36;
+    0;
 #endif
-#undef TRANSPILER_SELECTOR_COLUMNS
+#undef TRANSPILER_LOOKUP_CONSTANT_COLUMNS
+
+    constexpr static const std::size_t ComponentSelectorColumns =
+#ifdef TRANSPILER_COMPONENT_SELECTOR_COLUMNS
+    TRANSPILER_COMPONENT_SELECTOR_COLUMNS;
+#else
+    30;
+#endif
+#undef TRANSPILER_COMPONENT_SELECTOR_COLUMNS
+
+    constexpr static const std::size_t LookupSelectorColumns =
+#ifdef TRANSPILER_LOOKUP_SELECTOR_COLUMNS
+    TRANSPILER_LOOKUP_SELECTOR_COLUMNS;
+#else
+    0;
+#endif
+#undef TRANSPILER_LOOKUP_SELECTOR_COLUMNS
 
     constexpr static const std::size_t lambda =
 #ifdef TRANSPILER_LAMBDA
@@ -374,8 +390,8 @@ int curve_dependent_main(
 
     constexpr std::size_t WitnessColumns = ParametersPolicy::WitnessColumns;
     constexpr std::size_t PublicInputColumns = is_multi_prover ? ParametersPolicy::PublicInputColumns + 1 : ParametersPolicy::PublicInputColumns;
-    constexpr std::size_t ConstantColumns = ParametersPolicy::ConstantColumns;
-    constexpr std::size_t SelectorColumns = ParametersPolicy::SelectorColumns;
+    constexpr std::size_t ConstantColumns = ParametersPolicy::ComponentConstantColumns + ParametersPolicy::LookupConstantColumns;;
+    constexpr std::size_t SelectorColumns = ParametersPolicy::ComponentSelectorColumns + ParametersPolicy::LookupSelectorColumns;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -488,7 +504,7 @@ int curve_dependent_main(
 
     auto fri_params = create_fri_params<typename lpc_type::fri_type, BlueprintFieldType>(table_rows_log);
     std::size_t permutation_size =
-        table_description.witness_columns + table_description.public_input_columns + table_description.constant_columns;
+        table_description.witness_columns + table_description.public_input_columns + ParametersPolicy::ComponentConstantColumns;
     lpc_scheme_type lpc_scheme(fri_params);
 
 
