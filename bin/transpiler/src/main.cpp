@@ -174,7 +174,7 @@ struct ParametersPolicy {
 #ifdef TRANSPILER_GRINDING_BITS
     TRANSPILER_GRINDING_BITS;
 #else
-    0xFF;
+    0x0;
 #endif
 
 #undef TRANSPILER_GRINDING_BITS
@@ -188,6 +188,7 @@ struct ParametersPolicy {
 private:
     using default_hash = nil::crypto3::hashes::keccak_1600<256>;
 public:
+#ifdef TRANSPILER_HASH
 #if  TRANSPILER_HASH == SHA256
     BOOST_STATIC_ASSERT_MSG(false, "SHA256 is not supported in EVM verifier");
 #elif TRANSPILER_HASH == SHA512
@@ -196,6 +197,7 @@ public:
     BOOST_STATIC_ASSERT_MSG(false, "SHA3 is not supported in EVM verifier");
 #elif TRANSPILER_HASH == POSEIDON
     BOOST_STATIC_ASSERT_MSG(false, "Poseidon is not supported in EVM verifier");
+#endif
 #endif
     using hash =default_hash;
 
@@ -371,7 +373,7 @@ int curve_dependent_main(
     }
 
     constexpr std::size_t WitnessColumns = ParametersPolicy::WitnessColumns;
-    constexpr std::size_t PublicInputColumns = is_multi_prover ? ParametersPolicy::PublicInputColumns : ParametersPolicy::PublicInputColumns + 1;
+    constexpr std::size_t PublicInputColumns = is_multi_prover ? ParametersPolicy::PublicInputColumns + 1 : ParametersPolicy::PublicInputColumns;
     constexpr std::size_t ConstantColumns = ParametersPolicy::ConstantColumns;
     constexpr std::size_t SelectorColumns = ParametersPolicy::SelectorColumns;
 
@@ -465,13 +467,14 @@ int curve_dependent_main(
 
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
-    const std::size_t Lambda = ParametersPolicy::lambda;
+    const std::size_t Lambda = 9;//ParametersPolicy::lambda;
     using Hash = nil::crypto3::hashes::keccak_1600<256>;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
         BlueprintFieldType, ArithmetizationParams
     >;
 
     std::size_t table_rows_log = std::ceil(std::log2(table_description.rows_amount));
+
     using lpc_params_type = nil::crypto3::zk::commitments::list_polynomial_commitment_params<
         Hash,
         Hash,
@@ -581,8 +584,8 @@ int curve_dependent_main(
             std::cout << "Generating proof..." << std::endl;
             using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
             ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
-                public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
-                lpc_scheme);
+                public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, lpc_scheme
+            );
             std::cout << "Proof generated" << std::endl;
 
             if( !vm.count("skip-verification") ) {
