@@ -195,11 +195,11 @@ struct ParametersPolicy {
 
 #undef TRANSPILER_GRINDING_BITS
 
-#define SHA256 0
-#define SHA512 1
-#define SHA3 2
-#define KECCAK 3
-#define POSEIDON 4
+#define SHA256 1
+#define SHA512 2
+#define SHA3 3
+#define KECCAK 4
+#define POSEIDON 5
 
 private:
     using default_hash = nil::crypto3::hashes::keccak_1600<256>;
@@ -392,6 +392,10 @@ int curve_dependent_main(
     constexpr std::size_t PublicInputColumns = is_multi_prover ? ParametersPolicy::PublicInputColumns + 1 : ParametersPolicy::PublicInputColumns;
     constexpr std::size_t ConstantColumns = ParametersPolicy::ComponentConstantColumns + ParametersPolicy::LookupConstantColumns;;
     constexpr std::size_t SelectorColumns = ParametersPolicy::ComponentSelectorColumns + ParametersPolicy::LookupSelectorColumns;
+    std::cout << "WitnessColumns: " << WitnessColumns << std::endl;
+    std::cout << "PublicInputColumns: " << PublicInputColumns << std::endl;
+    std::cout << "ConstantColumns: " << ConstantColumns << "; LookupConstantColumns: " << ParametersPolicy::LookupConstantColumns << std::endl;
+    std::cout << "SelectorColumns: " << SelectorColumns << "; LookupSelectorColumns: " << ParametersPolicy::LookupSelectorColumns  << std::endl;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
