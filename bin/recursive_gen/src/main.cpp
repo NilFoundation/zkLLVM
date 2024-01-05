@@ -160,30 +160,6 @@ public:
 #undef POSEIDON
 };
 
-bool read_buffer_from_file(std::ifstream &ifile, std::vector<std::uint8_t> &v) {
-    char c;
-    char c1;
-    uint8_t b;
-
-    ifile >> c;
-    if (c != '0')
-        return false;
-    ifile >> c;
-    if (c != 'x')
-        return false;
-    while (ifile) {
-        std::string str = "";
-        ifile >> c >> c1;
-        if (!isxdigit(c) || !isxdigit(c1))
-            return false;
-        str += c;
-        str += c1;
-        b = stoi(str, 0, 0x10);
-        v.push_back(b);
-    }
-    return true;
-}
-
 template<typename ProfilingType, typename ConstraintSystemType, typename ColumnsRotationsType,
          typename ArithmetizationParams>
 void print_sol_files(ConstraintSystemType &constraint_system, ColumnsRotationsType &columns_rotations,
@@ -261,6 +237,12 @@ void proof_print(Proof &proof, const std::string &output_file) {
     print_hex_byteblob(out, cv.cbegin(), cv.cend(), false);
 }
 */
+template<typename BlueprintFieldType, bool multiprover>
+int curve_dependent_main(
+    boost::program_options::options_description options_desc,
+    boost::program_options::variables_map vm
+);
+
 int main(int argc, char *argv[]) {
 
     boost::program_options::options_description options_desc("zkLLVM recursive verifier generator");
@@ -277,14 +259,67 @@ int main(int argc, char *argv[]) {
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
             ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
-            ;
-    // clang-format on
+            ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster paralel proving")
+            ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)");
 
+    // clang-format on
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(),
                                   vm);
     boost::program_options::notify(vm);
 
+    std::string elliptic_curve;
+
+    if (vm.count("elliptic-curve-type")) {
+        elliptic_curve = vm["elliptic-curve-type"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - elliptic curve type is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    std::map<std::string, int> curve_options{
+        {"pallas", 0},
+        {"vesta", 1},
+        {"ed25519", 2},
+        {"bls12381", 3},
+    };
+
+    if (curve_options.find(elliptic_curve) == curve_options.end()) {
+        std::cerr << "Invalid command line argument -e (Native elliptic curve type): " << elliptic_curve << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+
+    switch (curve_options[elliptic_curve]) {
+        case 0: {
+            using curve_type = nil::crypto3::algebra::curves::pallas;
+            using BlueprintFieldType = typename curve_type::base_field_type;
+            return (vm.count("multi-prover") > 0) ?
+                curve_dependent_main<BlueprintFieldType, true>(options_desc, vm) :
+                curve_dependent_main<BlueprintFieldType, false>(options_desc, vm);
+            break;
+        }
+        case 1: {
+            UNREACHABLE("vesta curve based circuits are not supported yet");
+            break;
+        }
+        case 2: {
+            UNREACHABLE("ed25519 curve based circuits are not supported yet");
+            break;
+        }
+        case 3: {
+            UNREACHABLE("bls12381 curve based circuits are not supported yet");
+            break;
+        }
+    };
+}
+
+template<typename BlueprintFieldType, bool is_multi_prover>
+int curve_dependent_main(
+    boost::program_options::options_description options_desc,
+    boost::program_options::variables_map vm
+) {
     if (vm.count("help")) {
         std::cout << options_desc << std::endl;
         return 0;
@@ -350,8 +385,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    using curve_type = nil::crypto3::algebra::curves::pallas;
-    using BlueprintFieldType = typename curve_type::base_field_type;
     using parameters_policy = ParametersPolicy<BlueprintFieldType>;
     constexpr std::size_t WitnessColumns = parameters_policy::WitnessColumns;
     constexpr std::size_t PublicInputColumns = parameters_policy::PublicInputColumns;//is_multi_prover? parameters_policy::PublicInputColumns + 1: parameters_policy::PublicInputColumns;
@@ -399,13 +432,18 @@ int main(int argc, char *argv[]) {
     ConstraintSystemType constraint_system;
     {
         std::ifstream ifile;
-        ifile.open(circuit_file_name);
+        ifile.open(circuit_file_name, std::ios_base::binary | std::ios_base::in);
         if (!ifile.is_open()) {
             std::cout << "Cannot find input file " << circuit_file_name << std::endl;
             return 1;
         }
         std::vector<std::uint8_t> v;
-        if (!read_buffer_from_file(ifile, v)) {
+        ifile.seekg(0, std::ios_base::end);
+        const auto fsize = ifile.tellg();
+        v.resize(fsize);
+        ifile.seekg(0, std::ios_base::beg);
+        ifile.read(reinterpret_cast<char*>(v.data()), fsize);
+        if (!ifile) {
             std::cout << "Cannot parse input file " << circuit_file_name << std::endl;
             return 1;
         }
@@ -423,13 +461,18 @@ int main(int argc, char *argv[]) {
     AssignmentTableType assignment_table;
     {
         std::ifstream iassignment;
-        iassignment.open(assignment_table_file_name);
+        iassignment.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
         if (!iassignment) {
             std::cout << "Cannot open " << assignment_table_file_name << std::endl;
             return 1;
         }
         std::vector<std::uint8_t> v;
-        if (!read_buffer_from_file(iassignment, v)) {
+        iassignment.seekg(0, std::ios_base::end);
+        const auto fsize = iassignment.tellg();
+        v.resize(fsize);
+        iassignment.seekg(0, std::ios_base::beg);
+        iassignment.read(reinterpret_cast<char*>(v.data()), fsize);
+        if (!iassignment) {
             std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
             return 1;
         }
@@ -442,13 +485,11 @@ int main(int argc, char *argv[]) {
                 marshalled_table_data
             );
         table_description.rows_amount = assignment_table.rows_amount();
-        std::cout << "usable rows amount = " << table_description.usable_rows_amount << std::endl;
-        std::cout << "rows amount = " << table_description.rows_amount << std::endl;
     }
     auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
 
     const std::size_t Lambda = parameters_policy::lambda;
-    using Hash = parameters_policy::hash;
+    using Hash = typename parameters_policy::hash;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
         BlueprintFieldType, ArithmetizationParams
     >;
