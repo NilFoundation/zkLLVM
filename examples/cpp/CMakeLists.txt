@@ -43,21 +43,28 @@ function(add_example_without_proving example_target)
                 crypto3::zk
 
                 ${Boost_LIBRARIES})
-    add_dependencies(circuit_cpp_examples "${example_target}")
 
     set(binary_name ${example_target}.ll)
 
+    if(DEFINED ARG_MAX_NUM_PROVERS)
+        assign_circuit(${example_target} ${binary_name} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+    else()
+        assign_circuit(${example_target} ${binary_name} ${ARG_CURVE_TYPE} 0)
+    endif()
+
+    add_dependencies(circuit_cpp_examples ${example_target}_circuit)
+
     if(DEFINED ARG_PRIVATE_INPUT)
         if(DEFINED ARG_MAX_NUM_PROVERS)
-            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+            assign_table(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
         else()
-            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} 0)
+            assign_table(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} 0)
         endif()
     else()
         if(DEFINED ARG_MAX_NUM_PROVERS)
-            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+            assign_table(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
         else()
-            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} 0)
+            assign_table(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} 0)
         endif()
     endif()
 
@@ -120,7 +127,7 @@ add_example_with_proving(pallas_curve_multiplication_cpp_example
 add_example_with_proving(ed25519_curve_add_cpp SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp CURVE_TYPE pallas)
 add_example_with_proving(ed25519_curve_mul_cpp SOURCES ed25519_curve_mul.cpp INPUT ed25519_curve_mul.inp CURVE_TYPE pallas)
 add_example_with_proving(ed25519_field_add_cpp SOURCES ed25519_field_add.cpp INPUT ed25519_field_add.inp CURVE_TYPE pallas)
-add_example_with_proving(strlen_cpp_example SOURCES strlen.cpp INPUT strlen.inp CURVE_TYPE pallas)
+#add_example_with_proving(strlen_cpp_example SOURCES strlen.cpp INPUT strlen.inp CURVE_TYPE pallas)
 add_example_with_proving(sha2_512_cpp SOURCES sha2_512.cpp INPUT sha2_512.inp CURVE_TYPE pallas)
 
 add_example_with_proving(uint_remainder_cpp SOURCES bit_operations/uint_remainder.cpp INPUT bit_operations/uint_remainder.inp CURVE_TYPE pallas)

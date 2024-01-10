@@ -1,5 +1,52 @@
 set(INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inputs)
 
+# generate circuit
+function(assign_circuit target binary_name curve_type max_num_provers_amount)
+
+    if(NOT max_num_provers_amount EQUAL 0)
+        set(max_num_provers_flag --max-num-provers)
+        set(max_num_provers_amount ${max_num_provers_amount})
+    endif()
+
+    add_custom_target(${target}_circuit
+            COMMAND $<TARGET_FILE:assigner>
+            -b ${binary_name}
+            -c circuit_${target}.crct
+            -e ${curve_type}
+            --generate-type circuit
+            ${max_num_provers_flag} ${max_num_provers_amount}
+            DEPENDS ${target} $<TARGET_FILE:assigner>
+            COMMAND_EXPAND_LISTS
+            VERBATIM)
+endfunction()
+
+#generate assignment table
+function(assign_table target binary_name input private_input curve_type max_num_provers_amount)
+
+    if(NOT max_num_provers_amount EQUAL 0)
+        set(max_num_provers_flag --max-num-provers)
+        set(max_num_provers_amount ${max_num_provers_amount})
+    endif()
+
+    if(NOT private_input STREQUAL "")
+        set (minus_p -p)
+        set(private_input_string ${INPUTS_DIR}/${private_input})
+    endif()
+
+    add_custom_target(${target}_assign
+            COMMAND $<TARGET_FILE:assigner>
+            -b ${binary_name}
+            -i ${INPUTS_DIR}/${input}
+            ${minus_p} ${private_input_string}
+            -t assignment_${target}.tbl -e ${curve_type} --check
+            --generate-type assignment
+            ${max_num_provers_flag} ${max_num_provers_amount}
+            DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
+            COMMAND_EXPAND_LISTS
+            VERBATIM)
+endfunction()
+
+#generate assignment table and circuit
 function(assign_ir target binary_name input private_input curve_type max_num_provers_amount)
 
     if(NOT max_num_provers_amount EQUAL 0)
@@ -19,6 +66,7 @@ function(assign_ir target binary_name input private_input curve_type max_num_pro
             ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
             -t assignment_${target}.tbl -e ${curve_type} --check
+            --generate-type circuit-assignment
             ${max_num_provers_flag} ${max_num_provers_amount}
         DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
         COMMAND_EXPAND_LISTS
@@ -58,7 +106,7 @@ function(gen_single_proof target input curve_type provers_amount)
             -o transpiler_output_${target}${prover_num}
             -e ${curve_type}
             ${multi_prover_flag}
-            DEPENDS ${target}_assign $<TARGET_FILE:transpiler>
+            DEPENDS ${target}_assign ${target}_circuit $<TARGET_FILE:transpiler>
         COMMAND_EXPAND_LISTS
         VERBATIM)
 endfunction()

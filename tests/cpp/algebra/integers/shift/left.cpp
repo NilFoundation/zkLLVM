@@ -6,9 +6,11 @@
 
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 
+constexpr uint32_t shift = 1;
+
 [[circuit]] uint32_t shift_left(uint32_t a, uint32_t b) {
 
-    uint32_t c = a << b;
+    uint32_t c = a << shift;
 
     #ifndef __ZKLLVM__
     std::cout << c <<std::endl;

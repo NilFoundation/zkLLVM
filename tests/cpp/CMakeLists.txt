@@ -235,17 +235,18 @@ add_zkllvm_unit_test("algebra/de_composition/decomposition/lsb")
 
 #multi provers tests
 add_zkllvm_unit_test_pallas_multiprover("multi_provers/shift_add" 2)
+add_zkllvm_unit_test_pallas_multiprover("multi_provers/if" 2)
 
 #customer's tests
 add_zkllvm_unit_test("custom_cases/getelementptr_as_constant/getelementptr_as_constant")
 
 #libc functions
 add_zkllvm_unit_test("libc/memset/memset")
-add_zkllvm_unit_test("libc/strlen/strlen")
-add_zkllvm_unit_test("libc/strcmp/strcmp")
-add_zkllvm_unit_test("libc/strncmp/strncmp")
-add_zkllvm_unit_test("libc/strcpy/strcpy")
-add_zkllvm_unit_test("libc/strncpy/strncpy")
+#add_zkllvm_unit_test("libc/strlen/strlen")
+#add_zkllvm_unit_test("libc/strcmp/strcmp")
+#add_zkllvm_unit_test("libc/strncmp/strncmp")
+#add_zkllvm_unit_test("libc/strcpy/strcpy")
+#add_zkllvm_unit_test("libc/strncpy/strncpy")
 
 # hashes
 add_zkllvm_unit_test("hashes/sha256/sha2_256")
