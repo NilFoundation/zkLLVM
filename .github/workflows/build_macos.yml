@@ -44,6 +44,9 @@ jobs:
             cmake \
             ninja \
             icu4c \
+            libiconv \
+            openssl \
+            curl \
             bash
 
       - name: Install Python
@@ -98,6 +101,7 @@ jobs:
             -B build \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=FALSE \
             -DBUILD_TESTS=TRUE .
 
       - name: Build zkllvm
@@ -149,3 +153,20 @@ jobs:
       - name: Build proof for the circuit of the C++ examples
         run: |
           cmake --build build -t prove_cpp_examples
+
+      - name: Build rslang
+        run: |
+          cmake --build build -t rslang
+
+      - name: Build IRs of the Rust examples
+        run: |
+          cmake --build build -t circuit_rust_examples
+          ls -al ./build/examples/rust/target/assigner-unknown-unknown/release/examples
+
+      - name: Build circuits and assignments of the Rust examples
+        run: |
+          cmake --build build -t assign_rust_examples
+
+      - name: Build proofs for the circuits of the Rust examples
+        run: |
+          cmake --build build -t prove_rust_examples
