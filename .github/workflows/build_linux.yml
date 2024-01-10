@@ -6,9 +6,10 @@ on:
   pull_request:
 
 concurrency:
+  # In master we want to run for every commit, in other branches — only for the last one
   group: ${{
     ( github.ref == 'refs/heads/master' &&
-    format('{0}/{1}', github.run_id, github.run_attempt) )
+    format('{0}/{1}/{2}', github.workflow, github.ref, github.sha) )
     ||
     format('{0}/{1}', github.workflow, github.ref) }}
   cancel-in-progress: true
@@ -27,6 +28,10 @@ jobs:
     runs-on: [ self-hosted, Linux, X64, aws_autoscaling ]
     needs:
       - handle-syncwith
+    # Condition is needed to run it for push event (handle-syncwith is skipped)
+    if: |
+      always() && !cancelled() &&
+      (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped')
     outputs:
       transpiler-artifact-name: ${{ steps.artifact-names.outputs.transpiler }}
       examples-artifact-name: ${{ steps.artifact-names.outputs.examples }}
@@ -260,6 +265,10 @@ jobs:
     needs:
       - build-and-test-linux
       - handle-syncwith
+    if: |
+      always() && !cancelled() &&
+      (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
+      needs.build-and-test-linux.result == 'success'
     uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@5bb7c4b0790f56b3a339e33ba442816fac17ab88
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
@@ -273,6 +282,10 @@ jobs:
     needs:
       - build-and-test-linux
       - handle-syncwith
+    if: |
+      always() && !cancelled() &&
+      (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
+      needs.build-and-test-linux.result == 'success'
     uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@af67299b6f1ae991c3295b9eb062601f401a6f86
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
@@ -287,6 +300,10 @@ jobs:
     needs:
       - generate-proofs
       - build-and-test-linux
+    if: |
+      always() && !cancelled() &&
+      needs.generate-proofs.result == 'success' &&
+      needs.build-and-test-linux.result == 'success'
     outputs:
       merged-artifact-name: ${{ steps.artifact-name.outputs.merged }}
     steps:
@@ -342,6 +359,11 @@ jobs:
       - handle-syncwith
       - merge-proofs-to-transpiler-output
       - build-and-test-linux
+    if: |
+      always() && !cancelled() &&
+      (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
+      needs.build-and-test-linux.result == 'success' &&
+      needs.merge-proofs-to-transpiler-output.result == 'success'
     uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@5bb7c4b0790f56b3a339e33ba442816fac17ab88
     with:
       artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
@@ -359,11 +381,11 @@ jobs:
       - merge-proofs-to-transpiler-output
       - build-and-test-linux
       - generate-proofs
+    if: always()
     runs-on: ubuntu-22.04
     steps:
       - uses: geekyeggo/delete-artifact@v2
         with:
-            name: |
-              ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
-              ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
-              ${{ needs.generate-proofs.outputs.artifact-name }}
+          name: |
+            ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
+            ${{ needs.generate-proofs.outputs.artifact-name }}
