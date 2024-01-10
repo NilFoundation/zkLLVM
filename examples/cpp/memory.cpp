@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 int global = 5;
+constexpr int num_elems = 3;
 
 struct __attribute__((packed)) chain {
     int val;
@@ -9,7 +10,7 @@ struct __attribute__((packed)) chain {
 
 int sum(chain *elem) {
     int sum = 0;
-    while (elem != nullptr) {
+    for (int i = 0; i < num_elems; ++i) {
         sum += elem->val;
         elem = elem->next;
     }
@@ -17,7 +18,7 @@ int sum(chain *elem) {
 }
 
 void free_list(chain *list) {
-    while (list != nullptr) {
+    for (int i = 0; i < num_elems; ++i) {
         chain *cur = list;
         list = list->next;
         free(cur);
@@ -25,7 +26,6 @@ void free_list(chain *list) {
 }
 
 [[circuit]] int list_demo(__zkllvm_field_pallas_base unused) {
-    const int num_elems = 3;
     chain *list = (chain *)malloc(sizeof(chain));
     chain *iter = list;
     for (int i = 0; i < num_elems; ++i) {

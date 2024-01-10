@@ -108,7 +108,7 @@ jobs:
         run: |
           cmake --build build -t assigner clang transpiler
 
-      - name: Build IR of the C++ examples
+      - name: Build IR and circuit of the C++ examples
         run: |
           cmake --build build -t circuit_cpp_examples
           ls -al ./build/examples/cpp

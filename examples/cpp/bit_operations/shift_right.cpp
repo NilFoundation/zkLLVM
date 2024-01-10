@@ -1,7 +1,8 @@
 #include <cstdint>
 
-[[circuit]] uint32_t lshr(uint32_t a,
-                             uint32_t b) {
+constexpr uint32_t shift = 5;
 
-    return a >> b; // lshr
+[[circuit]] uint32_t lshr(uint32_t a) {
+
+    return a >> shift; // lshr
 }

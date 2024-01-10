@@ -48,7 +48,6 @@ jobs:
         polynomial_cpp_example
         poseidon_cpp_example
         merkle_tree_poseidon_cpp_example
-        strlen_cpp_example
         uint_remainder_cpp
         uint_shift_left
         uint_bit_decomposition
@@ -152,12 +151,12 @@ jobs:
         run: |
           cmake --build build -t assigner clang transpiler
 
-      - name: Build IR of the C++ examples
+      - name: Build IR and circuit of the C++ examples
         run: |
           cmake --build build -t circuit_cpp_examples
           ls -al ./build/examples/cpp
 
-      - name: Build circuit and assigner of the C++ examples
+      - name: Build assigner of the C++ examples
         run: |
           cmake --build build -t assign_cpp_examples
 
