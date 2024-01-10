@@ -288,7 +288,7 @@ int curve_dependent_main(
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = is_multi_prover ? 2 : 1;
     constexpr std::size_t ConstantColumns = 35;
-    constexpr std::size_t SelectorColumns = 36;
+    constexpr std::size_t SelectorColumns = 56;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,

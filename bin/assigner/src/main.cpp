@@ -402,19 +402,20 @@ int curve_dependent_main(std::string bytecode_file_name,
                           bool check_validity,
                           boost::log::trivial::severity_level log_level,
                           const std::string &policy,
+                          const std::string &generate_type,
                           std::uint32_t max_num_provers,
                           std::uint32_t target_prover,
                           nil::blueprint::print_format circuit_output_print_format) {
 
     constexpr std::size_t ComponentConstantColumns = 5;
     constexpr std::size_t LookupConstantColumns = 30;
-    constexpr std::size_t ComponentSelectorColumns = 30;
-    constexpr std::size_t LookupSelectorConstantColumns = 6;
+    constexpr std::size_t ComponentSelectorColumns = 50;
+    constexpr std::size_t LookupSelectorColumns = 6;
 
     constexpr std::size_t WitnessColumns = 15;
     constexpr std::size_t PublicInputColumns = 1;
     constexpr std::size_t ConstantColumns = ComponentConstantColumns + LookupConstantColumns;
-    constexpr std::size_t SelectorColumns = ComponentSelectorColumns + LookupSelectorConstantColumns;
+    constexpr std::size_t SelectorColumns = ComponentSelectorColumns + LookupSelectorColumns;
 
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
@@ -444,6 +445,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         max_num_provers,
         target_prover,
         policy,
+        generate_type,
         circuit_output_print_format,
         check_validity
     );
@@ -453,7 +455,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    if (!parser_instance.evaluate(*module, public_input_json_value.as_array(), private_input_json_value.as_array())) {
+    if (!parser_instance.evaluate(*module, /*boost::json::array(), boost::json::array()*/public_input_json_value.as_array(), private_input_json_value.as_array())) {
         return 1;
     }
 
@@ -479,70 +481,101 @@ int curve_dependent_main(std::string bytecode_file_name,
         );
     }
 
+    /*std::cout << "run ref\n";
+    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance_ref(
+        stack_size,
+        log_level,
+        max_num_provers,
+        target_prover,
+        policy,
+        "circuit-assignment",
+        circuit_output_print_format,
+        check_validity
+    );
+    std::unique_ptr<llvm::Module> module_ref = parser_instance_ref.parseIRFile(bytecode_file_name.c_str());
+    if (module_ref == nullptr) {
+        return 1;
+    }
+    if (!parser_instance_ref.evaluate(*module, public_input_json_value.as_array(), private_input_json_value.as_array())) {
+        return 1;
+    }
+    if (!nil::blueprint::compare(parser_instance.circuits[0], parser_instance_ref.circuits[0])) {
+        return -1;
+    }*/
+
     constexpr std::uint32_t invalid_target_prover = std::numeric_limits<std::uint32_t>::max();
     // print assignment tables and circuits
     ASSERT_MSG(parser_instance.assignments.size() == parser_instance.circuits.size(), "Missmatch assignments circuits size");
     if (parser_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
         // print assignment table
-        std::ofstream otable;
-        otable.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
-        if (!otable) {
-            std::cout << "Something wrong with output " << assignment_table_file_name << std::endl;
-            return 1;
+        if (generate_type == "assignment" || generate_type == "circuit-assignment") {
+            std::ofstream otable;
+            otable.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+            if (!otable) {
+                std::cout << "Something wrong with output " << assignment_table_file_name << std::endl;
+                return 1;
+            }
+
+            //parser_instance.assignments[0].export_table(std::cout);
+            print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                parser_instance.assignments[0], print_table_kind::FULL, ComponentConstantColumns,
+                ComponentSelectorColumns, otable);
+
+            otable.close();
         }
 
-        print_assignment_table<
-            nil::marshalling::option::big_endian,
-            ArithmetizationType, BlueprintFieldType
-            >(parser_instance.assignments[0], print_table_kind::FULL, ComponentConstantColumns,
-              ComponentSelectorColumns, otable);
+        // print circuit
+        if (generate_type == "circuit" || generate_type == "circuit-assignment") {
+            std::ofstream ocircuit;
+            ocircuit.open(circuit_file_name, std::ios_base::binary | std::ios_base::out);
+            if (!ocircuit) {
+                std::cout << "Something wrong with output " << circuit_file_name << std::endl;
+                return 1;
+            }
 
-        otable.close();
-
-        // print assignment circuit
-        std::ofstream ocircuit;
-        ocircuit.open(circuit_file_name, std::ios_base::binary | std::ios_base::out);
-        if (!ocircuit) {
-            std::cout << "Something wrong with output " << circuit_file_name << std::endl;
-            return 1;
+            //parser_instance.circuits[0].export_circuit(std::cout);
+            print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
+                parser_instance.circuits[0], parser_instance.assignments[0], false, ocircuit);
+            ocircuit.close();
         }
-
-        print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
-            parser_instance.circuits[0], parser_instance.assignments[0], false, ocircuit);
-        ocircuit.close();
     } else if (parser_instance.assignments.size() > 1 &&
-               (target_prover < parser_instance.assignments.size() || invalid_target_prover == invalid_target_prover)) {
+               (target_prover < parser_instance.assignments.size() || target_prover == invalid_target_prover)) {
         std::uint32_t start_idx = (target_prover == invalid_target_prover) ? 0 : target_prover;
         std::uint32_t end_idx = (target_prover == invalid_target_prover) ? parser_instance.assignments.size() : target_prover + 1;
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
-            std::ofstream otable;
-            otable.open(assignment_table_file_name + std::to_string(idx), std::ios_base::binary | std::ios_base::out);
-            if (!otable) {
-                std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(idx) << std::endl;
-                return 1;
+            if (generate_type == "assignment" || generate_type == "circuit-assignment") {
+                std::ofstream otable;
+                otable.open(assignment_table_file_name + std::to_string(idx),
+                            std::ios_base::binary | std::ios_base::out);
+                if (!otable) {
+                    std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(idx)
+                              << std::endl;
+                    return 1;
+                }
+
+                print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                    parser_instance.assignments[idx], print_table_kind::PRIVATE, ComponentConstantColumns,
+                    ComponentSelectorColumns, otable);
+
+                otable.close();
             }
 
-            print_assignment_table<
-                nil::marshalling::option::big_endian,
-                ArithmetizationType, BlueprintFieldType
-                >(parser_instance.assignments[idx], print_table_kind::PRIVATE, ComponentConstantColumns, ComponentSelectorColumns, otable);
+            // print circuit
+            if (generate_type == "circuit" || generate_type == "circuit-assignment") {
+                std::ofstream ocircuit;
+                ocircuit.open(circuit_file_name + std::to_string(idx), std::ios_base::binary | std::ios_base::out);
+                if (!ocircuit) {
+                    std::cout << "Something wrong with output " << circuit_file_name + std::to_string(idx) << std::endl;
+                    return 1;
+                }
 
-            otable.close();
+                ASSERT_MSG(idx < parser_instance.circuits.size(), "Not found circuit");
+                print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
+                    parser_instance.circuits[idx], parser_instance.assignments[idx], (idx > 0), ocircuit);
 
-            // print assignment table
-            std::ofstream ocircuit;
-            ocircuit.open(circuit_file_name + std::to_string(idx), std::ios_base::binary | std::ios_base::out);
-            if (!ocircuit) {
-                std::cout << "Something wrong with output " << circuit_file_name + std::to_string(idx) << std::endl;
-                return 1;
+                ocircuit.close();
             }
-
-            ASSERT_MSG(idx < parser_instance.circuits.size(), "Not found circuit");
-            print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
-                parser_instance.circuits[idx], parser_instance.assignments[idx], (idx > 0), ocircuit);
-
-            ocircuit.close();
         }
     } else {
         std::cout << "No data for print: target prover " << target_prover << ", actual number of provers "
@@ -550,7 +583,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    if (check_validity){
+    if (check_validity && generate_type == "circuit-assignment"){
         if (parser_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
             ASSERT_MSG(nil::blueprint::is_satisfied(parser_instance.circuits[0].get(), parser_instance.assignments[0].get()),
                        "The circuit is not satisfied");
@@ -596,6 +629,7 @@ int main(int argc, char *argv[]) {
             ("print_circuit_output", "deprecated, use \"-f\" instead")
             ("print-circuit-output-format,f", boost::program_options::value<std::string>(), "print output of the circuit (dec, hex)")
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
+            ("generate-type", boost::program_options::value<std::string>(), "Define generated output. Possible values: circuit, assignment, circuit-assignment. Default value is circuit-assignment")
             ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
             ("target-prover", boost::program_options::value<int>(), "Assignment table and circuit will be generated only for defined prover. Possible values [0, max-num-provers)");
     // clang-format on
@@ -647,7 +681,17 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (!vm.count("public-input") && !vm.count("private-input")) {
+    std::string generate_type = "circuit-assignment";
+    if (vm.count("generate-type")) {
+        generate_type = vm["generate-type"].as<std::string>();
+        if (generate_type != "circuit-assignment" && generate_type != "circuit" && generate_type != "assignment") {
+            std::cerr << "Invalid command line argument - generate-type. " << generate_type << " is wrong value." << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
+    }
+
+    if (!vm.count("public-input") && !vm.count("private-input") && (generate_type != "circuit")) {
         std::cerr << "Both public and private input file names are not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -663,7 +707,7 @@ int main(int argc, char *argv[]) {
 
     if (vm.count("assignment-table")) {
         assignment_table_file_name = vm["assignment-table"].as<std::string>();
-    } else {
+    } else if (generate_type != "circuit") {
         std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -671,7 +715,7 @@ int main(int argc, char *argv[]) {
 
     if (vm.count("circuit")) {
         circuit_file_name = vm["circuit"].as<std::string>();
-    } else {
+    } else if (generate_type != "assignment"){
         std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -794,6 +838,7 @@ int main(int argc, char *argv[]) {
                                                                           vm.count("check"),
                                                                           log_options[log_level],
                                                                           policy,
+                                                                          generate_type,
                                                                           max_num_provers,
                                                                           target_prover,
                                                                           circuit_output_print_format);
@@ -818,6 +863,7 @@ int main(int argc, char *argv[]) {
                                                                           vm.count("check"),
                                                                           log_options[log_level],
                                                                           policy,
+                                                                          generate_type,
                                                                           max_num_provers,
                                                                           target_prover,
                                                                           circuit_output_print_format);
