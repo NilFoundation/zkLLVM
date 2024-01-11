@@ -8,9 +8,7 @@ fn fib100(a: PallasBase, b: PallasBase) -> PallasBase {
     let mut cur_target = b;
 
     for _ in 0..99 {
-        let temp = prev_target + cur_target;
-        prev_target = cur_target;
-        cur_target = temp;
+        (prev_target, cur_target) = (cur_target, prev_target + cur_target);
     }
 
     cur_target
