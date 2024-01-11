@@ -221,7 +221,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
             max_selector_size = std::max(max_selector_size, table_proxy.selector_column_size(i));
         }
         usable_rows_amount = std::max({max_witness_size, max_public_inputs_size, max_constant_size, max_selector_size});
-        std::cout << "usable_rows_amount: " << usable_rows_amount << std::endl;
+        //std::cout << "usable_rows_amount: " << usable_rows_amount << std::endl;
     }
 
     std::uint32_t padded_rows_amount = std::pow(2, std::ceil(std::log2(usable_rows_amount)));
@@ -469,11 +469,6 @@ int curve_dependent_main(std::string bytecode_file_name,
     constexpr std::size_t PublicInputColumns = ParametersPolicy::PublicInputColumns;
     constexpr std::size_t ConstantColumns = ComponentConstantColumns + LookupConstantColumns;
     constexpr std::size_t SelectorColumns = ComponentSelectorColumns + LookupSelectorColumns;
-
-    std::cout << "WitnessColumns: " << WitnessColumns << std::endl;
-    std::cout << "PublicInputColumns: " << PublicInputColumns << std::endl;
-    std::cout << "ConstantColumns: " << ConstantColumns << "; LookupConstantColumns: " << LookupConstantColumns <<  std::endl;
-    std::cout << "SelectorColumns: " << SelectorColumns << "; LookupSelectorColumns: " << LookupSelectorColumns << std::endl;
 
     using ArithmetizationParams =
         zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
