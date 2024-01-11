@@ -103,7 +103,7 @@ add_example_with_proving(merkle_poseidon_3provers_cpp_example SOURCES merkle_pos
 add_example_with_proving(merkle_poseidon_5provers_cpp_example SOURCES merkle_poseidon_5provers.cpp INPUT merkle_poseidon_5provers_public.inp PRIVATE_INPUT merkle_poseidon_5provers_private.inp CURVE_TYPE pallas MAX_NUM_PROVERS 5)
 add_example_with_proving(merkle_poseidon_21prover_3layers_cpp_example SOURCES merkle_poseidon_21prover_3layers.cpp INPUT merkle_poseidon_21prover_3layers_public.inp PRIVATE_INPUT merkle_poseidon_21prover_3layers_private.inp CURVE_TYPE pallas MAX_NUM_PROVERS 21)
 
-#add_example_without_proving(merkle_tree_sha2_256_cpp_example SOURCES merkle_tree_sha2_256.cpp INPUT merkle_tree_sha2_256.inp CURVE_TYPE pallas)
+add_example_without_proving(merkle_tree_sha2_256_cpp_example SOURCES merkle_tree_sha2_256.cpp INPUT merkle_tree_sha2_256.inp CURVE_TYPE pallas)
 add_example_without_proving(validate_merkle_path_sha2_256_cpp_example SOURCES validate_merkle_path_sha2_256.cpp INPUT validate_merkle_path_sha2_256.inp CURVE_TYPE pallas)
 add_example_without_proving(sha256_cpp_example SOURCES sha2_256.cpp INPUT sha2_256.inp CURVE_TYPE pallas)
 add_example_with_proving(balance_cpp_example SOURCES balance.cpp INPUT balance.inp CURVE_TYPE pallas)
@@ -139,7 +139,7 @@ add_example_without_proving(compare_greater_than_cpp SOURCES compare/greater_tha
 add_example_without_proving(compare_less_than_cpp SOURCES compare/less_than.cpp INPUT compare/less_than.inp CURVE_TYPE pallas)
 
 #Balances tree example is too big to be proven in a reasonable time
-#add_example_without_proving(balances_tree_cpp_example SOURCES balances_tree.cpp INPUT balances_tree_public.inp PRIVATE_INPUT balances_tree_private.inp CURVE_TYPE pallas)
+add_example_without_proving(balances_tree_cpp_example SOURCES balances_tree.cpp INPUT balances_tree_public.inp PRIVATE_INPUT balances_tree_private.inp CURVE_TYPE pallas)
 
 add_example_without_proving(eddsa_signature_verification_cpp SOURCES eddsa_signature_verification.cpp INPUT eddsa_signature_verification.inp CURVE_TYPE pallas)
 add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp CURVE_TYPE pallas)
