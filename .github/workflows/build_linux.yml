@@ -273,50 +273,95 @@ jobs:
     needs:
       - build-and-test-linux
       - handle-syncwith
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@af67299b6f1ae991c3295b9eb062601f401a6f86
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@multithreading-proof-generator
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       # Update next line if you need new version of proof producer
-      proof-producer-ref: e4a3ddbab4fd000d6b4c666dd68ac5199927c814
+      proof-producer-ref: multithreading-proof-generator
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 
+  generate-proofs-multithreaded:
+    name: Generate proofs for cpp examples
+    needs:
+      - build-and-test-linux
+      - handle-syncwith
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@multithreading-proof-generator
+    with:
+      artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
+      # Update next line if you need new version of proof producer
+      proof-producer-ref: multithreading-proof-generator
+      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+      targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
+      multithreaded: true
+      output-artifact-name: multithreaded-proofs
+
 
   merge-proofs-to-transpiler-output:
+    name: Merge proofs to trapsiler output
     runs-on: ubuntu-22.04
     needs:
       - generate-proofs
+      - generate-proofs-multithreaded
       - build-and-test-linux
     outputs:
       merged-artifact-name: ${{ steps.artifact-name.outputs.merged }}
+      merged-multithreaded-artifact-name: ${{ steps.artifact-name.outputs.merged-multithreaded }}
+
     steps:
       - name: Download artifact with proofs
+        id: download-proofs
         uses: actions/download-artifact@v3
         with:
           name: ${{ needs.generate-proofs.outputs.artifact-name }}
+          path: proofs
+
+      - name: Download artifact with multithreaded proofs
+        id: download-multithreaded-proofs
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.generate-proofs-multithreaded.outputs.artifact-name }}
+          path: multithreaded-proofs
 
       - name: Download artifact with transpiler output
+        id: download-transpiler-output
         uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
+          path: transpiler-output
 
-      - name: Merge proofs into transpiler output
+      - name: Merge transpiler output into proofs
+        id: merge-into-transpiler-output
         run: |
           copy_failed=0
-          while read dir; do
-            base_name=${dir#./transpiler_output_}
+          proofs_dirs=(
+            "${{ steps.download-multithreaded-proofs.outputs.download-path }}"
+            "${{ steps.download-proofs.outputs.download-path }}"
+          )
+          for proofs_dir in "${proofs_dirs[@]}"; do
+            while read proof_dir; do
+              base_name=$(basename "${proof_dir}")
+              source_dir="${{ steps.download-transpiler-output.outputs.download-path }}/transpiler_output_${base_name}"
 
-            if [[ -d "$base_name" ]]; then
-              if ! cp "${base_name}/proof.bin" "${dir}/"; then
-                echo "Failed to copy proof.bin to ${dir}" >&2
-                copy_failed=1
+              if [[ -d "${source_dir}" ]]; then
+                if [[ -f "${source_dir}/proof.bin" ]]; then
+                  rm "${source_dir}/proof.bin"
+                fi
+
+                if ! cp -n "${source_dir}/"* "${proof_dir}/"; then
+                  echo "Failed to copy files to ${proof_dir}" >&2
+                  copy_failed=1
+                else
+                  echo "Files copied to ${proof_dir}"
+                  # verifier needs the same contract dir name, add transpiler_output_ to every dir
+                  mv ${proof_dir} $(dirname ${proof_dir})/transpiler_output_$(basename ${proof_dir})
+                fi
               else
-                echo "proof.bin added to ${dir}"
+                echo "Error: No matching source directory found for ${source_dir}" >&2
+                copy_failed=1
               fi
-            else
-              echo "Error: No matching directory found for ${dir}" >&2
-            fi
-          done < <(find . -type d -name "transpiler_output_*")
+            done < <(find ${proofs_dir} -mindepth 1 -maxdepth 1 -type d)
+          done
 
           if [ $copy_failed -eq 1 ]; then
             echo "One or more copy operations failed."
@@ -327,13 +372,21 @@ jobs:
         id: artifact-name
         run: |
           echo "merged=transpiler-output-merged-proofs" >> $GITHUB_OUTPUT
+          echo "merged-multithreaded=transpiler-output-merged-multithreaded-proofs" >> $GITHUB_OUTPUT
 
       - name: Upload merged artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.artifact-name.outputs.merged }}
           path: |
-            transpiler_output_*
+            ${{ steps.download-proofs.outputs.download-path }}
+
+      - name: Upload merged multithreaded artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.artifact-name.outputs.merged-multithreaded }}
+          path: |
+            ${{ steps.download-multithreaded-proofs.outputs.download-path }}
 
 
   verify-proof-producer-proofs:
@@ -345,6 +398,20 @@ jobs:
     uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@5bb7c4b0790f56b3a339e33ba442816fac17ab88
     with:
       artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
+      evm-placeholder-verification-ref: 5bb7c4b0790f56b3a339e33ba442816fac17ab88
+      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+      test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
+
+
+  verify-multithreaded-proof-producer-proofs:
+    name: Verify proof-producer proofs with EVM-placeholder
+    needs:
+      - handle-syncwith
+      - merge-proofs-to-transpiler-output
+      - build-and-test-linux
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@5bb7c4b0790f56b3a339e33ba442816fac17ab88
+    with:
+      artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-multithreaded-artifact-name }}
       evm-placeholder-verification-ref: 5bb7c4b0790f56b3a339e33ba442816fac17ab88
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
