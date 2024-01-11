@@ -1,7 +1,6 @@
 #![no_main]
 
-// In this example built-in field type is used.
-type PallasBase = __zkllvm_field_pallas_base;
+use ark_pallas::Fq as PallasBase;
 
 fn fib100(a: PallasBase, b: PallasBase) -> PallasBase {
     let mut prev_target = a;
