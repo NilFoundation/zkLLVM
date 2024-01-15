@@ -424,9 +424,12 @@ int curve_dependent_main(std::string bytecode_file_name,
             crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
     using AssignmentTableType = zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, zk::snark::plonk_column<BlueprintFieldType>>;
 
-    std::vector<typename BlueprintFieldType::value_type> public_input;
     boost::json::value public_input_json_value;
-    ASSERT(read_json(public_input_file_name, public_input_json_value));
+    if(public_input_file_name.empty()) {
+        public_input_json_value = boost::json::array();
+    } else {
+        ASSERT(read_json(public_input_file_name, public_input_json_value));
+    }
 
     boost::json::value private_input_json_value;
     if(private_input_file_name.empty()) {
@@ -621,7 +624,7 @@ int main(int argc, char *argv[]) {
 #define str(s) #s
         std::cout << xstr(ASSIGNER_VERSION) << std::endl;
 #else
-        std::cout << "undefined" << std::endl;
+        std::cout << "Version is not defined" << std::endl;
 #endif
         return 0;
     }
@@ -644,18 +647,18 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (vm.count("public-input")) {
-        public_input_file_name = vm["public-input"].as<std::string>();
-    } else {
-        std::cerr << "Invalid command line argument - public input file name is not specified" << std::endl;
+    if (!vm.count("public-input") && !vm.count("private-input")) {
+        std::cerr << "Both public and private input file names are not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
     }
 
     if (vm.count("private-input")) {
         private_input_file_name = vm["private-input"].as<std::string>();
-    } else {
-        private_input_file_name = "";
+    }
+
+    if (vm.count("public-input")) {
+        public_input_file_name = vm["public-input"].as<std::string>();
     }
 
     if (vm.count("assignment-table")) {
