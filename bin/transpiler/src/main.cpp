@@ -162,6 +162,22 @@ int main(int argc, char *argv[]) {
                                   vm);
     boost::program_options::notify(vm);
 
+    if (vm.count("help")) {
+        std::cout << options_desc << std::endl;
+        return 0;
+    }
+
+    if (vm.count("version")) {
+#ifdef TRANSPILER_VERSION
+#define xstr(s) str(s)
+#define str(s) #s
+        std::cout << xstr(TRANSPILER_VERSION) << std::endl;
+#else
+        std::cout << "Version is not defined" << std::endl;
+#endif
+        return 0;
+    }
+
     std::string elliptic_curve;
 
     if (vm.count("elliptic-curve-type")) {
@@ -219,22 +235,6 @@ int curve_dependent_main(
     boost::program_options::options_description options_desc,
     boost::program_options::variables_map vm
 ) {
-
-    if (vm.count("help")) {
-        std::cout << options_desc << std::endl;
-        return 0;
-    }
-
-    if (vm.count("version")) {
-#ifdef TRANSPILER_VERSION
-#define xstr(s) str(s)
-#define str(s) #s
-        std::cout << xstr(TRANSPILER_VERSION) << std::endl;
-#else
-        std::cout << "undefined" << std::endl;
-#endif
-        return 0;
-    }
 
     std::string mode;
     std::string assignment_table_file_name;
