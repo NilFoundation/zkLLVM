@@ -23,6 +23,17 @@ function(assign_ir target binary_name input private_input curve_type max_num_pro
         DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
         COMMAND_EXPAND_LISTS
         VERBATIM)
+
+        add_custom_target(${target}_estimate_size
+        COMMAND $<TARGET_FILE:assigner>
+            -b ${binary_name}
+            -i ${INPUTS_DIR}/${input}
+            ${minus_p} ${private_input_string}
+            --estimate_size -e ${curve_type}
+            ${max_num_provers_flag} ${max_num_provers_amount}
+        DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
+        COMMAND_EXPAND_LISTS
+        VERBATIM)
 endfunction()
 
 function(gen_proof target input curve_type provers_amount)

@@ -400,6 +400,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::string circuit_file_name,
                           long stack_size,
                           bool check_validity,
+                          bool estimate_size,
                           boost::log::trivial::severity_level log_level,
                           const std::string &policy,
                           std::uint32_t max_num_provers,
@@ -445,7 +446,8 @@ int curve_dependent_main(std::string bytecode_file_name,
         target_prover,
         policy,
         circuit_output_print_format,
-        check_validity
+        check_validity,
+        estimate_size
     );
 
     std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
@@ -458,6 +460,10 @@ int curve_dependent_main(std::string bytecode_file_name,
     }
 
     ASSERT_MSG(!parser_instance.assignments.empty() && !parser_instance.circuits.empty(), "Not found any proxy for prover" );
+
+    if (estimate_size) {
+        return 0;
+    }
 
     // pack lookup tables
     if (parser_instance.circuits[0].get_reserved_tables().size() > 0) {
@@ -592,6 +598,7 @@ int main(int argc, char *argv[]) {
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ("stack-size,s", boost::program_options::value<long>(), "Stack size in bytes")
             ("check", "Check satisfiability of the generated circuit")
+            ("estimate_size", "Evaluate rows and gates amount without generating .tbl and .crct files")
             ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)")
             ("print_circuit_output", "deprecated, use \"-f\" instead")
             ("print-circuit-output-format,f", boost::program_options::value<std::string>(), "print output of the circuit (dec, hex)")
@@ -661,20 +668,34 @@ int main(int argc, char *argv[]) {
         public_input_file_name = vm["public-input"].as<std::string>();
     }
 
-    if (vm.count("assignment-table")) {
-        assignment_table_file_name = vm["assignment-table"].as<std::string>();
+    if (vm.count("estimate_size")) {
+        if (vm.count("assignment-table")) {
+            std::cerr << "Assigner is running with --estimate_size flag and will not generate .tbl assignment table.\n";
+            std::cerr << "Got assignment table name.\n";
+            std::cerr << "Remove \"--estimate_size\" or \"-t\".\n";
+            return 1;
+        }
+        if (vm.count("circuit")) {
+            std::cerr << "Assigner is running with --estimate_size flag and will not generate .crct circuit file.\n";
+            std::cerr << "Got assignment table name.\n";
+            std::cerr << "Remove \"--estimate_size\" or \"-c\".\n";
+            return 1;
+        }
     } else {
-        std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
-    }
-
-    if (vm.count("circuit")) {
-        circuit_file_name = vm["circuit"].as<std::string>();
-    } else {
-        std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
+        if (vm.count("assignment-table")) {
+            assignment_table_file_name = vm["assignment-table"].as<std::string>();
+        } else {
+            std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
+        if (vm.count("circuit")) {
+            circuit_file_name = vm["circuit"].as<std::string>();
+        } else {
+            std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
     }
 
     if (vm.count("elliptic-curve-type")) {
@@ -792,6 +813,7 @@ int main(int argc, char *argv[]) {
                                                                           circuit_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),
+                                                                          vm.count("estimate_size"),
                                                                           log_options[log_level],
                                                                           policy,
                                                                           max_num_provers,
@@ -816,6 +838,7 @@ int main(int argc, char *argv[]) {
                                                                           circuit_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),
+                                                                          vm.count("estimate_size"),
                                                                           log_options[log_level],
                                                                           policy,
                                                                           max_num_provers,
