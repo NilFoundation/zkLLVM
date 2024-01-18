@@ -166,6 +166,10 @@ jobs:
           cmake --build build -t cpp_examples_generate_tbl
           ls -al ./build/examples/cpp
 
+      - name: Run size estimation for C++ examples
+        run: |
+          cmake --build build -t cpp_examples_estimate_size
+
       - name: Copy examples' circuits and assignments for uploading
         run: |
           chmod +x ./examples/copy_artifacts.sh

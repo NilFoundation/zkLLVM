@@ -123,6 +123,10 @@ jobs:
           cmake --build build -t cpp_examples_generate_tbl
           ls -al ./build/examples/cpp
 
+      - name: Run size estimation for C++ examples
+        run: |
+          cmake --build build -t cpp_examples_estimate_size
+
       - name: Compile tests as cpp code
         run: |
           cmake --build build -t all_tests_compile_as_cpp_code
