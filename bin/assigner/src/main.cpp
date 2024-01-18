@@ -474,6 +474,10 @@ int curve_dependent_main(std::string bytecode_file_name,
 
     ASSERT_MSG(!parser_instance.assignments.empty() && !parser_instance.circuits.empty(), "Not found any proxy for prover" );
 
+    if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::SIZE_ESTIMATION)) {
+        return 0;
+    }
+
     // pack lookup tables
     if (parser_instance.circuits[0].get_reserved_tables().size() > 0) {
         std::vector <std::size_t> lookup_columns_indices;
@@ -576,7 +580,7 @@ int curve_dependent_main(std::string bytecode_file_name,
             ASSERT_MSG(nil::blueprint::is_satisfied(parser_instance.circuits[0].get(), parser_instance.assignments[0].get()),
                        "The circuit is not satisfied");
         } else if (parser_instance.assignments.size() > 1 &&
-                   (target_prover < parser_instance.assignments.size() || invalid_target_prover == invalid_target_prover)) {
+                   (target_prover < parser_instance.assignments.size() || target_prover == invalid_target_prover)) {
             //  check only for target prover if set
             std::uint32_t start_idx = (target_prover == invalid_target_prover) ? 0 : target_prover;
             std::uint32_t end_idx = (target_prover == invalid_target_prover) ? parser_instance.assignments.size() : target_prover + 1;
@@ -617,7 +621,7 @@ int main(int argc, char *argv[]) {
             ("print_circuit_output", "deprecated, use \"-f\" instead")
             ("print-circuit-output-format,f", boost::program_options::value<std::string>(), "print output of the circuit (dec, hex)")
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
-            ("generate-type", boost::program_options::value<std::string>(), "Define generated output. Possible values: circuit, assignment, circuit-assignment. Default value is circuit-assignment")
+            ("generate-type", boost::program_options::value<std::string>(), "Define generated output. Possible values: circuit, assignment, circuit-assignment, size_estimation(does not generate anything, just evaluates circuit size). Default value is circuit-assignment")
             ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
             ("max-lookup-rows", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
             ("target-prover", boost::program_options::value<int>(), "Assignment table and circuit will be generated only for defined prover. Possible values [0, max-num-provers)");
@@ -677,6 +681,8 @@ int main(int argc, char *argv[]) {
             gen_mode = nil::blueprint::generation_mode::CIRCUIT;
         } else if (generate_type == "assignment") {
             gen_mode = nil::blueprint::generation_mode::ASSIGNMENTS;
+        } else if (generate_type == "size_estimation") {
+            gen_mode = nil::blueprint::generation_mode::SIZE_ESTIMATION;
         } else if (generate_type != "circuit-assignment") {
             std::cerr << "Invalid command line argument - generate-type. " << generate_type << " is wrong value." << std::endl;
             std::cout << options_desc << std::endl;
@@ -698,20 +704,24 @@ int main(int argc, char *argv[]) {
         public_input_file_name = vm["public-input"].as<std::string>();
     }
 
-    if (vm.count("assignment-table")) {
-        assignment_table_file_name = vm["assignment-table"].as<std::string>();
-    } else if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
-        std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
+    if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
+        if (vm.count("assignment-table")) {
+            assignment_table_file_name = vm["assignment-table"].as<std::string>();
+        } else {
+            std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
     }
 
-    if (vm.count("circuit")) {
-        circuit_file_name = vm["circuit"].as<std::string>();
-    } else if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT)){
-        std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
+    if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT)) {
+        if (vm.count("circuit")) {
+            circuit_file_name = vm["circuit"].as<std::string>();
+        } else {
+            std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
     }
 
     if (vm.count("elliptic-curve-type")) {
