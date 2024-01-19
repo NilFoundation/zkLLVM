@@ -11,4 +11,4 @@ cp -rf ./recursive/placeholder_verifier.cpp ./examples/cpp/placeholder_verifier.
 cp -rf ./recursive/placeholder_verifier.inp ./examples/inputs/placeholder_verifier.inp
 
 ninja -C build placeholder_verifier_cpp_example -j4
-./build_recursive/bin/assigner/assigner -i ./examples/inputs/placeholder_verifier.inp -b ./build/examples/cpp/placeholder_verifier_cpp_example.ll -c recursive/circuit.crct -t recursive/assignment.tbl --max-num-provers 100 -e pallas
+./build_recursive/bin/assigner/assigner -i ./examples/inputs/placeholder_verifier.inp -b ./build/examples/cpp/placeholder_verifier_cpp_example.ll -c recursive/circuit.crct -t recursive/assignment.tbl --max-num-provers 100 -e pallas --check
