@@ -388,10 +388,7 @@ int curve_dependent_main(
 
     std::uint32_t public_input_rows = 50;
     if (vm.count("public-input-rows")) {
-        std::cout << "Public input rows parameter is set"  << std::endl;
-        public_input_rows = vm["public-input-rows"].as<int>();
-        std::cout << "It is " << public_input_rows << std::endl;
-    }
+        public_input_rows = vm["public-input-rows"].as<int>();    }
 
     std::uint32_t shared_rows = 50;
     if (vm.count("shared-rows")) {
