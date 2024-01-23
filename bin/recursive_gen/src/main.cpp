@@ -260,12 +260,13 @@ int main(int argc, char *argv[]) {
             It'll be better to create an empty folder for output")
             ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
             ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster paralel proving")
+            ("public-input-rows,p", boost::program_options::value<int>(), "Used public input column rows")
+            ("shared-rows,s", boost::program_options::value<int>(), "Used shared rows")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)");
 
     // clang-format on
     boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(),
-                                  vm);
+    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options_desc).run(), vm);
     boost::program_options::notify(vm);
 
     std::string elliptic_curve;
@@ -385,9 +386,23 @@ int curve_dependent_main(
         return 1;
     }
 
+    std::uint32_t public_input_rows = 50;
+    if (vm.count("public-input-rows")) {
+        std::cout << "Public input rows parameter is set"  << std::endl;
+        public_input_rows = vm["public-input-rows"].as<int>();
+        std::cout << "It is " << public_input_rows << std::endl;
+    }
+
+    std::uint32_t shared_rows = 50;
+    if (vm.count("shared-rows")) {
+        if( !vm.count("shared-rows") )
+            std::cout << "shared-rows parameter will be ignored because it is single-prover example" << std::endl;
+        shared_rows = vm["shared-rows"].as<int>();
+    }
+
     using parameters_policy = ParametersPolicy<BlueprintFieldType>;
     constexpr std::size_t WitnessColumns = parameters_policy::WitnessColumns;
-    constexpr std::size_t PublicInputColumns = parameters_policy::PublicInputColumns;//is_multi_prover? parameters_policy::PublicInputColumns + 1: parameters_policy::PublicInputColumns;
+    constexpr std::size_t PublicInputColumns = is_multi_prover? parameters_policy::PublicInputColumns + 1: parameters_policy::PublicInputColumns;
     constexpr std::size_t ConstantColumns = parameters_policy::ComponentConstantColumns + parameters_policy::LookupConstantColumns;
     constexpr std::size_t SelectorColumns = parameters_policy::ComponentSelectorColumns + parameters_policy::LookupSelectorColumns;
 
@@ -396,12 +411,17 @@ int curve_dependent_main(
     std::cout << "ConstantColumns = " << ConstantColumns << ": LookupConstantColumns = " << parameters_policy::LookupConstantColumns << std::endl;
     std::cout << "SelectorColumns = " << SelectorColumns << ": LookupSelectorColumns = " << parameters_policy::LookupSelectorColumns << std::endl;
 
-    // Circuit-specific parameter
-    constexpr std::array<std::size_t, PublicInputColumns> public_input_sizes = {50};
+    std::array<std::size_t, PublicInputColumns> public_input_sizes;
+    for(std::size_t i = 0; i < PublicInputColumns; i++){
+        public_input_sizes[i] = public_input_rows;
+    }
+    if( is_multi_prover )
+        public_input_sizes[PublicInputColumns - 1] = shared_rows;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
                                                               SelectorColumns>;
+    // Circuit-specific parameter
     using ConstraintSystemType =
         nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
     using TableDescriptionType =
