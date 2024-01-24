@@ -64,8 +64,10 @@ function(add_rust_example_with_proving example_target)
 
     gen_proof(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
     add_dependencies(prove_rust_examples ${example_target}_prove)
+    gen_evm_verifier(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
 endfunction()
 
+add_rust_example_with_proving(fibonacci_rust_example EXAMPLE_NAME fibonacci INPUT fibonacci.inp CURVE_TYPE pallas)
 add_rust_example_with_proving(arithmetics_builtins_rust_example EXAMPLE_NAME arithmetics_builtins INPUT arithmetics.inp CURVE_TYPE pallas)
 add_rust_example_with_proving(arithmetics_arkworks_rust_example EXAMPLE_NAME arithmetics_arkworks INPUT arithmetics.inp CURVE_TYPE pallas)
 add_rust_example_with_proving(ed25519_curve_add_rust_example EXAMPLE_NAME ed25519_curve_add INPUT ed25519_curve_add.inp CURVE_TYPE pallas)

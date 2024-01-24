@@ -130,7 +130,7 @@ endif()
 set(CPACK_GENERATOR DEB)
 set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "=nil; Foundation")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "zkllvm-stdlib, build-essential")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "build-essential")
 set(CPACK_PACKAGE_VERSION "${ZKLLVM_VERSION_MAJOR}.${ZKLLVM_VERSION_MINOR}.${ZKLLVM_VERSION_PATCH}")
 if(ZKLLVM_VERSION_INCREMENT)
     string(APPEND CPACK_PACKAGE_VERSION "-${ZKLLVM_VERSION_INCREMENT}")
@@ -142,11 +142,6 @@ install(SCRIPT cmake/create-symlinks.cmake)
 include(CPack)
 
 add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
-
-# Package for stdlib
-add_custom_target(stdlib_package
-                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libs/stdlib/packaging/make_deb.sh ${CMAKE_CURRENT_BINARY_DIR}
-                  DEPENDS zkllvm-libc)
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 

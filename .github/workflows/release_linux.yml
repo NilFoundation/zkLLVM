@@ -132,7 +132,7 @@ jobs:
 
       - name: Build packages
         run: |
-          make -C build package stdlib_package -j$(nproc)
+          make -C build package -j$(nproc)
 
       # TODO: we should consider distribution with dynamically linked LLVM
       - name: Configure CMake for rslang
@@ -165,8 +165,6 @@ jobs:
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
           ZKLLVM_PACKAGE=`ls build/zkllvm_*.deb | cut -d'/' -f2`
-          STDLIB_PACKAGE=`ls build/zkllvm-stdlib_*.deb | cut -d'/' -f2`
           POOL="ubuntu/pool/main/z/zkllvm"
           aws s3api put-object --bucket deb.nil.foundation --key $POOL/$ZKLLVM_PACKAGE --body build/$ZKLLVM_PACKAGE
-          aws s3api put-object --bucket deb.nil.foundation --key $POOL/$STDLIB_PACKAGE --body build/$STDLIB_PACKAGE
           mkrepo s3://deb.nil.foundation/ubuntu/
