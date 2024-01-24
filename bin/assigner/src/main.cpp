@@ -221,7 +221,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
             max_selector_size = std::max(max_selector_size, table_proxy.selector_column_size(i));
         }
         usable_rows_amount = std::max({max_witness_size, max_public_inputs_size, max_constant_size, max_selector_size});
-        //std::cout << "usable_rows_amount: " << usable_rows_amount << std::endl;
+        std::cout << "usable_rows_amount: " << usable_rows_amount << std::endl;
     }
 
     std::uint32_t padded_rows_amount = std::pow(2, std::ceil(std::log2(usable_rows_amount)));
@@ -402,7 +402,7 @@ struct ParametersPolicy {
     ASSIGNER_WITNESS_COLUMNS;
 #else
     15;
-#endif;
+#endif
 #undef ASSIGNER_WITNESS_COLUMNS
 
     constexpr static const std::size_t PublicInputColumns =
@@ -410,7 +410,7 @@ struct ParametersPolicy {
     ASSIGNER_PUBLIC_INPUT_COLUMNS;
 #else
     1;
-#endif;
+#endif
 #undef ASSIGNER_PUBLIC_INPUT_COLUMNS
 
     constexpr static const std::size_t ComponentConstantColumns =
@@ -457,6 +457,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                           boost::log::trivial::severity_level log_level,
                           const std::string &policy,
                           std::uint32_t max_num_provers,
+                          std::uint32_t max_lookup_rows,
                           std::uint32_t target_prover,
                           nil::blueprint::print_format circuit_output_print_format) {
 
@@ -516,7 +517,6 @@ int curve_dependent_main(std::string bytecode_file_name,
     // pack lookup tables
     if (parser_instance.circuits[0].get_reserved_tables().size() > 0) {
         std::vector <std::size_t> lookup_columns_indices;
-        const std::uint32_t max_usable_rows = 500000;
         lookup_columns_indices.resize(LookupConstantColumns);
         // fill ComponentConstantColumns, ComponentConstantColumns + 1, ...
         std::iota(lookup_columns_indices.begin(), lookup_columns_indices.end(), ComponentConstantColumns);
@@ -529,7 +529,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                 lookup_columns_indices,
                 ComponentSelectorColumns,
                 0,
-                max_usable_rows
+                max_lookup_rows
         );
     }
 
@@ -651,6 +651,7 @@ int main(int argc, char *argv[]) {
             ("print-circuit-output-format,f", boost::program_options::value<std::string>(), "print output of the circuit (dec, hex)")
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
             ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
+            ("max-lookup-rows", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
             ("target-prover", boost::program_options::value<int>(), "Assignment table and circuit will be generated only for defined prover. Possible values [0, max-num-provers)");
     // clang-format on
 
@@ -804,6 +805,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    std::uint32_t max_lookup_rows = 500000;
+    if (vm.count("max-lookup-rows")) {
+        max_lookup_rows = vm["max-lookup-rows"].as<int>();
+        if (max_lookup_rows < 1) {
+            std::cerr << "Invalid command line argument - max-num-provers. " << max_num_provers << " is wrong value." << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
+    }
+
     std::uint32_t target_prover = std::numeric_limits<std::uint32_t>::max();
     if (vm.count("target-prover")) {
         target_prover = vm["target-prover"].as<int>();
@@ -849,6 +860,7 @@ int main(int argc, char *argv[]) {
                                                                           log_options[log_level],
                                                                           policy,
                                                                           max_num_provers,
+                                                                          max_lookup_rows,
                                                                           target_prover,
                                                                           circuit_output_print_format);
             break;
@@ -873,6 +885,7 @@ int main(int argc, char *argv[]) {
                                                                           log_options[log_level],
                                                                           policy,
                                                                           max_num_provers,
+                                                                          max_lookup_rows,
                                                                           target_prover,
                                                                           circuit_output_print_format);
             break;
