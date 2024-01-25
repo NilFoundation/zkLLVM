@@ -50,7 +50,6 @@
 
 #include <nil/blueprint/asserts.hpp>
 #include <nil/blueprint/transpiler/minimized_profiling_plonk_circuit.hpp>
-#include <nil/blueprint/transpiler/evm_verifier_gen.hpp>
 #include <nil/blueprint/transpiler/public_input.hpp>
 #include <nil/blueprint/transpiler/recursive_verifier_generator.hpp>
 
