@@ -4,9 +4,12 @@ use std::intrinsics::{assigner_exit_check, assigner_sha2_256};
 
 use ark_pallas::Fq;
 
+use unroll::unroll_for_loops;
+
 type Block = [Fq; 2];
 
 #[circuit]
+#[unroll_for_loops]
 pub fn validate_path(merkle_path: [Block; 5], leave: Block, root: Block) {
     // TODO: (aleasims) use `fold` here instead of explicit iteration.
     // Right now assigner fails with `fold`.

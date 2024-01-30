@@ -7,3 +7,4 @@ edition = "2021"
 ark-ff = { git = "https://github.com/NilFoundation/arkworks-algebra.git", features = [ "zkllvm" ] }
 ark-pallas = { git = "https://github.com/NilFoundation/arkworks-curves.git", features = [ "zkllvm" ] }
 ark-curve25519 = { git = "https://github.com/NilFoundation/arkworks-curves.git", features = [ "zkllvm" ] }
+unroll = { git = "https://github.com/NilFoundation/zkllvm-unroll.git"}

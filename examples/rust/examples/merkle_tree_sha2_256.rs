@@ -4,27 +4,26 @@ use std::intrinsics::assigner_sha2_256;
 
 use ark_ff::AdditiveGroup;
 use ark_pallas::Fq;
+use unroll::unroll_for_loops;
 
 type BlockType = [Fq; 2];
 
 #[circuit]
+#[unroll_for_loops]
 pub fn balance(layer_0_leaves: [BlockType; 0x10]) -> BlockType {
     let mut layer_1_leaves: [BlockType; 0x8] = [[Fq::ZERO, Fq::ZERO]; 0x8];
-    let layer_1_size = 0x8;
     let mut layer_2_leaves: [BlockType; 0x4] = [[Fq::ZERO, Fq::ZERO]; 0x4];
-    let layer_2_size = 0x4;
     let mut layer_3_leaves: [BlockType; 0x2] = [[Fq::ZERO, Fq::ZERO]; 0x2];
-    let layer_3_size = 0x2;
 
-    for leaf_index in 0..layer_1_size {
+    for leaf_index in 0..8 {
         layer_1_leaves[leaf_index] = hash(layer_0_leaves[2 * leaf_index], layer_0_leaves[2 * leaf_index + 1]);
     }
 
-    for leaf_index in 0..layer_2_size {
+    for leaf_index in 0..4 {
         layer_2_leaves[leaf_index] = hash(layer_1_leaves[2 * leaf_index], layer_1_leaves[2 * leaf_index + 1]);
     }
 
-    for leaf_index in 0..layer_3_size {
+    for leaf_index in 0..2 {
         layer_3_leaves[leaf_index] = hash(layer_2_leaves[2 * leaf_index], layer_2_leaves[2 * leaf_index + 1]);
     }
 
