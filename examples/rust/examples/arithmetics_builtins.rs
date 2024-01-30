@@ -1,10 +1,19 @@
 #![no_main]
+#![feature(stmt_expr_attributes)]
 
 // In this example built-in field type is used.
 type PallasBase = __zkllvm_field_pallas_base;
 
+use unroll::unroll_for_loops;
+
+#[unroll_for_loops]
 fn pow_2(a: PallasBase) -> PallasBase {
-    (0..2).fold(1g, |acc, _| acc * a)
+    let mut acc = 1g;
+    for i in 0..2 {
+        acc = acc * a;
+    }
+
+    acc
 }
 
 #[circuit]
