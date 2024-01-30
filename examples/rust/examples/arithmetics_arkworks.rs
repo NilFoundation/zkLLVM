@@ -4,9 +4,16 @@
 
 use ark_ff::{Field, MontFp};
 use ark_pallas::Fq;
+use unroll::unroll_for_loops;
 
+#[unroll_for_loops]
 fn pow_2(a: Fq) -> Fq {
-    (0..2).fold(Fq::ONE, |acc, _| acc * a)
+    let mut acc = Fq::ONE;
+    for i in 0..2 {
+        acc = acc * a;
+    }
+
+    acc
 }
 
 #[circuit]
