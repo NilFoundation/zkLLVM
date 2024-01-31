@@ -19,7 +19,6 @@ function(assign_ir target binary_name input private_input curve_type max_num_pro
             ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
             -t assignment_${target}.tbl -e ${curve_type} --check
-            -l debug
             ${max_num_provers_flag} ${max_num_provers_amount}
         DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
         COMMAND_EXPAND_LISTS
