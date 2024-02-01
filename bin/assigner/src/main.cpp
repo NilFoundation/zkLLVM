@@ -670,16 +670,10 @@ int main(int argc, char *argv[]) {
 
     if (vm.count("estimate_size")) {
         if (vm.count("assignment-table")) {
-            std::cerr << "Assigner is running with --estimate_size flag and will not generate .tbl assignment table.\n";
-            std::cerr << "Got assignment table name.\n";
-            std::cerr << "Remove \"--estimate_size\" or \"-t\".\n";
-            return 1;
+            BOOST_LOG_TRIVIAL(warning) << "Got assignment table name. Assigner is running with --estimate_size flag and will not generate .tbl assignment table.";
         }
         if (vm.count("circuit")) {
-            std::cerr << "Assigner is running with --estimate_size flag and will not generate .crct circuit file.\n";
-            std::cerr << "Got assignment table name.\n";
-            std::cerr << "Remove \"--estimate_size\" or \"-c\".\n";
-            return 1;
+            BOOST_LOG_TRIVIAL(warning) << "Got circuit file name. Assigner is running with --estimate_size flag and will not generate .crct file.";
         }
     } else {
         if (vm.count("assignment-table")) {
