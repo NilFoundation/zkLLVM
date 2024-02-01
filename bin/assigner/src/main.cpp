@@ -414,7 +414,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                           bool check_validity,
                           boost::log::trivial::severity_level log_level,
                           const std::string &policy,
-                          const std::string &generate_type,
+                          nil::blueprint::generation_mode gen_mode,
                           std::uint32_t max_num_provers,
                           std::uint32_t max_lookup_rows,
                           std::uint32_t target_prover,
@@ -457,8 +457,8 @@ int curve_dependent_main(std::string bytecode_file_name,
         log_level,
         max_num_provers,
         target_prover,
+        gen_mode,
         policy,
-        generate_type,
         circuit_output_print_format,
         check_validity
     );
@@ -468,7 +468,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    if (!parser_instance.evaluate(*module, /*boost::json::array(), boost::json::array()*/public_input_json_value.as_array(), private_input_json_value.as_array())) {
+    if (!parser_instance.evaluate(*module, public_input_json_value.as_array(), private_input_json_value.as_array())) {
         return 1;
     }
 
@@ -493,34 +493,12 @@ int curve_dependent_main(std::string bytecode_file_name,
         );
     }
 
-    /*std::cout << "run ref\n";
-    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance_ref(
-        stack_size,
-        log_level,
-        max_num_provers,
-        target_prover,
-        policy,
-        "circuit-assignment",
-        circuit_output_print_format,
-        check_validity
-    );
-    std::unique_ptr<llvm::Module> module_ref = parser_instance_ref.parseIRFile(bytecode_file_name.c_str());
-    if (module_ref == nullptr) {
-        return 1;
-    }
-    if (!parser_instance_ref.evaluate(*module, public_input_json_value.as_array(), private_input_json_value.as_array())) {
-        return 1;
-    }
-    if (!nil::blueprint::compare(parser_instance.circuits[0], parser_instance_ref.circuits[0])) {
-        return -1;
-    }*/
-
     constexpr std::uint32_t invalid_target_prover = std::numeric_limits<std::uint32_t>::max();
     // print assignment tables and circuits
     ASSERT_MSG(parser_instance.assignments.size() == parser_instance.circuits.size(), "Missmatch assignments circuits size");
     if (parser_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
         // print assignment table
-        if (generate_type == "assignment" || generate_type == "circuit-assignment") {
+        if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
             std::ofstream otable;
             otable.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
             if (!otable) {
@@ -528,7 +506,6 @@ int curve_dependent_main(std::string bytecode_file_name,
                 return 1;
             }
 
-            //parser_instance.assignments[0].export_table(std::cout);
             print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
                 parser_instance.assignments[0], print_table_kind::FULL, ComponentConstantColumns,
                 ComponentSelectorColumns, otable);
@@ -537,7 +514,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         }
 
         // print circuit
-        if (generate_type == "circuit" || generate_type == "circuit-assignment") {
+        if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT)) {
             std::ofstream ocircuit;
             ocircuit.open(circuit_file_name, std::ios_base::binary | std::ios_base::out);
             if (!ocircuit) {
@@ -545,18 +522,17 @@ int curve_dependent_main(std::string bytecode_file_name,
                 return 1;
             }
 
-            //parser_instance.circuits[0].export_circuit(std::cout);
             print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
                 parser_instance.circuits[0], parser_instance.assignments[0], false, ocircuit);
             ocircuit.close();
         }
     } else if (parser_instance.assignments.size() > 1 &&
-               (target_prover < parser_instance.assignments.size() || target_prover == invalid_target_prover)) {
+              (target_prover < parser_instance.assignments.size() || target_prover == invalid_target_prover)) {
         std::uint32_t start_idx = (target_prover == invalid_target_prover) ? 0 : target_prover;
         std::uint32_t end_idx = (target_prover == invalid_target_prover) ? parser_instance.assignments.size() : target_prover + 1;
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
-            if (generate_type == "assignment" || generate_type == "circuit-assignment") {
+            if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
                 std::ofstream otable;
                 otable.open(assignment_table_file_name + std::to_string(idx),
                             std::ios_base::binary | std::ios_base::out);
@@ -574,7 +550,7 @@ int curve_dependent_main(std::string bytecode_file_name,
             }
 
             // print circuit
-            if (generate_type == "circuit" || generate_type == "circuit-assignment") {
+            if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT)) {
                 std::ofstream ocircuit;
                 ocircuit.open(circuit_file_name + std::to_string(idx), std::ios_base::binary | std::ios_base::out);
                 if (!ocircuit) {
@@ -595,7 +571,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    if (check_validity && generate_type == "circuit-assignment"){
+    if (check_validity && (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS) && std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT))){
         if (parser_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
             ASSERT_MSG(nil::blueprint::is_satisfied(parser_instance.circuits[0].get(), parser_instance.assignments[0].get()),
                        "The circuit is not satisfied");
@@ -694,17 +670,21 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::string generate_type = "circuit-assignment";
+    nil::blueprint::generation_mode gen_mode = nil::blueprint::generation_mode::ASSIGNMENTS | nil::blueprint::generation_mode::CIRCUIT;
     if (vm.count("generate-type")) {
-        generate_type = vm["generate-type"].as<std::string>();
-        if (generate_type != "circuit-assignment" && generate_type != "circuit" && generate_type != "assignment") {
+        const auto generate_type = vm["generate-type"].as<std::string>();
+        if (generate_type == "circuit") {
+            gen_mode = nil::blueprint::generation_mode::CIRCUIT;
+        } else if (generate_type == "assignment") {
+            gen_mode = nil::blueprint::generation_mode::ASSIGNMENTS;
+        } else if (generate_type != "circuit-assignment") {
             std::cerr << "Invalid command line argument - generate-type. " << generate_type << " is wrong value." << std::endl;
             std::cout << options_desc << std::endl;
             return 1;
         }
     }
 
-    if (!vm.count("public-input") && !vm.count("private-input") && (generate_type != "circuit")) {
+    if (!vm.count("public-input") && !vm.count("private-input") && std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
         std::cerr << "Both public and private input file names are not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -720,7 +700,7 @@ int main(int argc, char *argv[]) {
 
     if (vm.count("assignment-table")) {
         assignment_table_file_name = vm["assignment-table"].as<std::string>();
-    } else if (generate_type != "circuit") {
+    } else if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
         std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -728,7 +708,7 @@ int main(int argc, char *argv[]) {
 
     if (vm.count("circuit")) {
         circuit_file_name = vm["circuit"].as<std::string>();
-    } else if (generate_type != "assignment"){
+    } else if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT)){
         std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -861,7 +841,7 @@ int main(int argc, char *argv[]) {
                                                                           vm.count("check"),
                                                                           log_options[log_level],
                                                                           policy,
-                                                                          generate_type,
+                                                                          gen_mode,
                                                                           max_num_provers,
                                                                           max_lookup_rows,
                                                                           target_prover,
@@ -887,7 +867,7 @@ int main(int argc, char *argv[]) {
                                                                           vm.count("check"),
                                                                           log_options[log_level],
                                                                           policy,
-                                                                          generate_type,
+                                                                          gen_mode,
                                                                           max_num_provers,
                                                                           max_lookup_rows,
                                                                           target_prover,
