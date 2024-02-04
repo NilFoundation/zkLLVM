@@ -496,7 +496,7 @@ int curve_dependent_main(
             std::cout << "Generating proof..." << std::endl;
             using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
             ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
-                public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, assignment_table,
+                public_preprocessed_data, private_preprocessed_data, table_description, constraint_system,
                 lpc_scheme);
             std::cout << "Proof generated" << std::endl;
 
