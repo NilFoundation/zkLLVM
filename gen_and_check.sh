@@ -1,11 +1,11 @@
 set -e
 mkdir -p ./recursive
-ninja -C build arithmetics_cpp_example_assign -j10
-./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/arithmetics.inp -t ./build/examples/cpp/assignment_arithmetics_cpp_example.tbl -c ./build/examples/cpp/circuit_arithmetics_cpp_example.crct -o ./recursive -e pallas -p 2
-./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/arithmetics.inp -t ./build/examples/cpp/assignment_arithmetics_cpp_example.tbl -c ./build/examples/cpp/circuit_arithmetics_cpp_example.crct -o ./recursive -e pallas -p 2
-#ninja -C build merkle_tree_poseidon_cpp_example_assign -j10
-#./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/merkle_tree_poseidon.inp -t ./build/examples/cpp/assignment_merkle_tree_poseidon_cpp_example.tbl -c ./build/examples/cpp/circuit_merkle_tree_poseidon_cpp_example.crct -o ./recursive -e pallas
-#./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/merkle_tree_poseidon.inp -t ./build/examples/cpp/assignment_merkle_tree_poseidon_cpp_example.tbl -c ./build/examples/cpp/circuit_merkle_tree_poseidon_cpp_example.crct -o ./recursive -e pallas
+#ninja -C build arithmetics_cpp_example_assign -j10
+#./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/arithmetics.inp -t ./build/examples/cpp/assignment_arithmetics_cpp_example.tbl -c ./build/examples/cpp/circuit_arithmetics_cpp_example.crct -o ./recursive -e pallas -p 2
+#./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/arithmetics.inp -t ./build/examples/cpp/assignment_arithmetics_cpp_example.tbl -c ./build/examples/cpp/circuit_arithmetics_cpp_example.crct -o ./recursive -e pallas -p 2
+ninja -C build merkle_tree_poseidon_cpp_example_assign -j10
+./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/merkle_tree_poseidon.inp -t ./build/examples/cpp/assignment_merkle_tree_poseidon_cpp_example.tbl -c ./build/examples/cpp/circuit_merkle_tree_poseidon_cpp_example.crct -o ./recursive -e pallas
+./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/merkle_tree_poseidon.inp -t ./build/examples/cpp/assignment_merkle_tree_poseidon_cpp_example.tbl -c ./build/examples/cpp/circuit_merkle_tree_poseidon_cpp_example.crct -o ./recursive -e pallas
 #ninja -C build integer_arithmetics_cpp_example_assign -j10
 #./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/integer_arithmetics.inp -t ./build/examples/cpp/assignment_integer_arithmetics_cpp_example.tbl -c ./build/examples/cpp/circuit_integer_arithmetics_cpp_example.crct -o ./recursive -e pallas
 #./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/integer_arithmetics.inp -t ./build/examples/cpp/assignment_integer_arithmetics_cpp_example.tbl -c ./build/examples/cpp/circuit_integer_arithmetics_cpp_example.crct -o ./recursive -e pallas
