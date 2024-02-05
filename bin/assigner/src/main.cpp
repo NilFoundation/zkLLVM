@@ -397,53 +397,12 @@ bool read_json(
 }
 
 struct ParametersPolicy {
-    constexpr static const std::size_t WitnessColumns =
-#ifdef ASSIGNER_WITNESS_COLUMNS
-    ASSIGNER_WITNESS_COLUMNS;
-#else
-    15;
-#endif
-#undef ASSIGNER_WITNESS_COLUMNS
-
-    constexpr static const std::size_t PublicInputColumns =
-#ifdef ASSIGNER_PUBLIC_INPUT_COLUMNS
-    ASSIGNER_PUBLIC_INPUT_COLUMNS;
-#else
-    1;
-#endif
-#undef ASSIGNER_PUBLIC_INPUT_COLUMNS
-
-    constexpr static const std::size_t ComponentConstantColumns =
-#ifdef ASSIGNER_COMPONENT_CONSTANT_COLUMNS
-    ASSIGNER_COMPONENT_CONSTANT_COLUMNS;
-#else
-    2;
-#endif
-#undef ASSIGNER_COMPONENT_CONSTANT_COLUMNS
-
-    constexpr static const std::size_t LookupConstantColumns =
-#ifdef ASSIGNER_LOOKUP_CONSTANT_COLUMNS
-    ASSIGNER_LOOKUP_CONSTANT_COLUMNS;
-#else
-    30;
-#endif
-#undef ASSIGNER_LOOKUP_CONSTANT_COLUMNS
-
-    constexpr static const std::size_t ComponentSelectorColumns =
-#ifdef ASSIGNER_COMPONENT_SELECTOR_COLUMNS
-    ASSIGNER_COMPONENT_SELECTOR_COLUMNS;
-#else
-    30;
-#endif
-#undef ASSIGNER_COMPONENT_SELECTOR_COLUMNS
-
-    constexpr static const std::size_t LookupSelectorColumns =
-#ifdef ASSIGNER_LOOKUP_SELECTOR_COLUMNS
-    ASSIGNER_LOOKUP_SELECTOR_COLUMNS;
-#else
-    6;
-#endif
-#undef ASSIGNER_LOOKUP_SELECTOR_COLUMNS
+    constexpr static const std::size_t WitnessColumns = ASSIGNER_WITNESS_COLUMNS;
+    constexpr static const std::size_t PublicInputColumns = ASSIGNER_PUBLIC_INPUT_COLUMNS;
+    constexpr static const std::size_t ComponentConstantColumns = ASSIGNER_COMPONENT_CONSTANT_COLUMNS;
+    constexpr static const std::size_t LookupConstantColumns = ASSIGNER_LOOKUP_CONSTANT_COLUMNS;
+    constexpr static const std::size_t ComponentSelectorColumns = ASSIGNER_COMPONENT_SELECTOR_COLUMNS;
+    constexpr static const std::size_t LookupSelectorColumns = ASSIGNER_LOOKUP_SELECTOR_COLUMNS;
 };
 
 template<typename BlueprintFieldType>

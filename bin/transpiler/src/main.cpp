@@ -123,106 +123,19 @@ void proof_print(Proof &proof, const CommitmentParamsType& commitment_params, co
 }
 
 struct ParametersPolicy {
-    constexpr static const std::size_t WitnessColumns =
-#ifdef TRANSPILER_WITNESS_COLUMNS
-    TRANSPILER_WITNESS_COLUMNS;
-#else
-    15;
-#endif
-#undef TRANSPILER_WITNESS_COLUMNS
-
-    constexpr static const std::size_t PublicInputColumns =
-#ifdef TRANSPILER_PUBLIC_INPUT_COLUMNS
-    TRANSPILER_PUBLIC_INPUT_COLUMNS;
-#else
-    1;
-#endif
-#undef TRANSPILER_PUBLIC_INPUT_COLUMNS
-
-    constexpr static const std::size_t ComponentConstantColumns =
-#ifdef TRANSPILER_COMPONENT_CONSTANT_COLUMNS
-    TRANSPILER_COMPONENT_CONSTANT_COLUMNS;
-#else
-    2;
-#endif
-#undef TRANSPILER_COMPONENT_CONSTANT_COLUMNS
-
-    constexpr static const std::size_t LookupConstantColumns =
-#ifdef TRANSPILER_LOOKUP_CONSTANT_COLUMNS
-    TRANSPILER_LOOKUP_CONSTANT_COLUMNS;
-#else
-    30;
-#endif
-#undef TRANSPILER_LOOKUP_CONSTANT_COLUMNS
-
-    constexpr static const std::size_t ComponentSelectorColumns =
-#ifdef TRANSPILER_COMPONENT_SELECTOR_COLUMNS
-    TRANSPILER_COMPONENT_SELECTOR_COLUMNS;
-#else
-    30;
-#endif
-#undef TRANSPILER_COMPONENT_SELECTOR_COLUMNS
-
-    constexpr static const std::size_t LookupSelectorColumns =
-#ifdef TRANSPILER_LOOKUP_SELECTOR_COLUMNS
-    TRANSPILER_LOOKUP_SELECTOR_COLUMNS;
-#else
-    6;
-#endif
-#undef TRANSPILER_LOOKUP_SELECTOR_COLUMNS
-
-    constexpr static const std::size_t lambda =
-#ifdef TRANSPILER_LAMBDA
-    TRANSPILER_LAMBDA;
-#else
-    9;
-#endif
-#undef TRANSPILER_LAMBDA
-
-    constexpr static const bool UseGrinding =
-#ifdef TRANSPILER_GRINDING_BITS
-    true;
-#else
-    false;
-#endif
-
-    constexpr static const std::size_t GrindingBits =
-#ifdef TRANSPILER_GRINDING_BITS
-    TRANSPILER_GRINDING_BITS;
-#else
-    0x0;
-#endif
-
-#undef TRANSPILER_GRINDING_BITS
-
-#define SHA256 1
-#define SHA512 2
-#define SHA3 3
-#define KECCAK 4
-#define POSEIDON 5
-
+    constexpr static const std::size_t WitnessColumns = TRANSPILER_WITNESS_COLUMNS;
+    constexpr static const std::size_t PublicInputColumns = TRANSPILER_PUBLIC_INPUT_COLUMNS;
+    constexpr static const std::size_t ComponentConstantColumns = TRANSPILER_COMPONENT_CONSTANT_COLUMNS;
+    constexpr static const std::size_t LookupConstantColumns = TRANSPILER_LOOKUP_CONSTANT_COLUMNS;
+    constexpr static const std::size_t ComponentSelectorColumns = TRANSPILER_COMPONENT_SELECTOR_COLUMNS;
+    constexpr static const std::size_t LookupSelectorColumns = TRANSPILER_LOOKUP_SELECTOR_COLUMNS;
+    constexpr static const std::size_t lambda = TRANSPILER_LAMBDA;
+    constexpr static const std::size_t GrindingBits = TRANSPILER_GRINDING_BITS;
+    constexpr static const bool UseGrinding = GrindingBits != 0;
 private:
     using default_hash = nil::crypto3::hashes::keccak_1600<256>;
 public:
-#ifdef TRANSPILER_HASH
-#if  TRANSPILER_HASH == SHA256
-    BOOST_STATIC_ASSERT_MSG(false, "SHA256 is not supported in EVM verifier");
-#elif TRANSPILER_HASH == SHA512
-    BOOST_STATIC_ASSERT_MSG(false, "SHA512 is not supported in EVM verifier");
-#elif TRANSPILER_HASH == SHA3
-    BOOST_STATIC_ASSERT_MSG(false, "SHA3 is not supported in EVM verifier");
-#elif TRANSPILER_HASH == POSEIDON
-    BOOST_STATIC_ASSERT_MSG(false, "Poseidon is not supported in EVM verifier");
-#endif
-#endif
     using hash =default_hash;
-
-#undef TRANSPILER_HASH
-#undef SHA256
-#undef SHA512
-#undef SHA3
-#undef KECCAK
-#undef POSEIDON
 };
 
 template<typename BlueprintFieldType, bool multiprover>
@@ -392,10 +305,6 @@ int curve_dependent_main(
     constexpr std::size_t PublicInputColumns = is_multi_prover ? ParametersPolicy::PublicInputColumns + 1 : ParametersPolicy::PublicInputColumns;
     constexpr std::size_t ConstantColumns = ParametersPolicy::ComponentConstantColumns + ParametersPolicy::LookupConstantColumns;;
     constexpr std::size_t SelectorColumns = ParametersPolicy::ComponentSelectorColumns + ParametersPolicy::LookupSelectorColumns;
-    std::cout << "WitnessColumns: " << WitnessColumns << std::endl;
-    std::cout << "PublicInputColumns: " << PublicInputColumns << std::endl;
-    std::cout << "ConstantColumns: " << ConstantColumns << "; LookupConstantColumns: " << ParametersPolicy::LookupConstantColumns << std::endl;
-    std::cout << "SelectorColumns: " << SelectorColumns << "; LookupSelectorColumns: " << ParametersPolicy::LookupSelectorColumns  << std::endl;
 
     using ArithmetizationParams =
         nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
@@ -499,7 +408,9 @@ int curve_dependent_main(
         Hash,
         Hash,
         Lambda,
-        2
+        2,
+        ParametersPolicy::UseGrinding,
+        nil::crypto3::zk::commitments::proof_of_work<Hash, std::uint32_t, ParametersPolicy::GrindingBits>
     >;
     using lpc_type = nil::crypto3::zk::commitments::list_polynomial_commitment<BlueprintFieldType, lpc_params_type>;
     using lpc_scheme_type = typename nil::crypto3::zk::commitments::lpc_commitment_scheme<lpc_type>;

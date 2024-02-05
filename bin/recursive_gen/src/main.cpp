@@ -35,7 +35,6 @@
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
-//#include <nil/crypto3/marshalling/zk/types/placeholder/proof.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/constraint_system.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/assignment_table.hpp>
 
@@ -56,107 +55,21 @@
 
 template<typename BlueprintFieldType>
 struct ParametersPolicy {
-    constexpr static const std::size_t WitnessColumns =
-#ifdef RECURSIVE_WITNESS_COLUMNS
-    RECURSIVE_WITNESS_COLUMNS;
-#else
-    15;
-#endif
-#undef RECURSIVE_WITNESS_COLUMNS
-
-    constexpr static const std::size_t PublicInputColumns =
-#ifdef RECURSIVE_PUBLIC_INPUT_COLUMNS
-    RECURSIVE_PUBLIC_INPUT_COLUMNS;
-#else
-    1;
-#endif
-#undef RECURSIVE_PUBLIC_INPUT_COLUMNS
-
-    constexpr static const std::size_t ComponentConstantColumns =
-#ifdef RECURSIVE_COMPONENT_CONSTANT_COLUMNS
-    RECURSIVE_COMPONENT_CONSTANT_COLUMNS;
-#else
-    2;
-#endif
-#undef RECURSIVE_COMPONENT_CONSTANT_COLUMNS
-
-    constexpr static const std::size_t LookupConstantColumns =
-#ifdef RECURSIVE_LOOKUP_CONSTANT_COLUMNS
-    RECURSIVE_LOOKUP_CONSTANT_COLUMNS;
-#else
-    30;
-#endif
-#undef RECURSIVE_LOOKUP_CONSTANT_COLUMNS
-
-    constexpr static const std::size_t ComponentSelectorColumns =
-#ifdef RECURSIVE_COMPONENT_SELECTOR_COLUMNS
-    RECURSIVE_COMPONENT_SELECTOR_COLUMNS;
-#else
-    30;
-#endif
-#undef RECURSIVE_COMPONENT_SELECTOR_COLUMNS
-
-    constexpr static const std::size_t LookupSelectorColumns =
-#ifdef RECURSIVE_LOOKUP_SELECTOR_COLUMNS
-    RECURSIVE_LOOKUP_SELECTOR_COLUMNS;
-#else
-    6;
-#endif
-#undef RECURSIVE_LOOKUP_SELECTOR_COLUMNS
-
-    constexpr static const std::size_t lambda =
-#ifdef RECURSIVE_LAMBDA
-    RECURSIVE_LAMBDA;
-#else
-    9;
-#endif
-#undef RECURSIVE_LAMBDA
-
-    constexpr static const bool UseGrinding =
-#ifdef RECURSIVE_GRINDING_BITS
-    true;
-#else
-    false;
-#endif
-
-    constexpr static const std::size_t GrindingBits =
-#ifdef RECURSIVE_GRINDING_BITS
-    RECURSIVE_GRINDING_BITS;
-#else
-    0x0;
-#endif
-
-#undef RECURSIVE_GRINDING_BITS
-
-#define SHA256 1
-#define SHA512 2
-#define SHA3 3
-#define KECCAK 4
-#define POSEIDON 5
+    constexpr static const std::size_t WitnessColumns = RECURSIVE_WITNESS_COLUMNS;
+    constexpr static const std::size_t PublicInputColumns = RECURSIVE_PUBLIC_INPUT_COLUMNS;
+    constexpr static const std::size_t ComponentConstantColumns = RECURSIVE_COMPONENT_CONSTANT_COLUMNS;
+    constexpr static const std::size_t LookupConstantColumns = RECURSIVE_LOOKUP_CONSTANT_COLUMNS;
+    constexpr static const std::size_t ComponentSelectorColumns = RECURSIVE_COMPONENT_SELECTOR_COLUMNS;
+    constexpr static const std::size_t LookupSelectorColumns = RECURSIVE_LOOKUP_SELECTOR_COLUMNS;
+    constexpr static const std::size_t lambda = RECURSIVE_LAMBDA;
+    constexpr static const std::size_t GrindingBits = RECURSIVE_GRINDING_BITS;
+    constexpr static const bool UseGrinding = (GrindingBits != 0);
 
 private:
     using poseidon_policy = nil::crypto3::hashes::detail::mina_poseidon_policy<BlueprintFieldType>;
     using default_hash = nil::crypto3::hashes::poseidon<poseidon_policy>;
 public:
-#ifdef RECURSIVE_HASH
-#if  RECURSIVE_HASH == SHA256
-    BOOST_STATIC_ASSERT_MSG(false, "SHA256 is not supported by recursive verifier");
-#elif RECURSIVE_HASH == SHA512
-    BOOST_STATIC_ASSERT_MSG(false, "SHA512 is not supported by recursive verifier");
-#elif RECURSIVE_HASH == SHA3
-    BOOST_STATIC_ASSERT_MSG(false, "SHA3 is not supported by recursive verifier");
-#elif RECURSIVE_HASH == KECCAK
-    BOOST_STATIC_ASSERT_MSG(false, "Kecccak is not supported by recursive verifier");
-#endif
-#endif
     using hash =default_hash;
-
-#undef RECURSIVE_HASH
-#undef SHA256
-#undef SHA512
-#undef SHA3
-#undef KECCAK
-#undef POSEIDON
 };
 
 template<typename ProfilingType, typename ConstraintSystemType, typename ColumnsRotationsType,
