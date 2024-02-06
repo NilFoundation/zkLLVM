@@ -1,0 +1,3 @@
+# zkLLVM config file for ldconfig
+
+@CPACK_PACKAGING_INSTALL_PREFIX@/lib
