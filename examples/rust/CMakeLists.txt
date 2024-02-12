@@ -1,5 +1,7 @@
-add_custom_target(circuit_rust_examples)
-add_custom_target(assign_rust_examples)
+add_custom_target(compile_rust_examples)
+add_custom_target(rust_examples_generate_crct)
+add_custom_target(rust_examples_generate_tbl)
+add_custom_target(rust_examples_generate_both)
 add_custom_target(prove_rust_examples)
 
 set(RUSTC "${CMAKE_BINARY_DIR}/libs/rslang/build/host/stage${RSLANG_BUILD_STAGE}/bin/rustc")
@@ -29,20 +31,27 @@ function(add_rust_example_without_proving example_target)
                       VERBATIM
                       WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 
-    add_dependencies(circuit_rust_examples "${example_target}")
+    add_dependencies(compile_rust_examples "${example_target}")
 
     set(binary_name ${TARGET_DIR}/${TARGET}/release/examples/${ARG_EXAMPLE_NAME}.ll)
 
-    if(NOT DEFINED ARG_MAX_NUM_PROVERS)
-        set(ARG_MAX_NUM_PROVERS 0)
+    if(DEFINED ARG_PRIVATE_INPUT)
+        if(DEFINED ARG_MAX_NUM_PROVERS)
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+        else()
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} 0)
+        endif()
+    else()
+        if(DEFINED ARG_MAX_NUM_PROVERS)
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+        else()
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} 0)
+        endif()
     endif()
 
-    if(NOT DEFINED ARG_PRIVATE_INPUT)
-        set (ARG_PRIVATE_INPUT "")
-    endif()
-
-    assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
-    add_dependencies(assign_rust_examples ${example_target}_assign)
+    add_dependencies(rust_examples_generate_crct ${example_target}_generate_crct)
+    add_dependencies(rust_examples_generate_tbl ${example_target}_generate_tbl)
+    add_dependencies(rust_examples_generate_both ${example_target}_generate_both)
 endfunction()
 
 function(add_rust_example_with_proving example_target)
@@ -64,8 +73,14 @@ function(add_rust_example_with_proving example_target)
 
     gen_proof(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
     add_dependencies(prove_rust_examples ${example_target}_prove)
-    gen_evm_verifier(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
-endfunction()
+
+    if(GENERATE_EVM_VERIFIER)
+        gen_evm_verifier(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+        add_dependencies(prove_rust_examples ${example_target}_evm_verifier)
+    endif()
+
+
+    endfunction()
 
 add_rust_example_with_proving(fibonacci_rust_example EXAMPLE_NAME fibonacci INPUT fibonacci.inp CURVE_TYPE pallas)
 add_rust_example_with_proving(arithmetics_builtins_rust_example EXAMPLE_NAME arithmetics_builtins INPUT arithmetics.inp CURVE_TYPE pallas)

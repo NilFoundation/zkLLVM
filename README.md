@@ -231,26 +231,26 @@ Users can generate & inspect intermediate artifacts such as execution trace by r
 
 Unix makefiles:
 ```bash
-make -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(nproc)
+make -C ${ZKLLVM_BUILD:-build} arithmetics_cpp_example -j$(nproc)
 ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_cpp_example.ll -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas
 ```
 
 Ninja:
 ```bash
-ninja -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(nproc)
+ninja -C ${ZKLLVM_BUILD:-build} arithmetics_cpp_example -j$(nproc)
 ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_cpp_example.ll -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas
 ```
 
 #### macOS
 Unix makefiles:
 ```bash
-make -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(sysctl -n hw.logicalcpu)
+make -C ${ZKLLVM_BUILD:-build} arithmetics_cpp_example -j$(sysctl -n hw.logicalcpu)
 ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_cpp_example.ll -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas
 ```
 
 Ninja:
 ```bash
-ninja -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(sysctl -n hw.logicalcpu)
+ninja -C ${ZKLLVM_BUILD:-build} arithmetics_cpp_example -j$(sysctl -n hw.logicalcpu)
 ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_cpp_example.ll -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas
 ```
 
@@ -261,25 +261,25 @@ You can also run the `assigner` with `--check` flag to validate the satisfiabili
 #### Linux
 Unix makefiles:
 ```bash
-make -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(nproc)
+make -C ${ZKLLVM_BUILD:-build} arithmetics_cpp_example -j$(nproc)
 ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_cpp_example.ll -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas --check
 ```
 
 Ninja:
 ```bash
-ninja -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(nproc)
+ninja -C ${ZKLLVM_BUILD:-build} arithmetics_cpp_example -j$(nproc)
 ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_cpp_example.ll -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas --check
 ```
 
 #### macOS
 Unix makefiles:
 ```bash
-make -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(sysctl -n hw.logicalcpu)
+make -C ${ZKLLVM_BUILD:-build} arithmetics_cpp_example -j$(sysctl -n hw.logicalcpu)
 ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_cpp_example.ll -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas --check
 ```
 
 Ninja:
 ```bash
-ninja -C ${ZKLLVM_BUILD:-build} circuit_cpp_examples -j$(sysctl -n hw.logicalcpu)
+ninja -C ${ZKLLVM_BUILD:-build} arithmetics_cpp_example -j$(sysctl -n hw.logicalcpu)
 ${ZKLLVM_BUILD:-build}/bin/assigner/assigner -b ${ZKLLVM_BUILD:-build}/examples/cpp/arithmetics_cpp_example.ll -i examples/inputs/arithmetics.inp -t assignment.tbl -c circuit.crct -e pallas --check
 ```
