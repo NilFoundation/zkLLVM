@@ -108,14 +108,20 @@ jobs:
         run: |
           cmake --build build -t assigner clang transpiler
 
-      - name: Build IR and circuit of the C++ examples
+      - name: Build IR of the C++ examples
         run: |
-          cmake --build build -t circuit_cpp_examples
+          cmake --build build -t compile_cpp_examples
           ls -al ./build/examples/cpp
 
-      - name: Build circuit and assigner of the C++ examples
+      - name: Build circuits(.crct) of the C++ examples
         run: |
-          cmake --build build -t assign_cpp_examples
+          cmake --build build -t cpp_examples_generate_crct
+          ls -al ./build/examples/cpp
+
+      - name: Build assignment tables(.tbl) of the C++ examples
+        run: |
+          cmake --build build -t cpp_examples_generate_tbl
+          ls -al ./build/examples/cpp
 
       - name: Compile tests as cpp code
         run: |
@@ -158,14 +164,20 @@ jobs:
         run: |
           cmake --build build -t rslang
 
-      - name: Build IRs of the Rust examples
+      - name: Build IR of the Rust examples
         run: |
-          cmake --build build -t circuit_rust_examples
+          cmake --build build -t compile_rust_examples
           ls -al ./build/examples/rust/target/assigner-unknown-unknown/release/examples
 
-      - name: Build circuits and assignments of the Rust examples
+      - name: Build circuits(.crct) of the Rust examples
         run: |
-          cmake --build build -t assign_rust_examples
+          cmake --build build -t rust_examples_generate_crct
+          ls -al ./build/examples/cpp
+
+      - name: Build assignment tables(.tbl) of the Rust examples
+        run: |
+          cmake --build build -t rust_examples_generate_tbl
+          ls -al ./build/examples/cpp
 
       - name: Build proofs for the circuits of the Rust examples
         run: |
