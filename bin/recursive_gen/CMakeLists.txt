@@ -9,55 +9,11 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-cm_find_package(CM)
-include(CMDeploy)
-include(CMSetupVersion)
-
 cm_project(recursive_gen WORKSPACE_NAME ${CMAKE_WORKSPACE_NAME} LANGUAGES ASM C CXX)
-
-if(NOT CMAKE_CROSSCOMPILING)
-    find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system)
-elseif(CMAKE_CROSSCOMPILING)
-    if(NOT TARGET boost)
-        include(ExternalProject)
-        set(Boost_LIBRARIES boost_random)
-        externalproject_add(boost
-                            PREFIX ${CMAKE_BINARY_DIR}/libs/boost
-                            GIT_REPOSITORY git@github.com:boostorg/boost.git
-                            GIT_TAG boost-1.77.0
-                            BUILD_IN_SOURCE TRUE
-                            CMAKE_ARGS -DCMAKE_CROSSCOMPILING_EMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-                            BUILD_COMMAND cmake --build . --target ${Boost_LIBRARIES}
-                            INSTALL_COMMAND "")
-    else()
-        set(Boost_LIBRARIES boost_random)
-    endif()
-endif()
-
-string(TOUPPER ${CURRENT_PROJECT_NAME} UPPER_CURRENT_PROJECT_NAME)
 
 if (CPACK_PACKAGE_VERSION)
     add_compile_definitions(${UPPER_CURRENT_PROJECT_NAME}_VERSION=${CPACK_PACKAGE_VERSION})
 endif()
-
-
-set(WITNESS_COLUMNS 15 CACHE INT "Number of witness columns")
-set(PUBLIC_INPUT_COLUMNS 1 CACHE INT "Number of public input columns")
-set(COMPONENT_CONSTANT_COLUMNS 5 CACHE INT "Number of component constant columns")
-set(LOOKUP_CONSTANT_COLUMNS 30 CACHE INT "Number of lookup constant columns")
-set(COMPONENT_SELECTOR_COLUMNS 50 CACHE INT "Number of lookup selector columns")
-set(LOOKUP_SELECTOR_COLUMNS 6 CACHE INT "Number of lookup selector columns")
-set(SECURITY_PARAMETER_LAMBDA 9 CACHE INT "Number of FRI queries")
-set(SECURITY_PARAMETER_GRINDING_BITS 0 CACHE INT "Number of FRI grinding bits")
-
-add_definitions(-DRECURSIVE_WITNESS_COLUMNS=${WITNESS_COLUMNS})
-add_definitions(-DRECURSIVE_PUBLIC_INPUT_COLUMNS=${PUBLIC_INPUT_COLUMNS})
-add_definitions(-DRECURSIVE_COMPONENT_CONSTANT_COLUMNS=${COMPONENT_CONSTANT_COLUMNS})
-add_definitions(-DRECURSIVE_LOOKUP_CONSTANT_COLUMNS=${LOOKUP_CONSTANT_COLUMNS})
-add_definitions(-DRECURSIVE_COMPONENT_SELECTOR_COLUMNS=${COMPONENT_SELECTOR_COLUMNS})
-add_definitions(-DRECURSIVE_LOOKUP_SELECTOR_COLUMNS=${LOOKUP_SELECTOR_COLUMNS})
-add_definitions(-DRECURSIVE_LAMBDA=${SECURITY_PARAMETER_LAMBDA})
-add_definitions(-DRECURSIVE_GRINDING_BITS=${SECURITY_PARAMETER_GRINDING_BITS})
 
 #Hash is hard-coded poseidon
 

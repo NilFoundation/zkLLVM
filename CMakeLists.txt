@@ -152,7 +152,7 @@ install(SCRIPT cmake/create-symlinks.cmake)
 
 include(CPack)
 
-add_subdirectories("${CMAKE_CURRENT_LIST_DIR}/bin")
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/bin")
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 

@@ -396,12 +396,12 @@ bool read_json(
 }
 
 struct ParametersPolicy {
-    constexpr static const std::size_t WitnessColumns = ASSIGNER_WITNESS_COLUMNS;
-    constexpr static const std::size_t PublicInputColumns = ASSIGNER_PUBLIC_INPUT_COLUMNS;
-    constexpr static const std::size_t ComponentConstantColumns = ASSIGNER_COMPONENT_CONSTANT_COLUMNS;
-    constexpr static const std::size_t LookupConstantColumns = ASSIGNER_LOOKUP_CONSTANT_COLUMNS;
-    constexpr static const std::size_t ComponentSelectorColumns = ASSIGNER_COMPONENT_SELECTOR_COLUMNS;
-    constexpr static const std::size_t LookupSelectorColumns = ASSIGNER_LOOKUP_SELECTOR_COLUMNS;
+    constexpr static const std::size_t WitnessColumns = WITNESS_COLUMNS;
+    constexpr static const std::size_t PublicInputColumns = PUBLIC_INPUT_COLUMNS;
+    constexpr static const std::size_t ComponentConstantColumns = COMPONENT_CONSTANT_COLUMNS;
+    constexpr static const std::size_t LookupConstantColumns = LOOKUP_CONSTANT_COLUMNS;
+    constexpr static const std::size_t ComponentSelectorColumns = COMPONENT_SELECTOR_COLUMNS;
+    constexpr static const std::size_t LookupSelectorColumns = LOOKUP_SELECTOR_COLUMNS;
 };
 
 template<typename BlueprintFieldType>
