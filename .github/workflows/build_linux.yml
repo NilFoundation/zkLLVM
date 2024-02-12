@@ -226,6 +226,10 @@ jobs:
           chmod +x ./tests/run_tests_faulty_input.sh
           bash ./tests/run_tests_faulty_input.sh pallas
 
+      - name: Run assigner unit tests
+        run: |
+          cmake --build build -t check-crypto3-assigner
+
       - name: Run assigner tests
         run: |
           cd libs/assigner/test

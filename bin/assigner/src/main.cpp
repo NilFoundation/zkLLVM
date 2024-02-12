@@ -410,6 +410,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::string private_input_file_name,
                           std::string assignment_table_file_name,
                           std::string circuit_file_name,
+                          std::string processed_public_input_file_name,
                           long stack_size,
                           bool check_validity,
                           boost::log::trivial::severity_level log_level,
@@ -441,15 +442,15 @@ int curve_dependent_main(std::string bytecode_file_name,
     boost::json::value public_input_json_value;
     if(public_input_file_name.empty()) {
         public_input_json_value = boost::json::array();
-    } else {
-        ASSERT(read_json(public_input_file_name, public_input_json_value));
+    } else if (!read_json(public_input_file_name, public_input_json_value)){
+        return 1;
     }
 
     boost::json::value private_input_json_value;
     if(private_input_file_name.empty()) {
         private_input_json_value = boost::json::array();
-    } else {
-        ASSERT(read_json(private_input_file_name, private_input_json_value));
+    } else if (!read_json(private_input_file_name, private_input_json_value)) {
+        return 1;
     }
 
     nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance(
@@ -463,12 +464,17 @@ int curve_dependent_main(std::string bytecode_file_name,
         check_validity
     );
 
-    std::unique_ptr<llvm::Module> module = parser_instance.parseIRFile(bytecode_file_name.c_str());
-    if (module == nullptr) {
+    if (!parser_instance.parseIRFile(bytecode_file_name.c_str())) {
         return 1;
     }
+    if (!processed_public_input_file_name.empty()) {
+        if (!parser_instance.dump_public_input(public_input_json_value.as_array(), processed_public_input_file_name)) {
+            return 1;
+        }
+        return 0;
+    }
 
-    if (!parser_instance.evaluate(*module, public_input_json_value.as_array(), private_input_json_value.as_array())) {
+    if (!parser_instance.evaluate(public_input_json_value.as_array(), private_input_json_value.as_array())) {
         return 1;
     }
 
@@ -614,6 +620,7 @@ int main(int argc, char *argv[]) {
             ("private-input,p", boost::program_options::value<std::string>(), "Private input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
+            ("input-column", boost::program_options::value<std::string>(), "Output file for public input column")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ("stack-size,s", boost::program_options::value<long>(), "Stack size in bytes")
             ("check", "Check satisfiability of the generated circuit")
@@ -621,7 +628,7 @@ int main(int argc, char *argv[]) {
             ("print_circuit_output", "deprecated, use \"-f\" instead")
             ("print-circuit-output-format,f", boost::program_options::value<std::string>(), "print output of the circuit (dec, hex)")
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
-            ("generate-type", boost::program_options::value<std::string>(), "Define generated output. Possible values: circuit, assignment, circuit-assignment, size_estimation(does not generate anything, just evaluates circuit size). Default value is circuit-assignment")
+            ("generate-type", boost::program_options::value<std::string>(), "Define generated output. Possible values: circuit, assignment, circuit-assignment, public-input-column, size_estimation(does not generate anything, just evaluates circuit size). Default value is circuit-assignment")
             ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
             ("max-lookup-rows", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
             ("target-prover", boost::program_options::value<int>(), "Assignment table and circuit will be generated only for defined prover. Possible values [0, max-num-provers)");
@@ -661,6 +668,7 @@ int main(int argc, char *argv[]) {
     std::string private_input_file_name;
     std::string assignment_table_file_name;
     std::string circuit_file_name;
+    std::string processed_public_input_file_name;
     std::string elliptic_curve;
     nil::blueprint::print_format circuit_output_print_format;
     std::string log_level;
@@ -683,6 +691,8 @@ int main(int argc, char *argv[]) {
             gen_mode = nil::blueprint::generation_mode::ASSIGNMENTS;
         } else if (generate_type == "size_estimation") {
             gen_mode = nil::blueprint::generation_mode::SIZE_ESTIMATION;
+        } else if (generate_type == "public-input-column") {
+            gen_mode = nil::blueprint::generation_mode::PUBLIC_INPUT_COLUMN;
         } else if (generate_type != "circuit-assignment") {
             std::cerr << "Invalid command line argument - generate-type. " << generate_type << " is wrong value." << std::endl;
             std::cout << options_desc << std::endl;
@@ -694,6 +704,15 @@ int main(int argc, char *argv[]) {
         std::cerr << "Both public and private input file names are not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
+    }
+
+    if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::PUBLIC_INPUT_COLUMN)) {
+        if (vm.count("input-column")) {
+            processed_public_input_file_name = vm["input-column"].as<std::string>();
+        } else {
+            std::cerr << "Expected \"--input-column\" argument with output file name";
+            return 1;
+        }
     }
 
     if (vm.count("private-input")) {
@@ -847,6 +866,7 @@ int main(int argc, char *argv[]) {
                                                                           private_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
+                                                                          processed_public_input_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),
                                                                           log_options[log_level],
@@ -873,6 +893,7 @@ int main(int argc, char *argv[]) {
                                                                           private_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
+                                                                          processed_public_input_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),
                                                                           log_options[log_level],
