@@ -123,14 +123,14 @@ void proof_print(Proof &proof, const CommitmentParamsType& commitment_params, co
 }
 
 struct ParametersPolicy {
-    constexpr static const std::size_t WitnessColumns = TRANSPILER_WITNESS_COLUMNS;
-    constexpr static const std::size_t PublicInputColumns = TRANSPILER_PUBLIC_INPUT_COLUMNS;
-    constexpr static const std::size_t ComponentConstantColumns = TRANSPILER_COMPONENT_CONSTANT_COLUMNS;
-    constexpr static const std::size_t LookupConstantColumns = TRANSPILER_LOOKUP_CONSTANT_COLUMNS;
-    constexpr static const std::size_t ComponentSelectorColumns = TRANSPILER_COMPONENT_SELECTOR_COLUMNS;
-    constexpr static const std::size_t LookupSelectorColumns = TRANSPILER_LOOKUP_SELECTOR_COLUMNS;
-    constexpr static const std::size_t lambda = TRANSPILER_LAMBDA;
-    constexpr static const std::size_t GrindingBits = TRANSPILER_GRINDING_BITS;
+    constexpr static const std::size_t WitnessColumns = WITNESS_COLUMNS;
+    constexpr static const std::size_t PublicInputColumns = PUBLIC_INPUT_COLUMNS;
+    constexpr static const std::size_t ComponentConstantColumns = COMPONENT_CONSTANT_COLUMNS;
+    constexpr static const std::size_t LookupConstantColumns = LOOKUP_CONSTANT_COLUMNS;
+    constexpr static const std::size_t ComponentSelectorColumns = COMPONENT_SELECTOR_COLUMNS;
+    constexpr static const std::size_t LookupSelectorColumns = LOOKUP_SELECTOR_COLUMNS;
+    constexpr static const std::size_t lambda = LAMBDA;
+    constexpr static const std::size_t GrindingBits = GRINDING_BITS;
     constexpr static const bool UseGrinding = GrindingBits != 0;
 private:
     using default_hash = nil::crypto3::hashes::keccak_1600<256>;

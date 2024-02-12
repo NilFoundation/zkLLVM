@@ -55,14 +55,14 @@
 
 template<typename BlueprintFieldType>
 struct ParametersPolicy {
-    constexpr static const std::size_t WitnessColumns = RECURSIVE_WITNESS_COLUMNS;
-    constexpr static const std::size_t PublicInputColumns = RECURSIVE_PUBLIC_INPUT_COLUMNS;
-    constexpr static const std::size_t ComponentConstantColumns = RECURSIVE_COMPONENT_CONSTANT_COLUMNS;
-    constexpr static const std::size_t LookupConstantColumns = RECURSIVE_LOOKUP_CONSTANT_COLUMNS;
-    constexpr static const std::size_t ComponentSelectorColumns = RECURSIVE_COMPONENT_SELECTOR_COLUMNS;
-    constexpr static const std::size_t LookupSelectorColumns = RECURSIVE_LOOKUP_SELECTOR_COLUMNS;
-    constexpr static const std::size_t lambda = RECURSIVE_LAMBDA;
-    constexpr static const std::size_t GrindingBits = RECURSIVE_GRINDING_BITS;
+    constexpr static const std::size_t WitnessColumns = WITNESS_COLUMNS;
+    constexpr static const std::size_t PublicInputColumns = PUBLIC_INPUT_COLUMNS;
+    constexpr static const std::size_t ComponentConstantColumns = COMPONENT_CONSTANT_COLUMNS;
+    constexpr static const std::size_t LookupConstantColumns = LOOKUP_CONSTANT_COLUMNS;
+    constexpr static const std::size_t ComponentSelectorColumns = COMPONENT_SELECTOR_COLUMNS;
+    constexpr static const std::size_t LookupSelectorColumns = LOOKUP_SELECTOR_COLUMNS;
+    constexpr static const std::size_t lambda = LAMBDA;
+    constexpr static const std::size_t GrindingBits = GRINDING_BITS;
     constexpr static const bool UseGrinding = (GrindingBits != 0);
 
 private:
