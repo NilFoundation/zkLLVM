@@ -55,7 +55,7 @@
 #include <nil/crypto3/marshalling/zk/types/plonk/constraint_system.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/assignment_table.hpp>
 
-#include <nil/blueprint/parser.hpp>
+#include <nil/blueprint/assigner.hpp>
 #include <nil/blueprint/asserts.hpp>
 #include <nil/blueprint/utils/satisfiability_check.hpp>
 
@@ -453,7 +453,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    nil::blueprint::parser<BlueprintFieldType, ArithmetizationParams> parser_instance(
+    nil::blueprint::assigner<BlueprintFieldType, ArithmetizationParams> assigner_instance(
         stack_size,
         log_level,
         max_num_provers,
@@ -464,38 +464,38 @@ int curve_dependent_main(std::string bytecode_file_name,
         check_validity
     );
 
-    if (!parser_instance.parseIRFile(bytecode_file_name.c_str())) {
+    if (!assigner_instance.parseIRFile(bytecode_file_name.c_str())) {
         return 1;
     }
     if (!processed_public_input_file_name.empty()) {
-        if (!parser_instance.dump_public_input(public_input_json_value.as_array(), processed_public_input_file_name)) {
+        if (!assigner_instance.dump_public_input(public_input_json_value.as_array(), processed_public_input_file_name)) {
             return 1;
         }
         return 0;
     }
 
-    if (!parser_instance.evaluate(public_input_json_value.as_array(), private_input_json_value.as_array())) {
+    if (!assigner_instance.evaluate(public_input_json_value.as_array(), private_input_json_value.as_array())) {
         return 1;
     }
 
-    ASSERT_MSG(!parser_instance.assignments.empty() && !parser_instance.circuits.empty(), "Not found any proxy for prover" );
+    ASSERT_MSG(!assigner_instance.assignments.empty() && !assigner_instance.circuits.empty(), "Not found any proxy for prover" );
 
     if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::SIZE_ESTIMATION)) {
         return 0;
     }
 
     // pack lookup tables
-    if (parser_instance.circuits[0].get_reserved_tables().size() > 0) {
+    if (assigner_instance.circuits[0].get_reserved_tables().size() > 0) {
         std::vector <std::size_t> lookup_columns_indices;
         lookup_columns_indices.resize(LookupConstantColumns);
         // fill ComponentConstantColumns, ComponentConstantColumns + 1, ...
         std::iota(lookup_columns_indices.begin(), lookup_columns_indices.end(), ComponentConstantColumns);
 
         auto usable_rows_amount = zk::snark::pack_lookup_tables_horizontal(
-                parser_instance.circuits[0].get_reserved_indices(),
-                parser_instance.circuits[0].get_reserved_tables(),
-                parser_instance.circuits[0].get(),
-                parser_instance.assignments[0].get(),
+                assigner_instance.circuits[0].get_reserved_indices(),
+                assigner_instance.circuits[0].get_reserved_tables(),
+                assigner_instance.circuits[0].get(),
+                assigner_instance.assignments[0].get(),
                 lookup_columns_indices,
                 ComponentSelectorColumns,
                 0,
@@ -505,8 +505,8 @@ int curve_dependent_main(std::string bytecode_file_name,
 
     constexpr std::uint32_t invalid_target_prover = std::numeric_limits<std::uint32_t>::max();
     // print assignment tables and circuits
-    ASSERT_MSG(parser_instance.assignments.size() == parser_instance.circuits.size(), "Missmatch assignments circuits size");
-    if (parser_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
+    ASSERT_MSG(assigner_instance.assignments.size() == assigner_instance.circuits.size(), "Missmatch assignments circuits size");
+    if (assigner_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
         // print assignment table
         if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
             std::ofstream otable;
@@ -517,7 +517,7 @@ int curve_dependent_main(std::string bytecode_file_name,
             }
 
             print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-                parser_instance.assignments[0], print_table_kind::FULL, ComponentConstantColumns,
+                assigner_instance.assignments[0], print_table_kind::FULL, ComponentConstantColumns,
                 ComponentSelectorColumns, otable);
 
             otable.close();
@@ -533,13 +533,13 @@ int curve_dependent_main(std::string bytecode_file_name,
             }
 
             print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
-                parser_instance.circuits[0], parser_instance.assignments[0], false, ocircuit);
+                assigner_instance.circuits[0], assigner_instance.assignments[0], false, ocircuit);
             ocircuit.close();
         }
-    } else if (parser_instance.assignments.size() > 1 &&
-              (target_prover < parser_instance.assignments.size() || target_prover == invalid_target_prover)) {
+    } else if (assigner_instance.assignments.size() > 1 &&
+              (target_prover < assigner_instance.assignments.size() || target_prover == invalid_target_prover)) {
         std::uint32_t start_idx = (target_prover == invalid_target_prover) ? 0 : target_prover;
-        std::uint32_t end_idx = (target_prover == invalid_target_prover) ? parser_instance.assignments.size() : target_prover + 1;
+        std::uint32_t end_idx = (target_prover == invalid_target_prover) ? assigner_instance.assignments.size() : target_prover + 1;
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
             if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
@@ -553,7 +553,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                 }
 
                 print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-                    parser_instance.assignments[idx], print_table_kind::PRIVATE, ComponentConstantColumns,
+                    assigner_instance.assignments[idx], print_table_kind::PRIVATE, ComponentConstantColumns,
                     ComponentSelectorColumns, otable);
 
                 otable.close();
@@ -568,38 +568,38 @@ int curve_dependent_main(std::string bytecode_file_name,
                     return 1;
                 }
 
-                ASSERT_MSG(idx < parser_instance.circuits.size(), "Not found circuit");
+                ASSERT_MSG(idx < assigner_instance.circuits.size(), "Not found circuit");
                 print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
-                    parser_instance.circuits[idx], parser_instance.assignments[idx], (idx > 0), ocircuit);
+                    assigner_instance.circuits[idx], assigner_instance.assignments[idx], (idx > 0), ocircuit);
 
                 ocircuit.close();
             }
         }
     } else {
         std::cout << "No data for print: target prover " << target_prover << ", actual number of provers "
-                  << parser_instance.assignments.size() << std::endl;
+                  << assigner_instance.assignments.size() << std::endl;
         return 1;
     }
 
     if (check_validity && (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS) && std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT))){
-        if (parser_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
-            ASSERT_MSG(nil::blueprint::is_satisfied(parser_instance.circuits[0].get(), parser_instance.assignments[0].get()),
+        if (assigner_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
+            ASSERT_MSG(nil::blueprint::is_satisfied(assigner_instance.circuits[0].get(), assigner_instance.assignments[0].get()),
                        "The circuit is not satisfied");
-        } else if (parser_instance.assignments.size() > 1 &&
+        } else if (assigner_instance.assignments.size() > 1 &&
                    (target_prover < parser_instance.assignments.size() || target_prover == invalid_target_prover)) {
             //  check only for target prover if set
             std::uint32_t start_idx = (target_prover == invalid_target_prover) ? 0 : target_prover;
-            std::uint32_t end_idx = (target_prover == invalid_target_prover) ? parser_instance.assignments.size() : target_prover + 1;
+            std::uint32_t end_idx = (target_prover == invalid_target_prover) ? assigner_instance.assignments.size() : target_prover + 1;
             for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
-                parser_instance.assignments[idx].set_check(true);
+                assigner_instance.assignments[idx].set_check(true);
                 bool is_accessible =
-                    nil::blueprint::is_satisfied(parser_instance.circuits[idx], parser_instance.assignments[idx]);
-                parser_instance.assignments[idx].set_check(false);
+                    nil::blueprint::is_satisfied(assigner_instance.circuits[idx], assigner_instance.assignments[idx]);
+                assigner_instance.assignments[idx].set_check(false);
                 ASSERT_MSG(is_accessible, ("The circuit is not satisfied on prover " + std::to_string(idx)).c_str());
             }
         } else {
             std::cout << "No data for check: target prover " << target_prover << ", actual number of provers "
-                      << parser_instance.assignments.size() << std::endl;
+                      << assigner_instance.assignments.size() << std::endl;
             return 1;
         }
     }
