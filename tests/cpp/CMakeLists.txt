@@ -265,6 +265,9 @@ add_zkllvm_unit_test("algebra/recursive_prover/lookup_arg_verifier/test2/test")
 add_zkllvm_unit_test_bls12381("algebra/fields/bls12381_fp12_arithmetics/mul")
 add_zkllvm_unit_test_bls12381("bls_signature/pairing/pairing")
 
+add_zkllvm_unit_test("nested_if/first")
+add_zkllvm_unit_test("nested_if/second")
+
 add_dependencies(all_tests_compilation assigner)
 add_dependencies(all_tests_compilation all_tests_compile_as_circuits)
 add_dependencies(all_tests_compilation all_tests_compile_as_cpp_code)
