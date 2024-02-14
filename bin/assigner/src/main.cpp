@@ -464,7 +464,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         check_validity
     );
 
-    if (!assigner_instance.parseIRFile(bytecode_file_name.c_str())) {
+    if (!assigner_instance.parse_ir_file(bytecode_file_name.c_str())) {
         return 1;
     }
     if (!processed_public_input_file_name.empty()) {
