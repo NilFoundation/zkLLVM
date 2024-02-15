@@ -480,7 +480,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
     ASSERT_MSG(!assigner_instance.assignments.empty() && !assigner_instance.circuits.empty(), "Not found any proxy for prover" );
 
-    if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::SIZE_ESTIMATION)) {
+    if (gen_mode.has_size_estimation()) {
         return 0;
     }
 
@@ -508,7 +508,7 @@ int curve_dependent_main(std::string bytecode_file_name,
     ASSERT_MSG(assigner_instance.assignments.size() == assigner_instance.circuits.size(), "Missmatch assignments circuits size");
     if (assigner_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
         // print assignment table
-        if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
+        if (gen_mode.has_assignments()) {
             std::ofstream otable;
             otable.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
             if (!otable) {
@@ -524,7 +524,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         }
 
         // print circuit
-        if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT)) {
+        if (gen_mode.has_circuit()) {
             std::ofstream ocircuit;
             ocircuit.open(circuit_file_name, std::ios_base::binary | std::ios_base::out);
             if (!ocircuit) {
@@ -542,7 +542,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         std::uint32_t end_idx = (target_prover == invalid_target_prover) ? assigner_instance.assignments.size() : target_prover + 1;
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
-            if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
+            if (gen_mode.has_assignments()) {
                 std::ofstream otable;
                 otable.open(assignment_table_file_name + std::to_string(idx),
                             std::ios_base::binary | std::ios_base::out);
@@ -560,7 +560,7 @@ int curve_dependent_main(std::string bytecode_file_name,
             }
 
             // print circuit
-            if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT)) {
+            if (gen_mode.has_circuit()) {
                 std::ofstream ocircuit;
                 ocircuit.open(circuit_file_name + std::to_string(idx), std::ios_base::binary | std::ios_base::out);
                 if (!ocircuit) {
@@ -581,12 +581,12 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    if (check_validity && (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS) && std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT))){
+    if (check_validity && gen_mode.has_assignments() && gen_mode.has_circuit()) {
         if (assigner_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
             ASSERT_MSG(nil::blueprint::is_satisfied(assigner_instance.circuits[0].get(), assigner_instance.assignments[0].get()),
                        "The circuit is not satisfied");
         } else if (assigner_instance.assignments.size() > 1 &&
-                   (target_prover < parser_instance.assignments.size() || target_prover == invalid_target_prover)) {
+                   (target_prover < assigner_instance.assignments.size() || target_prover == invalid_target_prover)) {
             //  check only for target prover if set
             std::uint32_t start_idx = (target_prover == invalid_target_prover) ? 0 : target_prover;
             std::uint32_t end_idx = (target_prover == invalid_target_prover) ? assigner_instance.assignments.size() : target_prover + 1;
@@ -682,17 +682,17 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    nil::blueprint::generation_mode gen_mode = nil::blueprint::generation_mode::ASSIGNMENTS | nil::blueprint::generation_mode::CIRCUIT;
+    nil::blueprint::generation_mode gen_mode = nil::blueprint::generation_mode::assignments() | nil::blueprint::generation_mode::circuit();
     if (vm.count("generate-type")) {
         const auto generate_type = vm["generate-type"].as<std::string>();
         if (generate_type == "circuit") {
-            gen_mode = nil::blueprint::generation_mode::CIRCUIT;
+            gen_mode = nil::blueprint::generation_mode::circuit();
         } else if (generate_type == "assignment") {
-            gen_mode = nil::blueprint::generation_mode::ASSIGNMENTS;
+            gen_mode = nil::blueprint::generation_mode::assignments();
         } else if (generate_type == "size_estimation") {
-            gen_mode = nil::blueprint::generation_mode::SIZE_ESTIMATION;
+            gen_mode = nil::blueprint::generation_mode::size_estimation();
         } else if (generate_type == "public-input-column") {
-            gen_mode = nil::blueprint::generation_mode::PUBLIC_INPUT_COLUMN;
+            gen_mode = nil::blueprint::generation_mode::public_input_column();
         } else if (generate_type != "circuit-assignment") {
             std::cerr << "Invalid command line argument - generate-type. " << generate_type << " is wrong value." << std::endl;
             std::cout << options_desc << std::endl;
@@ -700,13 +700,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (!vm.count("public-input") && !vm.count("private-input") && std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
+    if (!vm.count("public-input") && !vm.count("private-input") && gen_mode.has_assignments()) {
         std::cerr << "Both public and private input file names are not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
     }
 
-    if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::PUBLIC_INPUT_COLUMN)) {
+    if (gen_mode.has_public_input_column()) {
         if (vm.count("input-column")) {
             processed_public_input_file_name = vm["input-column"].as<std::string>();
         } else {
@@ -723,7 +723,7 @@ int main(int argc, char *argv[]) {
         public_input_file_name = vm["public-input"].as<std::string>();
     }
 
-    if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::ASSIGNMENTS)) {
+    if (gen_mode.has_assignments()) {
         if (vm.count("assignment-table")) {
             assignment_table_file_name = vm["assignment-table"].as<std::string>();
         } else {
@@ -733,7 +733,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (std::uint8_t(gen_mode & nil::blueprint::generation_mode::CIRCUIT)) {
+    if (gen_mode.has_circuit()) {
         if (vm.count("circuit")) {
             circuit_file_name = vm["circuit"].as<std::string>();
         } else {
