@@ -356,8 +356,16 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     std::vector<std::uint8_t> cv;
     cv.resize(filled_val.length(), 0x00);
     auto write_iter = cv.begin();
+    auto start = std::chrono::system_clock::now();
+    nil::marshalling::types::detail::zero_count::set_enable(true);
     nil::marshalling::status_type status = filled_val.write(write_iter, cv.size());
-    out.write(reinterpret_cast<char*>(cv.data()), cv.size());
+    out.write(reinterpret_cast<char*>(cv.data()), std::distance(cv.begin(), write_iter));
+    nil::marshalling::types::detail::zero_count::set_enable(false);
+    auto end = std::chrono::system_clock::now();
+    auto elapsed =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    //std::cout << "size in bytes = " << cv.size() << " / " << std::distance(cv.begin(), write_iter) << "\n";
+    //std::cout << "time = " << elapsed.count() << "\n";
 }
 
 bool read_json(

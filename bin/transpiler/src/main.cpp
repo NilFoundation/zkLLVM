@@ -386,7 +386,9 @@ int curve_dependent_main(
         iassignment.close();
         table_value_marshalling_type marshalled_table_data;
         auto read_iter = v.begin();
+        nil::marshalling::types::detail::zero_count::set_enable(true);
         auto status = marshalled_table_data.read(read_iter, v.size());
+        nil::marshalling::types::detail::zero_count::set_enable(false);
         std::tie(table_description.usable_rows_amount, assignment_table) =
             nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
                 marshalled_table_data
