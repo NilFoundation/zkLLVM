@@ -100,7 +100,7 @@ jobs:
 
       - name: Checkout modules to specified refs
         if: needs.handle-syncwith.outputs.prs-refs != ''
-        uses: NilFoundation/ci-cd/actions/recursive-checkout@v1
+        uses: NilFoundation/ci-cd/actions/recursive-checkout@v1.2.1
         # TODO: figure out the mapping of volumes and use variable here, not hardcoded path
         with:
           paths: |
