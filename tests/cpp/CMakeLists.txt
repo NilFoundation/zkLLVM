@@ -228,6 +228,7 @@ add_zkllvm_unit_test("algebra/integers/shift/right")
 
 #bool tests
 add_zkllvm_unit_test("algebra/bool/assigner_exit_check")
+add_zkllvm_unit_test("algebra/bool/assigner_exit_check_eq_pallas")
 
 # bit de/composition tests
 add_zkllvm_unit_test("algebra/de_composition/decomposition/msb")
