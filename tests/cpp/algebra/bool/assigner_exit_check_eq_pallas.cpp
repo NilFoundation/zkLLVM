@@ -17,7 +17,7 @@ using namespace nil::crypto3::algebra::curves;
 
 
 #ifdef __ZKLLVM__
-    __builtin_assigner_exit_check(c);
+    __builtin_assigner_exit_check_eq_pallas(a, b);
 #else
     assert(c);
 #endif
