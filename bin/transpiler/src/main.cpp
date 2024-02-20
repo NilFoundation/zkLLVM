@@ -82,7 +82,7 @@ inline std::vector<std::size_t> generate_random_step_list(const std::size_t r, c
 
 template<typename FRIScheme, typename FieldType>
 typename FRIScheme::params_type create_fri_params(
-        std::size_t degree_log, const int max_step = 1, std::size_t expand_factor = 0) {
+        std::size_t degree_log, const int max_step = 1, std::size_t expand_factor = 2) {
     std::size_t r = degree_log - 1;
 
     return typename FRIScheme::params_type(

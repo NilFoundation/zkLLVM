@@ -84,7 +84,7 @@ jobs:
 
       - name: Checkout sources
         # We need full history, because during CMake config stage we are finding the nearest tag
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: false
@@ -309,7 +309,7 @@ jobs:
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       # Update next line if you need new version of proof producer
-      proof-producer-ref: aa9619e52305c6a6a8e2797022da9d21c3962d08
+      proof-producer-ref: 6ddb405173c4fbf466c4764a440cc81675a4f12a
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 
