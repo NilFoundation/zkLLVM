@@ -1,24 +1,24 @@
 set -e
 mkdir -p ./recursive
-#ninja -C build arithmetics_cpp_example_assign -j10
+#ninja -C build arithmetics_cpp_example_generate_both -j10
 #./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/arithmetics.inp -t ./build/examples/cpp/assignment_arithmetics_cpp_example.tbl -c ./build/examples/cpp/circuit_arithmetics_cpp_example.crct -o ./recursive -e pallas -p 2
 #./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/arithmetics.inp -t ./build/examples/cpp/assignment_arithmetics_cpp_example.tbl -c ./build/examples/cpp/circuit_arithmetics_cpp_example.crct -o ./recursive -e pallas -p 2
-ninja -C build merkle_tree_poseidon_cpp_example_assign
+ninja -C build merkle_tree_poseidon_cpp_example_generate_both
 ./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/merkle_tree_poseidon.inp -t ./build/examples/cpp/assignment_merkle_tree_poseidon_cpp_example.tbl -c ./build/examples/cpp/circuit_merkle_tree_poseidon_cpp_example.crct -o ./recursive -e pallas
 ./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/merkle_tree_poseidon.inp -t ./build/examples/cpp/assignment_merkle_tree_poseidon_cpp_example.tbl -c ./build/examples/cpp/circuit_merkle_tree_poseidon_cpp_example.crct -o ./recursive -e pallas
-#ninja -C build integer_arithmetics_cpp_example_assign
+#ninja -C build integer_arithmetics_cpp_example_generate_both
 #./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/integer_arithmetics.inp -t ./build/examples/cpp/assignment_integer_arithmetics_cpp_example.tbl -c ./build/examples/cpp/circuit_integer_arithmetics_cpp_example.crct -o ./recursive -e pallas
 #./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/integer_arithmetics.inp -t ./build/examples/cpp/assignment_integer_arithmetics_cpp_example.tbl -c ./build/examples/cpp/circuit_integer_arithmetics_cpp_example.crct -o ./recursive -e pallas
-#ninja -C build balance_cpp_example_assign
+#ninja -C build balance_cpp_example_generate_both
 #./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/balance.inp -t ./build/examples/cpp/assignment_balance_cpp_example.tbl -c ./build/examples/cpp/circuit_balance_cpp_example.crct -o ./recursive -e pallas
 #./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/balance.inp -t ./build/examples/cpp/assignment_balance_cpp_example.tbl -c ./build/examples/cpp/circuit_balance_cpp_example.crct -o ./recursive -e pallas
-#ninja -C build poseidon_cpp_example_assign
+#ninja -C build poseidon_cpp_example_generate_both
 #./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/poseidon.inp -t ./build/examples/cpp/assignment_poseidon_cpp_example.tbl -c ./build/examples/cpp/circuit_poseidon_cpp_example.crct -o ./recursive -e pallas
 #./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/poseidon.inp -t ./build/examples/cpp/assignment_poseidon_cpp_example.tbl -c ./build/examples/cpp/circuit_poseidon_cpp_example.crct -o ./recursive -e pallas
-#ninja -C build pallas_curve_addition_cpp_example_assign
+#ninja -C build pallas_curve_addition_cpp_example_generate_both
 #./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/pallas_curve_examples/pallas_curve_add.inp -t ./build/examples/cpp/assignment_pallas_curve_addition_cpp_example.tbl -c ./build/examples/cpp/circuit_pallas_curve_addition_cpp_example.crct -o ./recursive -e pallas
 #./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/pallas_curve_examples/pallas_curve_add.inp -t ./build/examples/cpp/assignment_pallas_curve_addition_cpp_example.tbl -c ./build/examples/cpp/circuit_pallas_curve_addition_cpp_example.crct -o ./recursive -e pallas
-#ninja -C build polynomial_cpp_example_assign
+#ninja -C build polynomial_cpp_example_generate_both
 #./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/polynomial.inp -t ./build/examples/cpp/assignment_polynomial_cpp_example.tbl -c ./build/examples/cpp/circuit_polynomial_cpp_example.crct -o ./recursive -e pallas
 #./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/polynomial.inp -t ./build/examples/cpp/assignment_polynomial_cpp_example.tbl -c ./build/examples/cpp/circuit_polynomial_cpp_example.crct -o ./recursive -e pallas
 
