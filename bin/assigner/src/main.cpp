@@ -209,7 +209,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         usable_rows_amount = table_proxy.get_used_rows().size();
         usable_rows_amount = std::max({usable_rows_amount, max_shared_size, max_public_inputs_size, max_constant_size, max_selector_size});
     } else { // FULL
-        total_columns = AssignmentTableType::arithmetization_params::total_columns;
+        total_columns = witness_size + shared_size + public_input_size + constant_size + selector_size;
         std::uint32_t max_witness_size = 0;
         for (std::uint32_t i = 0; i < witness_size; i++) {
             max_witness_size = std::max(max_witness_size, table_proxy.witness_column_size(i));
@@ -236,122 +236,175 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     using plonk_assignment_table = nil::marshalling::types::bundle<
         TTypeBase,
         std::tuple<
+            nil::marshalling::types::integral<TTypeBase, std::size_t>, // witness_amount
+            nil::marshalling::types::integral<TTypeBase, std::size_t>, // public_input_amount
+            nil::marshalling::types::integral<TTypeBase, std::size_t>, // constant_amount
+            nil::marshalling::types::integral<TTypeBase, std::size_t>, // selector_amount
+
             nil::marshalling::types::integral<TTypeBase, std::size_t>, // usable_rows
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // columns_number
-            // table_values
+            nil::marshalling::types::integral<TTypeBase, std::size_t>, // padded_rows_amount
+
+            // table_witness_values
             nil::marshalling::types::array_list<
                 TTypeBase,
                 nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
                 nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
-                >
+            >,
+            // table_public_input_values
+            nil::marshalling::types::array_list<
+                TTypeBase,
+                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
+                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
+            >,
+            // table_constant_values
+            nil::marshalling::types::array_list<
+                TTypeBase,
+                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
+                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
+            >,
+            // table_selector_values
+            nil::marshalling::types::array_list<
+                TTypeBase,
+                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
+                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
             >
-        >;
+        >
+    >;
     using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
 
-    std::vector<typename AssignmentTableType::field_type::value_type> table_values(total_size, 0);
+    std::vector<typename AssignmentTableType::field_type::value_type> table_witness_values(     padded_rows_amount * witness_size ,     0);
+    std::vector<typename AssignmentTableType::field_type::value_type> table_public_input_values(padded_rows_amount * (public_input_size + shared_size), 0);
+    std::vector<typename AssignmentTableType::field_type::value_type> table_constant_values(    padded_rows_amount * constant_size,     0);
+    std::vector<typename AssignmentTableType::field_type::value_type> table_selector_values(    padded_rows_amount * selector_size,     0);
     if (print_kind == print_table_kind::FULL) {
-        auto it = table_values.begin();
+        auto it = table_witness_values.begin();
         for (std::uint32_t i = 0; i < witness_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                (table_values, table_proxy.witness(i), it);
+                (table_witness_values, table_proxy.witness(i), it);
             it += padded_rows_amount;
         }
+        it = table_public_input_values.begin();
         for (std::uint32_t i = 0; i < public_input_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                (table_values, table_proxy.public_input(i), it);
+                (table_public_input_values, table_proxy.public_input(i), it);
             it += padded_rows_amount;
         }
+        it = table_constant_values.begin();
         for (std::uint32_t i = 0; i < constant_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                (table_values, table_proxy.constant(i), it);
+                (table_constant_values, table_proxy.constant(i), it);
             it += padded_rows_amount;
         }
+        it = table_selector_values.begin();
         for (std::uint32_t i = 0; i < selector_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                (table_values, table_proxy.selector(i), it);
+                (table_selector_values, table_proxy.selector(i), it);
             it += padded_rows_amount;
         }
     } else {
         const auto& rows = table_proxy.get_used_rows();
         const auto& selector_rows = table_proxy.get_used_selector_rows();
-        const std::uint32_t padding = padded_rows_amount - rows.size();
-        std::uint32_t idx = 0;
-        auto it = table_values.begin();
+        std::uint32_t witness_idx = 0;
         // witness
-        for( std::size_t i = 0; i < AssignmentTableType::arithmetization_params::witness_columns; i++ ){
+        for( std::size_t i = 0; i < witness_size; i++ ){
             const auto column_size = table_proxy.witness_column_size(i);
             std::uint32_t offset = 0;
             for(const auto& j : rows){
                 if (j < column_size) {
-                    table_values[idx + offset] = table_proxy.witness(i, j);
+                    table_witness_values[witness_idx + offset] = table_proxy.witness(i, j);
                     offset++;
                 }
             }
-            idx += padded_rows_amount;
+            witness_idx += padded_rows_amount;
         }
         // public input
-        it += idx;
+        std::uint32_t pub_inp_idx = 0;
+        auto it_pub_inp = table_public_input_values.begin();
         for (std::uint32_t i = 0; i < public_input_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                (table_values, table_proxy.public_input(i), it);
-            it += padded_rows_amount;
-            idx += padded_rows_amount;
+                (table_public_input_values, table_proxy.public_input(i), it_pub_inp);
+            it_pub_inp += padded_rows_amount;
+            pub_inp_idx += padded_rows_amount;
         }
         for (std::uint32_t i = 0; i < shared_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                (table_values, table_proxy.shared(i), it);
-            it += padded_rows_amount;
-            idx += padded_rows_amount;
+                (table_public_input_values, table_proxy.shared(i), it_pub_inp);
+            it_pub_inp += padded_rows_amount;
+            pub_inp_idx += padded_rows_amount;
         }
         // constant
+        std::uint32_t constant_idx = 0;
         for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
             const auto column_size = table_proxy.constant_column_size(i);
             std::uint32_t offset = 0;
             for(const auto& j : rows){
                 if (j < column_size) {
-                    table_values[idx + offset] = table_proxy.constant(i, j);
+                    table_constant_values[constant_idx + offset] = table_proxy.constant(i, j);
                     offset++;
                 }
             }
-            idx += padded_rows_amount;
+
+            constant_idx += padded_rows_amount;
         }
-        it += idx;
+
+        auto it_const = table_constant_values.begin() + constant_idx;
         for (std::uint32_t i = ComponentConstantColumns; i < constant_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                (table_values, table_proxy.constant(i), it);
-            it += padded_rows_amount;
-            idx += padded_rows_amount;
+                (table_constant_values, table_proxy.constant(i), it_const);
+            it_const += padded_rows_amount;
+            constant_idx += padded_rows_amount;
         }
         // selector
+        std::uint32_t selector_idx = 0;
         for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
             const auto column_size = table_proxy.selector_column_size(i);
             std::uint32_t offset = 0;
             for(const auto& j : rows){
                 if (j < column_size) {
                     if (selector_rows.find(j) != selector_rows.end()) {
-                        table_values[idx + offset] = table_proxy.selector(i, j);
+
+                        table_selector_values[selector_idx + offset] = table_proxy.selector(i, j);
                     }
                     offset++;
                 }
             }
-            idx += padded_rows_amount;
+            selector_idx += padded_rows_amount;
         }
+
+        auto it_selector = table_selector_values.begin();
         for (std::uint32_t i = ComponentSelectorColumns; i < selector_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
-                (table_values, table_proxy.selector(i), it);
-            it += padded_rows_amount;
-            idx += padded_rows_amount;
+                (table_selector_values, table_proxy.selector(i), it_selector);
+            it_selector += padded_rows_amount;
+            selector_idx += padded_rows_amount;
         }
-        ASSERT_MSG(idx == total_size, "Printed index not equal required assignment size" );
+        ASSERT_MSG(witness_idx + pub_inp_idx + constant_idx + selector_idx == total_size, "Printed index not equal required assignment size" );
     }
 
     auto filled_val = plonk_assignment_table(std::make_tuple(
+        nil::marshalling::types::integral<TTypeBase, std::size_t>(witness_size),
+        nil::marshalling::types::integral<TTypeBase, std::size_t>(public_input_size),
+        nil::marshalling::types::integral<TTypeBase, std::size_t>(constant_size),
+        nil::marshalling::types::integral<TTypeBase, std::size_t>(selector_size),
         nil::marshalling::types::integral<TTypeBase, std::size_t>(usable_rows_amount),
-        nil::marshalling::types::integral<TTypeBase, std::size_t>(total_columns),
-        nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(table_values)
-            ));
-    table_values.clear();
-    table_values.shrink_to_fit();
+        nil::marshalling::types::integral<TTypeBase, std::size_t>(padded_rows_amount),
+        nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(table_witness_values),
+        nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(table_public_input_values),
+        nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(table_constant_values),
+        nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(table_selector_values)
+    ));
+
+    table_witness_values.clear();
+    table_witness_values.shrink_to_fit();
+
+    table_public_input_values.clear();
+    table_public_input_values.shrink_to_fit();
+
+    table_constant_values.clear();
+    table_constant_values.shrink_to_fit();
+
+    table_selector_values.clear();
+    table_selector_values.shrink_to_fit();
 
     std::vector<std::uint8_t> cv;
     cv.resize(filled_val.length(), 0x00);
@@ -431,13 +484,13 @@ int curve_dependent_main(std::string bytecode_file_name,
     constexpr std::size_t ConstantColumns = ComponentConstantColumns + LookupConstantColumns;
     constexpr std::size_t SelectorColumns = ComponentSelectorColumns + LookupSelectorColumns;
 
-    using ArithmetizationParams =
-        zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns>;
-    using ConstraintSystemType = zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
-    using ConstraintSystemProxyType = zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, zk::snark::plonk_column<BlueprintFieldType>>;
+    zk::snark::plonk_table_description<BlueprintFieldType> desc(
+        WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns);
+    using ConstraintSystemType = zk::snark::plonk_constraint_system<BlueprintFieldType>;
+    using ConstraintSystemProxyType = zk::snark::plonk_table<BlueprintFieldType, zk::snark::plonk_column<BlueprintFieldType>>;
     using ArithmetizationType =
-            crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
-    using AssignmentTableType = zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, zk::snark::plonk_column<BlueprintFieldType>>;
+            crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
+    using AssignmentTableType = zk::snark::plonk_table<BlueprintFieldType, zk::snark::plonk_column<BlueprintFieldType>>;
 
     boost::json::value public_input_json_value;
     if(public_input_file_name.empty()) {
@@ -453,7 +506,8 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
-    nil::blueprint::assigner<BlueprintFieldType, ArithmetizationParams> assigner_instance(
+    nil::blueprint::assigner<BlueprintFieldType> assigner_instance(
+        desc,
         stack_size,
         log_level,
         max_num_provers,
