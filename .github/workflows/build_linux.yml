@@ -291,7 +291,7 @@ jobs:
     uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@5bb7c4b0790f56b3a339e33ba442816fac17ab88
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
-      evm-placeholder-verification-ref: 5bb7c4b0790f56b3a339e33ba442816fac17ab88
+      evm-placeholder-verification-ref: 202fbd0402eda22ae91348800dea7366110b1501
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
 
@@ -386,7 +386,7 @@ jobs:
     uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@5bb7c4b0790f56b3a339e33ba442816fac17ab88
     with:
       artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
-      evm-placeholder-verification-ref: 5bb7c4b0790f56b3a339e33ba442816fac17ab88
+      evm-placeholder-verification-ref: 202fbd0402eda22ae91348800dea7366110b1501
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
 
