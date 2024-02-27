@@ -58,6 +58,17 @@ function(assign_ir target binary_name input private_input curve_type max_num_pro
         DEPENDS ${target} $<TARGET_FILE:assigner>
         COMMAND_EXPAND_LISTS
         VERBATIM)
+
+    add_custom_target(${target}_prepare_input
+        COMMAND $<TARGET_FILE:assigner>
+            -b ${binary_name}
+            -i ${INPUTS_DIR}/${input}
+            --generate-type public-input-column
+            --input-column ${target}_input_column.inp
+            -e ${curve_type}
+        DEPENDS ${target} ${INPUTS_DIR}/${input}
+        COMMAND_EXPAND_LISTS
+        VERBATIM)
 endfunction()
 
 function(gen_proof target input curve_type provers_amount)
@@ -73,6 +84,13 @@ function(gen_proof target input curve_type provers_amount)
             add_dependencies(${target}_prove ${target}_prove${prover_num_minus_1})
         endforeach()
 
+        add_custom_target(${target}_copy_input_for_proof
+            COMMAND ${CMAKE_COMMAND} -E make_directory transpiler_output_${target}
+            COMMAND ${CMAKE_COMMAND} -E copy ${target}_input_column.inp transpiler_output_${target}/public_input.inp
+            DEPENDS ${target}_prepare_input)
+
+        add_dependencies(${target}_prove ${target}_copy_input_for_proof)
+
     endif()
 endfunction()
 
@@ -87,7 +105,6 @@ function(gen_single_proof target input curve_type provers_amount)
 
     add_custom_target(${target}_prove${prover_num}
         COMMAND $<TARGET_FILE:transpiler> -m gen-test-proof
-            -i ${INPUTS_DIR}/${input}
             -c circuit_${target}.crct${prover_num}
             -t assignment_${target}.tbl${prover_num}
             -o transpiler_output_${target}${prover_num}
@@ -112,6 +129,12 @@ function(gen_evm_verifier target input curve_type provers_amount)
         endforeach()
 
     endif()
+
+    add_custom_target(${target}_copy_input_for_evm_verifier
+            COMMAND ${CMAKE_COMMAND} -E make_directory transpiler_output_${target}
+            COMMAND ${CMAKE_COMMAND} -E copy ${target}_input_column.inp transpiler_output_${target}/public_input.inp
+            DEPENDS ${target}_prepare_input)
+    add_dependencies(${target}_evm_verifier ${target}_copy_input_for_evm_verifier)
 endfunction()
 
 function(gen_single_evm_verifier target input curve_type provers_amount)
@@ -125,7 +148,6 @@ function(gen_single_evm_verifier target input curve_type provers_amount)
 
     add_custom_target(${target}_evm_verifier${prover_num}
         COMMAND $<TARGET_FILE:transpiler> -m gen-evm-verifier
-            -i ${INPUTS_DIR}/${input}
             -c circuit_${target}.crct${prover_num}
             -t assignment_${target}.tbl${prover_num}
             -o transpiler_output_${target}${prover_num}

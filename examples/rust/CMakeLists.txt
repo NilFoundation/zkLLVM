@@ -12,12 +12,13 @@ else()
 endif()
 set(TARGET "assigner-unknown-unknown")
 set(TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/target")
+set(EXAMPLES_BINARY_DIR "${TARGET_DIR}/${TARGET}/release/examples")
 
 function(add_rust_example_without_proving example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE MAX_NUM_PROVERS)
-    set(multiValues EXAMPLE_NAME)
+    set(singleValues EXAMPLE_NAME INPUT PRIVATE_INPUT CURVE_TYPE MAX_NUM_PROVERS)
+    set(multiValues)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
                         "${singleValues}"
@@ -33,7 +34,7 @@ function(add_rust_example_without_proving example_target)
 
     add_dependencies(compile_rust_examples "${example_target}")
 
-    set(binary_name ${TARGET_DIR}/${TARGET}/release/examples/${ARG_EXAMPLE_NAME}.ll)
+    set(binary_name ${EXAMPLES_BINARY_DIR}/${ARG_EXAMPLE_NAME}.ll)
 
     if(DEFINED ARG_PRIVATE_INPUT)
         if(DEFINED ARG_MAX_NUM_PROVERS)
@@ -57,8 +58,8 @@ endfunction()
 function(add_rust_example_with_proving example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues INPUT CURVE_TYPE)
-    set(multiValues EXAMPLE_NAME)
+    set(singleValues EXAMPLE_NAME INPUT CURVE_TYPE)
+    set(multiValues)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
                         "${singleValues}"

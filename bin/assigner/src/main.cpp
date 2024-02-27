@@ -710,7 +710,7 @@ int main(int argc, char *argv[]) {
         if (vm.count("input-column")) {
             processed_public_input_file_name = vm["input-column"].as<std::string>();
         } else {
-            std::cerr << "Expected \"--input-column\" argument with output file name";
+            std::cerr << "Expected \"--input-column\" argument with output file name" << std::endl;
             return 1;
         }
     }
