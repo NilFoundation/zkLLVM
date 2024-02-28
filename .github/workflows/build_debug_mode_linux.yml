@@ -1,0 +1,205 @@
+name: build-linux
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+concurrency:
+  # In master we want to run for every commit, in other branches — only for the last one
+  group: ${{
+    ( github.ref == 'refs/heads/master' &&
+    format('{0}/{1}/{2}', github.workflow, github.ref, github.sha) )
+    ||
+    format('{0}/{1}', github.workflow, github.ref) }}
+  cancel-in-progress: true
+
+jobs:
+  handle-syncwith:
+    if: github.event_name == 'pull_request'
+    name: Call Reusable SyncWith Handler
+    uses: NilFoundation/ci-cd/.github/workflows/reusable-handle-syncwith.yml@v1.1.2
+    with:
+      ci-cd-ref: 'v1.1.2'
+    secrets: inherit
+
+  build-and-test-linux:
+    name: Build zkLLVM, run local tests, prepare for integration testing
+    runs-on: [ self-hosted, Linux, X64, aws_autoscaling ]
+    needs:
+      - handle-syncwith
+    # Condition is needed to run it for push event (handle-syncwith is skipped)
+    if: |
+      always() && !cancelled() &&
+      (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped')
+    outputs:
+      transpiler-artifact-name: ${{ steps.artifact-names.outputs.transpiler }}
+      examples-artifact-name: ${{ steps.artifact-names.outputs.examples }}
+      evm-targets: ${{ steps.get-targets.outputs.evm-targets }}
+      prover-targets: ${{ steps.get-targets.outputs.prover-targets }}
+
+    env:
+      CONTAINER_TMP: /opt/
+      HOST_TMP: /home/runner/work/_temp/
+      DEBIAN_FRONTEND: noninteractive
+      BOOST_VERSION: "1.80.0"
+      INTEGRATION_TESTING_TARGETS: |
+        arithmetics_cpp_example
+        polynomial_cpp_example
+        poseidon_cpp_example
+        merkle_tree_poseidon_cpp_example
+        uint_remainder_cpp
+        uint_shift_left
+        uint_bit_decomposition
+        uint_bit_composition
+        compare_eq_cpp
+        private_input_cpp
+
+    container:
+      image: ubuntu:22.04
+      volumes:
+        - /home/runner/work/_temp/:/opt/
+
+    steps:
+      - name: Install dependencies
+        run: |
+          env && \
+          apt update && \
+          apt install -y \
+            build-essential \
+            libssl-dev \
+            cmake \
+            ninja-build \
+            git \
+            libicu-dev \
+            curl \
+            pkg-config
+
+      - name: Print toolchain information
+        run: |
+          git --version
+          cc --version
+          cmake --version
+          ninja --version
+
+      - name: Checkout sources
+        # We need full history, because during CMake config stage we are finding the nearest tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      # Workaround: https://github.com/actions/checkout/issues/1169
+      - name: Mark directory as safe
+        run: |
+          git config --system --add safe.directory $PWD
+
+      - name: Checkout submodules
+        run: |
+          git submodule update --init --recursive --depth=1
+
+      - name: Checkout modules to specified refs
+        if: needs.handle-syncwith.outputs.prs-refs != ''
+        uses: NilFoundation/ci-cd/actions/recursive-checkout@v1.2.1
+        # TODO: figure out the mapping of volumes and use variable here, not hardcoded path
+        with:
+          paths: |
+            /__w/zkLLVM/zkLLVM/**
+            !/__w/zkLLVM/zkLLVM/
+            !/__w/zkLLVM/zkLLVM/**/.git/**
+          refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+
+      - name: Clean index.lock files if checkout step was cancelled or failed
+        if: cancelled() || failure()
+        run: |
+          find .git -name 'index.lock' -exec rm -v {} \;
+
+      - name: Install boost
+        uses: MarkusJx/install-boost@v2.4.1
+        id: install-boost
+        with:
+            # A list of supported versions can be found here:
+            # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
+            boost_version: ${{ env.BOOST_VERSION }}
+            boost_install_dir: ${{ env.CONTAINER_TMP }}
+            platform_version: 22.04
+            toolset: gcc
+            arch: x86
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Configure CMake
+        env:
+          BOOST_ROOT: "${{ steps.install-boost.outputs.BOOST_ROOT }}"
+        run: |
+          cmake . \
+            -G "Ninja" \
+            -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTS=TRUE \
+            -DRSLANG_BUILD_EXTENDED=TRUE \
+            -DRSLANG_BUILD_TOOLS=cargo \
+            -DGENERATE_EVM_VERIFIER=TRUE
+
+      - name: Build zkllvm
+        run: |
+          cmake --build build -t assigner clang transpiler
+
+      - name: Build IR of the C++ examples
+        run: |
+          cmake --build build -t compile_cpp_examples
+          ls -al ./build/examples/cpp
+
+      - name: Build circuits(.crct) of the C++ examples
+        run: |
+          cmake --build build -t cpp_examples_generate_crct
+          ls -al ./build/examples/cpp
+
+      - name: Build assignment tables(.tbl) of the C++ examples
+        run: |
+          cmake --build build -t cpp_examples_generate_tbl
+          ls -al ./build/examples/cpp
+
+      - name: Run size estimation for C++ examples
+        run: |
+          cmake --build build -t cpp_examples_estimate_size
+
+      - name: Compile tests as cpp code
+        run: |
+          cmake --build build -t all_tests_compile_as_cpp_code
+
+      - name: Compile tests as circuits
+        run: |
+          cmake --build build -t all_tests_compile_as_circuits
+
+      - name: Run tests as cpp code (expected res calculation)
+        run: |
+          cmake --build build -t all_tests_run_expected_res_calculation -j$(nproc)
+
+      - name: Run tests as circuits (real res calculation)
+        run: |
+          cmake --build build -t all_tests_assign_circuits -j$(nproc)
+
+      - name: Compare expected and real test results
+        run: |
+          chmod +x ./tests/run_test_results_comparison.sh
+          bash ./tests/run_test_results_comparison.sh
+
+      - name: Run tests on faulty inputs
+        run: |
+          chmod +x ./tests/run_tests_faulty_input.sh
+          bash ./tests/run_tests_faulty_input.sh pallas
+
+      - name: Run assigner unit tests
+        run: |
+          cmake --build build -t check-crypto3-assigner
+
+      - name: Run assigner tests
+        run: |
+          cd libs/assigner/test
+          chmod +x run_tests.py
+          python3 run_tests.py ../../../build/bin/assigner/assigner
+          cd ../../../
