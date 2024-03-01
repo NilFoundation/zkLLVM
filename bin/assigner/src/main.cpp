@@ -471,20 +471,24 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::uint32_t max_num_provers,
                           std::uint32_t max_lookup_rows,
                           std::uint32_t target_prover,
-                          nil::blueprint::print_format circuit_output_print_format) {
+                          nil::blueprint::print_format circuit_output_print_format,
+                          std::array<std::size_t, 6> column_sizes
+                          ) {
 
-    constexpr std::size_t ComponentConstantColumns = ParametersPolicy::ComponentConstantColumns;
-    constexpr std::size_t LookupConstantColumns = ParametersPolicy::LookupConstantColumns;
-    constexpr std::size_t ComponentSelectorColumns = ParametersPolicy::ComponentSelectorColumns;
-    constexpr std::size_t LookupSelectorColumns = ParametersPolicy::LookupSelectorColumns;
+    const std::size_t ComponentConstantColumns = column_sizes[2];
+    const std::size_t LookupConstantColumns = column_sizes[3];
+    const std::size_t ComponentSelectorColumns = column_sizes[4];
+    const std::size_t LookupSelectorColumns = column_sizes[5];
 
-    constexpr std::size_t WitnessColumns = ParametersPolicy::WitnessColumns;
-    constexpr std::size_t PublicInputColumns = ParametersPolicy::PublicInputColumns;
-    constexpr std::size_t ConstantColumns = ComponentConstantColumns + LookupConstantColumns;
-    constexpr std::size_t SelectorColumns = ComponentSelectorColumns + LookupSelectorColumns;
+    const std::size_t WitnessColumns = column_sizes[0];
+    const std::size_t PublicInputColumns = column_sizes[1];
+
+    const std::size_t ConstantColumns = ComponentConstantColumns + LookupConstantColumns;
+    const std::size_t SelectorColumns = ComponentSelectorColumns + LookupSelectorColumns;
 
     zk::snark::plonk_table_description<BlueprintFieldType> desc(
         WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns);
+
     using ConstraintSystemType = zk::snark::plonk_constraint_system<BlueprintFieldType>;
     using ConstraintSystemProxyType = zk::snark::plonk_table<BlueprintFieldType, zk::snark::plonk_column<BlueprintFieldType>>;
     using ArithmetizationType =
@@ -683,8 +687,10 @@ int main(int argc, char *argv[]) {
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
             ("generate-type", boost::program_options::value<std::string>(), "Define generated output. Possible values: circuit, assignment, circuit-assignment, public-input-column, size_estimation(does not generate anything, just evaluates circuit size). Default value is circuit-assignment")
             ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
-            ("max-lookup-rows", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
-            ("target-prover", boost::program_options::value<int>(), "Assignment table and circuit will be generated only for defined prover. Possible values [0, max-num-provers)");
+            ("max-lookup-rows", boost::program_options::value<int>(), "Maximum number of lookup rows")
+            ("target-prover", boost::program_options::value<int>(), "Assignment table and circuit will be generated only for defined prover. Possible values [0, max-num-provers)")
+            ("column-sizes", boost::program_options::value<std::vector<std::size_t>>()->multitoken(), "Column sizes, 6 values: WitnessColumns, PublicInputColumns, ComponentConstantColumns, LookupConstantColumns, ComponentSelectorColumns, LookupSelectorColumns")
+            ;
     // clang-format on
 
 
@@ -911,6 +917,24 @@ int main(int argc, char *argv[]) {
         "Or use \"-f hex\", hex output format is also supported now\n"
     );
 
+    const std::size_t column_sizes_size = 6;
+    std::array<std::size_t, column_sizes_size> column_sizes = {
+        ParametersPolicy::WitnessColumns,
+        ParametersPolicy::PublicInputColumns,
+        ParametersPolicy::ComponentConstantColumns,
+        ParametersPolicy::LookupConstantColumns,
+        ParametersPolicy::ComponentSelectorColumns,
+        ParametersPolicy::LookupSelectorColumns
+    };
+
+    if (vm.count("column-sizes")) {
+        std::vector<std::size_t> column_sizes_vector = vm["column-sizes"].as<std::vector<std::size_t>>();
+        ASSERT_MSG(column_sizes_vector.size() == column_sizes_size, ("Column sizes amount must be exactly " + std::to_string(column_sizes_size) + ", but it is " + std::to_string(column_sizes_vector.size())).c_str());
+        for (std::size_t i = 0; i < column_sizes_size; i++) {
+            column_sizes[i] = column_sizes_vector[i];
+        }
+    }
+
     switch (curve_options[elliptic_curve]) {
         case 0: {
             return curve_dependent_main<typename algebra::curves::pallas::base_field_type>(
@@ -928,7 +952,9 @@ int main(int argc, char *argv[]) {
                                                                           max_num_provers,
                                                                           max_lookup_rows,
                                                                           target_prover,
-                                                                          circuit_output_print_format);
+                                                                          circuit_output_print_format,
+                                                                          column_sizes
+                                                                          );
             break;
         }
         case 1: {
@@ -955,7 +981,9 @@ int main(int argc, char *argv[]) {
                                                                           max_num_provers,
                                                                           max_lookup_rows,
                                                                           target_prover,
-                                                                          circuit_output_print_format);
+                                                                          circuit_output_print_format,
+                                                                          column_sizes
+                                                                          );
             break;
         }
     };
