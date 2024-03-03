@@ -71,15 +71,8 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
                    const assignment_proxy<ArithmetizationType> &table_proxy,
                    bool rename_required, std::ostream &out = std::cout) {
     using TTypeBase = nil::marshalling::field_type<Endianness>;
-    using plonk_constraint_system = nil::marshalling::types::bundle<
-        TTypeBase, std::tuple<
-                       nil::crypto3::marshalling::types::plonk_gates<TTypeBase, typename ConstraintSystemType::gates_container_type::value_type >,               // gates
-                       nil::crypto3::marshalling::types::plonk_copy_constraints<TTypeBase, typename ConstraintSystemType::field_type>,                           // copy constraints
-                       nil::crypto3::marshalling::types::plonk_lookup_gates<TTypeBase, typename ConstraintSystemType::lookup_gates_container_type::value_type>,  // lookup constraints
-                       // If we don't have lookup gates, we don't need lookup tables
-                       nil::crypto3::marshalling::types::plonk_lookup_tables< TTypeBase, typename ConstraintSystemType::lookup_tables_type::value_type >         // lookup tables
-                       >
-        >;
+    using value_marshalling_type =
+        nil::crypto3::marshalling::types::plonk_constraint_system<TTypeBase, ConstraintSystemType>;
     using AssignmentTableType = assignment_proxy<ArithmetizationType>;
     using variable_type = crypto3::zk::snark::plonk_variable<typename AssignmentTableType::field_type::value_type>;
 
@@ -136,7 +129,7 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
     }
 
     auto filled_val =
-        plonk_constraint_system(std::make_tuple(
+        value_marshalling_type(std::make_tuple(
             nil::crypto3::marshalling::types::fill_plonk_gates<Endianness, typename ConstraintSystemType::gates_container_type::value_type>(used_gates),
             nil::crypto3::marshalling::types::fill_plonk_copy_constraints<Endianness, typename ConstraintSystemType::variable_type>(used_copy_constraints),
             nil::crypto3::marshalling::types::fill_plonk_lookup_gates<Endianness, typename ConstraintSystemType::lookup_gates_container_type::value_type>(used_lookup_gates),
@@ -232,43 +225,9 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     total_size = padded_rows_amount * total_columns;
 
     using TTypeBase = nil::marshalling::field_type<Endianness>;
-    using plonk_assignment_table = nil::marshalling::types::bundle<
-        TTypeBase,
-        std::tuple<
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // witness_amount
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // public_input_amount
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // constant_amount
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // selector_amount
+    using table_value_marshalling_type =
+        nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
 
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // usable_rows
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // padded_rows_amount
-
-            // table_witness_values
-            nil::marshalling::types::array_list<
-                TTypeBase,
-                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
-                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
-            >,
-            // table_public_input_values
-            nil::marshalling::types::array_list<
-                TTypeBase,
-                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
-                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
-            >,
-            // table_constant_values
-            nil::marshalling::types::array_list<
-                TTypeBase,
-                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
-                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
-            >,
-            // table_selector_values
-            nil::marshalling::types::array_list<
-                TTypeBase,
-                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
-                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
-            >
-        >
-    >;
     using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
 
     std::vector<typename AssignmentTableType::field_type::value_type> table_witness_values(     padded_rows_amount * witness_size ,     0);
@@ -380,7 +339,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         ASSERT_MSG(witness_idx + pub_inp_idx + constant_idx + selector_idx == total_size, "Printed index not equal required assignment size" );
     }
 
-    auto filled_val = plonk_assignment_table(std::make_tuple(
+    auto filled_val = table_value_marshalling_type(std::make_tuple(
         nil::marshalling::types::integral<TTypeBase, std::size_t>(witness_size),
         nil::marshalling::types::integral<TTypeBase, std::size_t>(public_input_size + shared_size),
         nil::marshalling::types::integral<TTypeBase, std::size_t>(constant_size),
@@ -547,6 +506,16 @@ int curve_dependent_main(std::string bytecode_file_name,
         lookup_columns_indices.resize(LookupConstantColumns);
         // fill ComponentConstantColumns, ComponentConstantColumns + 1, ...
         std::iota(lookup_columns_indices.begin(), lookup_columns_indices.end(), ComponentConstantColumns);
+        // check if lookup selectors were not used
+        auto max_used_selector_idx = assigner_instance.assignments[0].selectors_amount() - 1;
+        while (max_used_selector_idx > 0) {
+            max_used_selector_idx--;
+            if (assigner_instance.assignments[0].selector(max_used_selector_idx).size() > 0) {
+                break;
+            }
+        }
+
+        ASSERT(max_used_selector_idx < ComponentSelectorColumns);
 
         auto usable_rows_amount = zk::snark::pack_lookup_tables_horizontal(
                 assigner_instance.circuits[0].get_reserved_indices(),
@@ -554,7 +523,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                 assigner_instance.circuits[0].get(),
                 assigner_instance.assignments[0].get(),
                 lookup_columns_indices,
-                ComponentSelectorColumns,
+                max_used_selector_idx + 1,
                 0,
                 max_lookup_rows
         );
