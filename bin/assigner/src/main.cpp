@@ -151,9 +151,8 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
 }
 
 enum class print_table_kind {
-    PRIVATE,
-    SHARED,
-    FULL
+    MULTI_PROVER,
+    SINGLE_PROVER
 };
 
 enum class print_column_kind {
@@ -178,7 +177,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     std::uint32_t usable_rows_amount;
     std::uint32_t total_columns;
     std::uint32_t total_size;
-    std::uint32_t shared_size = table_proxy.shareds_amount();
+    std::uint32_t shared_size = (print_kind == print_table_kind::MULTI_PROVER) ? 1 : 0;
     std::uint32_t public_input_size = table_proxy.public_inputs_amount();
     std::uint32_t witness_size = table_proxy.witnesses_amount();
     std::uint32_t constant_size = table_proxy.constants_amount();
@@ -194,7 +193,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         max_public_inputs_size = std::max(max_public_inputs_size, table_proxy.public_input_column_size(i));
     }
 
-    if (print_kind == print_table_kind::PRIVATE) {
+    if (print_kind == print_table_kind::MULTI_PROVER) {
         total_columns = witness_size + shared_size + public_input_size + constant_size + selector_size;
         std::uint32_t max_shared_size = 0;
         for (std::uint32_t i = 0; i < shared_size; i++) {
@@ -208,7 +207,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         }
         usable_rows_amount = table_proxy.get_used_rows().size();
         usable_rows_amount = std::max({usable_rows_amount, max_shared_size, max_public_inputs_size, max_constant_size, max_selector_size});
-    } else { // FULL
+    } else { // SINGLE_PROVER
         total_columns = witness_size + shared_size + public_input_size + constant_size + selector_size;
         std::uint32_t max_witness_size = 0;
         for (std::uint32_t i = 0; i < witness_size; i++) {
@@ -276,7 +275,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     std::vector<typename AssignmentTableType::field_type::value_type> table_public_input_values(padded_rows_amount * (public_input_size + shared_size), 0);
     std::vector<typename AssignmentTableType::field_type::value_type> table_constant_values(    padded_rows_amount * constant_size,     0);
     std::vector<typename AssignmentTableType::field_type::value_type> table_selector_values(    padded_rows_amount * selector_size,     0);
-    if (print_kind == print_table_kind::FULL) {
+    if (print_kind == print_table_kind::SINGLE_PROVER) {
         auto it = table_witness_values.begin();
         for (std::uint32_t i = 0; i < witness_size; i++) {
             fill_vector_value<typename AssignmentTableType::field_type::value_type, column_type>
@@ -383,7 +382,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
 
     auto filled_val = plonk_assignment_table(std::make_tuple(
         nil::marshalling::types::integral<TTypeBase, std::size_t>(witness_size),
-        nil::marshalling::types::integral<TTypeBase, std::size_t>(public_input_size),
+        nil::marshalling::types::integral<TTypeBase, std::size_t>(public_input_size + shared_size),
         nil::marshalling::types::integral<TTypeBase, std::size_t>(constant_size),
         nil::marshalling::types::integral<TTypeBase, std::size_t>(selector_size),
         nil::marshalling::types::integral<TTypeBase, std::size_t>(usable_rows_amount),
@@ -571,7 +570,7 @@ int curve_dependent_main(std::string bytecode_file_name,
             }
 
             print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-                assigner_instance.assignments[0], print_table_kind::FULL, ComponentConstantColumns,
+                assigner_instance.assignments[0], print_table_kind::SINGLE_PROVER, ComponentConstantColumns,
                 ComponentSelectorColumns, otable);
 
             otable.close();
@@ -607,7 +606,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                 }
 
                 print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-                    assigner_instance.assignments[idx], print_table_kind::PRIVATE, ComponentConstantColumns,
+                    assigner_instance.assignments[idx], print_table_kind::MULTI_PROVER, ComponentConstantColumns,
                     ComponentSelectorColumns, otable);
 
                 otable.close();
