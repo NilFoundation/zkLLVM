@@ -3,7 +3,7 @@
 int global = 5;
 constexpr int num_elems = 3;
 
-struct __attribute__((packed)) chain {
+struct chain {
     int val;
     chain *next;
 };
