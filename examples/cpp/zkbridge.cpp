@@ -9,7 +9,7 @@ using namespace nil::crypto3::algebra::curves;
 typedef __attribute__((ext_vector_type(4)))
                 typename pallas::base_field_type::value_type eddsa_message_block_type;
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     typename ed25519::template g1_type<>::value_type R;
     typename ed25519::scalar_field_type::value_type s;
 } eddsa_signature_type;
@@ -24,7 +24,7 @@ bool verify_eddsa_signature (eddsa_signature_type input,
         return B*input.s == (input.R + (pk*k));
 }
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     typename hashes::sha2<256>::block_type prev_block_hash;
     typename hashes::sha2<256>::block_type data;
     std::array<eddsa_signature_type, 4> validators_signatures;
