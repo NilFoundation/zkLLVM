@@ -72,11 +72,16 @@ public:
     using hash =default_hash;
 };
 
-template<typename ProfilingType, typename ConstraintSystemType, typename ColumnsRotationsType,
-         typename ArithmetizationParams>
-void print_sol_files(ConstraintSystemType &constraint_system, ColumnsRotationsType &columns_rotations,
-                     std::string out_folder_path = ".", bool optimize_gates = false) {
-    ProfilingType::process_split(
+template<typename BlueprintFieldType, typename ConstraintSystemType, typename ColumnsRotationsType>
+void print_sol_files(
+    zk::snark::plonk_table_description<BlueprintFieldType> desc,
+    ConstraintSystemType &constraint_system,
+    ColumnsRotationsType &columns_rotations,
+    std::string out_folder_path = ".",
+    bool optimize_gates = false
+) {
+    nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType> profiling_instance(desc);
+    profiling_instance.process_split(
         nil::blueprint::main_sol_file_template,
         nil::blueprint::gate_sol_file_template,
         constraint_system,
@@ -320,21 +325,21 @@ int curve_dependent_main(
     std::cout << "ConstantColumns = " << ConstantColumns << ": LookupConstantColumns = " << parameters_policy::LookupConstantColumns << std::endl;
     std::cout << "SelectorColumns = " << SelectorColumns << ": LookupSelectorColumns = " << parameters_policy::LookupSelectorColumns << std::endl;
 
-    std::array<std::size_t, PublicInputColumns> public_input_sizes;
+    std::vector<std::size_t> public_input_sizes(PublicInputColumns);
     for(std::size_t i = 0; i < PublicInputColumns; i++){
         public_input_sizes[i] = public_input_rows;
     }
     if( is_multi_prover )
         public_input_sizes[PublicInputColumns - 1] = shared_rows;
 
-    using ArithmetizationParams =
-        nil::crypto3::zk::snark::plonk_arithmetization_params<WitnessColumns, PublicInputColumns, ConstantColumns,
-                                                              SelectorColumns>;
+    zk::snark::plonk_table_description<BlueprintFieldType> desc(
+        WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns);
+
     // Circuit-specific parameter
     using ConstraintSystemType =
-        nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType, ArithmetizationParams>;
+        nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
     using TableDescriptionType =
-        nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType, ArithmetizationParams>;
+        nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType>;
     using Endianness = nil::marshalling::option::big_endian;
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using value_marshalling_type =
@@ -342,12 +347,12 @@ int curve_dependent_main(
 
     using ColumnType = nil::crypto3::zk::snark::plonk_column<BlueprintFieldType>;
     using AssignmentTableType =
-        nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ArithmetizationParams, ColumnType>;
+        nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ColumnType>;
     using table_value_marshalling_type =
         nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
 
-    using ColumnsRotationsType = std::array<std::set<int>, ArithmetizationParams::total_columns>;
-    using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType, ArithmetizationParams>;
+    using ColumnsRotationsType = std::vector<std::set<int>>;
+    using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType>;
 
     if( vm.count("public-input") ){
         public_input = vm["public-input"].as<std::string>();
@@ -386,7 +391,6 @@ int curve_dependent_main(
         );
     }
 
-    TableDescriptionType table_description;
     AssignmentTableType assignment_table;
     {
         std::ifstream iassignment;
@@ -409,21 +413,21 @@ int curve_dependent_main(
         table_value_marshalling_type marshalled_table_data;
         auto read_iter = v.begin();
         auto status = marshalled_table_data.read(read_iter, v.size());
-        std::tie(table_description.usable_rows_amount, assignment_table) =
+        std::tie(desc, assignment_table) =
             nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
                 marshalled_table_data
             );
-        table_description.rows_amount = assignment_table.rows_amount();
+        desc.rows_amount = assignment_table.rows_amount();
     }
-    auto columns_rotations = ProfilingType::columns_rotations(constraint_system, table_description);
+    std::vector<std::set<int>> columns_rotations;
 
     const std::size_t Lambda = parameters_policy::lambda;
     using Hash = typename parameters_policy::hash;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
-        BlueprintFieldType, ArithmetizationParams
+        BlueprintFieldType
     >;
 
-    std::size_t table_rows_log = std::ceil(std::log2(table_description.rows_amount));
+    std::size_t table_rows_log = std::ceil(std::log2(desc.rows_amount));
     using lpc_params_type = nil::crypto3::zk::commitments::list_polynomial_commitment_params<
         Hash,
         Hash,
@@ -437,7 +441,7 @@ int curve_dependent_main(
 
     auto fri_params = create_fri_params<typename lpc_type::fri_type, BlueprintFieldType>(table_rows_log);
     std::size_t permutation_size =
-        table_description.witness_columns + table_description.public_input_columns + 2;
+        desc.witness_columns + desc.public_input_columns + 2;
     lpc_scheme_type lpc_scheme(fri_params);
 
 
@@ -449,7 +453,7 @@ int curve_dependent_main(
     typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
         BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
     nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
-        constraint_system, assignment_table.public_table(), table_description, lpc_scheme, permutation_size);
+        constraint_system, assignment_table.public_table(), desc, lpc_scheme, permutation_size);
     if( mode == "gen-verifier"){
         std::string cpp_path = output_folder_path + "/placeholder_verifier.cpp";
         std::ofstream output_file;
@@ -458,7 +462,7 @@ int curve_dependent_main(
             placeholder_params,
             nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>,
             typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type
-        >::generate_recursive_verifier(
+        >(desc).generate_recursive_verifier(
             constraint_system, public_preprocessed_data.common_data, lpc_scheme, permutation_size, public_input_sizes
         );
         output_file.close();
@@ -470,20 +474,20 @@ int curve_dependent_main(
         typename nil::crypto3::zk::snark::placeholder_private_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type private_preprocessed_data =
             nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
-                constraint_system, assignment_table.private_table(), table_description
+                constraint_system, assignment_table.private_table(), desc
             );
 
         std::cout << "Generating proof..." << std::endl;
         using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
         ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
-            public_preprocessed_data, private_preprocessed_data, table_description, constraint_system, lpc_scheme);
+            public_preprocessed_data, private_preprocessed_data, desc, constraint_system, lpc_scheme);
         std::cout << "Proof generated" << std::endl;
 
         if( !vm.count("skip-verification") ) {
             std::cout << "Verifying proof..." << std::endl;
             bool verification_result =
                 nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                    public_preprocessed_data, proof, constraint_system, lpc_scheme
+                    public_preprocessed_data, proof, desc, constraint_system, lpc_scheme
                 );
 
             ASSERT_MSG(verification_result, "Proof is not verified" );
@@ -497,7 +501,7 @@ int curve_dependent_main(
             placeholder_params,
             nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>,
             typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type
-        >::generate_input(
+        >(desc).generate_input(
             public_preprocessed_data.common_data.vk, assignment_table.public_inputs(), proof, public_input_sizes
         );
         output_file.close();
