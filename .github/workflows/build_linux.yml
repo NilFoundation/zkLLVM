@@ -241,6 +241,24 @@ jobs:
         run: |
           cmake --build build -t prove_cpp_examples
 
+      - name: Build recursive gen
+        run: |
+          cmake --build build -t recursive_gen
+
+      - name: Build and run transpiler test
+        run: |
+          cmake --build build -t compile_and_run_transpiler_tests
+
+      - name: Run recursive verifier single prover version
+        run: |
+          chmod +x ./gen_and_check.sh
+          bash ./gen_and_check.sh
+
+      - name: Run recursive verifier multi prover version
+        run: |
+          chmod +x ./multi_gen_and_check.sh
+          bash ./multi_gen_and_check.sh
+
       - name: Build rslang
         run: |
           export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib"
