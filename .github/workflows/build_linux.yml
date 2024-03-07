@@ -327,7 +327,7 @@ jobs:
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       # Update next line if you need new version of proof producer
-      proof-producer-ref: 6ddb405173c4fbf466c4764a440cc81675a4f12a
+      proof-producer-ref: d6d8d18cd7a6e15dd9497140350efadb6af5179b
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 
