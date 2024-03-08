@@ -838,7 +838,7 @@ int main(int argc, char *argv[]) {
     if (vm.count("max-num-provers")) {
         max_num_provers = vm["max-num-provers"].as<int>();
         if (max_num_provers < 1) {
-            std::cerr << "Invalid command line argument - max-num-provers. " << max_num_provers << " is wrong value." << std::endl;
+            std::cerr << "Invalid command line argument --max-num-provers. " << max_num_provers << " is wrong value." << std::endl;
             std::cout << options_desc << std::endl;
             return 1;
         }
