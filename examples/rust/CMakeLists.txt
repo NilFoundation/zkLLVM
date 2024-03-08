@@ -36,19 +36,19 @@ function(add_rust_example_without_proving example_target)
 
     set(binary_name ${EXAMPLES_BINARY_DIR}/${ARG_EXAMPLE_NAME}.ll)
 
-    if(DEFINED ARG_PRIVATE_INPUT)
-        if(DEFINED ARG_MAX_NUM_PROVERS)
-            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
-        else()
-            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} 0)
-        endif()
-    else()
-        if(DEFINED ARG_MAX_NUM_PROVERS)
-            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
-        else()
-            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} 0)
-        endif()
+    if(NOT DEFINED ARG_PRIVATE_INPUT)
+        set(ARG_PRIVATE_INPUT "none")
     endif()
+
+    if(NOT DEFINED ARG_MAX_NUM_PROVERS)
+        set(ARG_MAX_NUM_PROVERS 0)
+    endif()
+
+    if(NOT DEFINED ARG_ARITHMETIZARION)
+        set(ARG_ARITHMETIZARION "none")
+    endif()
+
+    assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_ARITHMETIZARION} ${ARG_MAX_NUM_PROVERS})
 
     add_dependencies(rust_examples_generate_crct ${example_target}_generate_crct)
     add_dependencies(rust_examples_generate_tbl ${example_target}_generate_tbl)
@@ -72,11 +72,11 @@ function(add_rust_example_with_proving example_target)
         set(ARG_MAX_NUM_PROVERS 0)
     endif()
 
-    gen_proof(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+    gen_proof(${example_target} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
     add_dependencies(prove_rust_examples ${example_target}_prove)
 
     if(GENERATE_EVM_VERIFIER)
-        gen_evm_verifier(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+        gen_evm_verifier(${example_target} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
         add_dependencies(prove_rust_examples ${example_target}_evm_verifier)
     endif()
 
