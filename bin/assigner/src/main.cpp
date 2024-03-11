@@ -62,7 +62,9 @@
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/Signals.h>
 
+#include <future>
 #include <thread>
+#include <chrono>
 
 using namespace nil;
 using namespace nil::crypto3;
@@ -456,6 +458,25 @@ struct ParametersPolicy {
     constexpr static const std::size_t LookupSelectorColumns = LOOKUP_SELECTOR_COLUMNS;
 };
 
+template<typename ArithmetizationType, typename BlueprintFieldType>
+void assignment_table_printer(
+    std::string assignment_table_file_name,
+    std::uint32_t idx,
+    nil::blueprint::assigner<BlueprintFieldType> &assigner_instance,
+    const std::size_t &ComponentConstantColumns,
+    const std::size_t &ComponentSelectorColumns
+) {
+    BOOST_LOG_TRIVIAL(info) << "start thread " << idx;
+    std::ofstream otable;
+    otable.open(assignment_table_file_name + std::to_string(idx),
+                std::ios_base::binary | std::ios_base::out);
+    if (!otable) {
+        throw std::runtime_error("Failed to open file: " + assignment_table_file_name + std::to_string(idx));
+    }
+
+    otable.close();
+}
+
 template<typename BlueprintFieldType>
 int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
@@ -623,26 +644,24 @@ int curve_dependent_main(std::string bytecode_file_name,
               (target_prover < assigner_instance.assignments.size() || target_prover == invalid_target_prover)) {
         std::uint32_t start_idx = (target_prover == invalid_target_prover) ? 0 : target_prover;
         std::uint32_t end_idx = (target_prover == invalid_target_prover) ? assigner_instance.assignments.size() : target_prover + 1;
+
+        std::vector<std::future<void>> futures;
+
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
             if (gen_mode.has_assignments()) {
-                auto multi_table_print_start = std::chrono::high_resolution_clock::now();
-                std::ofstream otable;
-                otable.open(assignment_table_file_name + std::to_string(idx),
-                            std::ios_base::binary | std::ios_base::out);
-                if (!otable) {
-                    std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(idx)
-                              << std::endl;
-                    return 1;
-                }
 
-                print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-                    assigner_instance.assignments[idx], print_table_kind::MULTI_PROVER, ComponentConstantColumns,
-                    ComponentSelectorColumns, otable);
+                auto future = std::async(
+                    std::launch::async,
+                    assignment_table_printer<ArithmetizationType, BlueprintFieldType>,
+                    assignment_table_file_name,
+                    idx,
+                    std::ref(assigner_instance),
+                    std::ref(ComponentConstantColumns),
+                    std::ref(ComponentSelectorColumns)
+                );
 
-                otable.close();
-                auto multi_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - multi_table_print_start);
-                BOOST_LOG_TRIVIAL(debug) << "multi_table_print_duration: " << multi_table_print_duration.count() << "ms";
+                futures.push_back(std::move(future));
             }
 
             // print circuit
@@ -661,6 +680,16 @@ int curve_dependent_main(std::string bytecode_file_name,
                 ocircuit.close();
             }
         }
+
+        for (auto& future : futures) {
+            try {
+                future.get();
+            } catch (const std::exception& e) {
+                std::cerr << "Exception from thread: " << e.what() << std::endl;
+                return 1;
+            }
+        }
+
     } else {
         std::cout << "No data for print: target prover " << target_prover << ", actual number of provers "
                   << assigner_instance.assignments.size() << std::endl;
