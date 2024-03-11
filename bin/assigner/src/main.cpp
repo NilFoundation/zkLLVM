@@ -484,6 +484,25 @@ struct ParametersPolicy {
     constexpr static const std::size_t LookupSelectorColumns = LOOKUP_SELECTOR_COLUMNS;
 };
 
+template<typename ArithmetizationType, typename BlueprintFieldType>
+void assignment_table_printer(
+    std::ofstream& otable,
+    std::uint32_t idx,
+    nil::blueprint::assigner<BlueprintFieldType> &assigner_instance,
+    const std::size_t &ComponentConstantColumns,
+    const std::size_t &ComponentSelectorColumns
+) {
+    auto multi_table_print_start = std::chrono::high_resolution_clock::now();
+
+    print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+        assigner_instance.assignments[idx], print_table_kind::MULTI_PROVER, ComponentConstantColumns,
+        ComponentSelectorColumns, otable);
+
+    otable.close();
+    auto multi_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - multi_table_print_start);
+    BOOST_LOG_TRIVIAL(info) << "multi_table_print_duration: " << multi_table_print_duration.count() << "ms";
+}
+
 template<typename BlueprintFieldType>
 int curve_dependent_main(std::string bytecode_file_name,
                           std::string public_input_file_name,
@@ -641,10 +660,12 @@ int curve_dependent_main(std::string bytecode_file_name,
               (target_prover < assigner_instance.assignments.size() || target_prover == invalid_target_prover)) {
         std::uint32_t start_idx = (target_prover == invalid_target_prover) ? 0 : target_prover;
         std::uint32_t end_idx = (target_prover == invalid_target_prover) ? assigner_instance.assignments.size() : target_prover + 1;
+
+        std::vector<std::thread> threads = {};
+
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
             if (gen_mode.has_assignments()) {
-                auto multi_table_print_start = std::chrono::high_resolution_clock::now();
                 std::ofstream otable;
                 otable.open(assignment_table_file_name + std::to_string(idx),
                             std::ios_base::binary | std::ios_base::out);
@@ -654,13 +675,14 @@ int curve_dependent_main(std::string bytecode_file_name,
                     return 1;
                 }
 
-                print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-                    assigner_instance.assignments[idx], print_table_kind::MULTI_PROVER, ComponentConstantColumns,
-                    ComponentSelectorColumns, otable);
-
-                otable.close();
-                auto multi_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - multi_table_print_start);
-                BOOST_LOG_TRIVIAL(info) << "multi_table_print_duration: " << multi_table_print_duration.count() << "ms";
+                threads.emplace_back(
+                    assignment_table_printer<ArithmetizationType, BlueprintFieldType>,
+                    std::ref(otable),
+                    idx,
+                    std::ref(assigner_instance),
+                    std::ref(ComponentConstantColumns),
+                    std::ref(ComponentSelectorColumns)
+                );
             }
 
             // print circuit
@@ -679,6 +701,12 @@ int curve_dependent_main(std::string bytecode_file_name,
                 ocircuit.close();
             }
         }
+        for (auto& thread : threads) {
+            if (thread.joinable()) {
+                thread.join();
+            }
+        }
+
     } else {
         std::cout << "No data for print: target prover " << target_prover << ", actual number of provers "
                   << assigner_instance.assignments.size() << std::endl;
