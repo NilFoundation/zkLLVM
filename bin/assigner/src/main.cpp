@@ -62,6 +62,8 @@
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/Signals.h>
 
+#include <thread>
+
 using namespace nil;
 using namespace nil::crypto3;
 using namespace nil::blueprint;
@@ -199,6 +201,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         max_public_inputs_size = std::max(max_public_inputs_size, table_proxy.public_input_column_size(i));
     }
 
+    auto calc_params_start = std::chrono::high_resolution_clock::now();
     if (print_kind == print_table_kind::MULTI_PROVER) {
         total_columns = witness_size + shared_size + public_input_size + constant_size + selector_size;
         std::uint32_t max_shared_size = 0;
@@ -242,7 +245,10 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
 
     using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+    auto calc_params_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - calc_params_start);
+    BOOST_LOG_TRIVIAL(debug) << "calc_params_duration: " << calc_params_duration.count() << "ms";
 
+    auto fill_columns_start = std::chrono::high_resolution_clock::now();
     std::vector<typename AssignmentTableType::field_type::value_type> table_witness_values(     padded_rows_amount * witness_size ,     0);
     std::vector<typename AssignmentTableType::field_type::value_type> table_public_input_values(padded_rows_amount * (public_input_size + shared_size), 0);
     std::vector<typename AssignmentTableType::field_type::value_type> table_constant_values(    padded_rows_amount * constant_size,     0);
@@ -351,7 +357,10 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         }
         ASSERT_MSG(witness_idx + pub_inp_idx + constant_idx + selector_idx == total_size, "Printed index not equal required assignment size" );
     }
+    auto fill_columns_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fill_columns_start);
+    BOOST_LOG_TRIVIAL(debug) << "fill_columns_duration: " << fill_columns_duration.count() << "ms";
 
+    auto fill_table_start = std::chrono::high_resolution_clock::now();
     auto filled_val = table_value_marshalling_type(std::make_tuple(
         nil::marshalling::types::integral<TTypeBase, std::size_t>(witness_size),
         nil::marshalling::types::integral<TTypeBase, std::size_t>(public_input_size + shared_size),
@@ -364,7 +373,10 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(table_constant_values),
         nil::crypto3::marshalling::types::fill_field_element_vector<typename AssignmentTableType::field_type::value_type, Endianness>(table_selector_values)
     ));
+    auto fill_table_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fill_table_start);
+    BOOST_LOG_TRIVIAL(debug) << "fill_table_duration: " << fill_table_duration.count() << "ms";
 
+    auto clear_vectors_start = std::chrono::high_resolution_clock::now();
     table_witness_values.clear();
     table_witness_values.shrink_to_fit();
 
@@ -376,12 +388,28 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
 
     table_selector_values.clear();
     table_selector_values.shrink_to_fit();
+    auto clear_vectors_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - clear_vectors_start);
+    BOOST_LOG_TRIVIAL(debug) << "clear_vectors_duration: " << clear_vectors_duration.count() << "ms";
 
+
+    auto create_cv_vector_start = std::chrono::high_resolution_clock::now();
     std::vector<std::uint8_t> cv;
     cv.resize(filled_val.length(), 0x00);
+    auto create_cv_vector_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - create_cv_vector_start);
+    BOOST_LOG_TRIVIAL(debug) << "create_cv_vector_duration: " << create_cv_vector_duration.count() << "ms";
+
+
+    auto filled_val_write_start = std::chrono::high_resolution_clock::now();
     auto write_iter = cv.begin();
     nil::marshalling::status_type status = filled_val.write(write_iter, cv.size());
+    auto filled_val_write_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - filled_val_write_start);
+    BOOST_LOG_TRIVIAL(debug) << "filled_val_write_duration: " << filled_val_write_duration.count() << "ms";
+
+
+    auto out_write_start = std::chrono::high_resolution_clock::now();
     out.write(reinterpret_cast<char*>(cv.data()), cv.size());
+    auto out_write_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - out_write_start);
+    BOOST_LOG_TRIVIAL(debug) << "out_write_duration: " << out_write_duration.count() << "ms";
 }
 
 bool read_json(
@@ -481,6 +509,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
+    auto assigner_instance_creation_start = std::chrono::high_resolution_clock::now();
     nil::blueprint::assigner<BlueprintFieldType> assigner_instance(
         desc,
         stack_size,
@@ -492,7 +521,10 @@ int curve_dependent_main(std::string bytecode_file_name,
         circuit_output_print_format,
         check_validity
     );
+    auto assigner_instance_creation_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - assigner_instance_creation_start);
+    BOOST_LOG_TRIVIAL(debug) << "assigner_instance_creation_duration: " << assigner_instance_creation_duration.count() << "ms";
 
+    auto parse_ir_file_start = std::chrono::high_resolution_clock::now();
     if (!assigner_instance.parse_ir_file(bytecode_file_name.c_str())) {
         return 1;
     }
@@ -502,10 +534,15 @@ int curve_dependent_main(std::string bytecode_file_name,
         }
         return 0;
     }
+    auto parse_ir_file_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - parse_ir_file_start);
+    BOOST_LOG_TRIVIAL(debug) << "parse_ir_file_duration: " << parse_ir_file_duration.count() << "ms";
 
+    auto parser_evaluation_start = std::chrono::high_resolution_clock::now();
     if (!assigner_instance.evaluate(public_input_json_value.as_array(), private_input_json_value.as_array())) {
         return 1;
     }
+    auto parser_evaluation_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - parser_evaluation_start);
+    BOOST_LOG_TRIVIAL(debug) << "parser_evaluation_duration: " << parser_evaluation_duration.count() << "ms";
 
     ASSERT_MSG(!assigner_instance.assignments.empty() && !assigner_instance.circuits.empty(), "Not found any proxy for prover" );
 
@@ -513,6 +550,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 0;
     }
 
+    auto pack_lookup_start = std::chrono::high_resolution_clock::now();
     // pack lookup tables
     if (assigner_instance.circuits[0].get_reserved_tables().size() > 0) {
         std::vector <std::size_t> lookup_columns_indices;
@@ -541,11 +579,15 @@ int curve_dependent_main(std::string bytecode_file_name,
                 max_lookup_rows
         );
     }
+    auto pack_lookup_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - pack_lookup_start);
+    BOOST_LOG_TRIVIAL(debug) << "pack_lookup_duration: " << pack_lookup_duration.count() << "ms";
 
+    auto overall_table_printing_start = std::chrono::high_resolution_clock::now();
     constexpr std::uint32_t invalid_target_prover = std::numeric_limits<std::uint32_t>::max();
     // print assignment tables and circuits
     ASSERT_MSG(assigner_instance.assignments.size() == assigner_instance.circuits.size(), "Missmatch assignments circuits size");
     if (assigner_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
+            auto single_table_print_start = std::chrono::high_resolution_clock::now();
         // print assignment table
         if (gen_mode.has_assignments()) {
             std::ofstream otable;
@@ -560,6 +602,8 @@ int curve_dependent_main(std::string bytecode_file_name,
                 ComponentSelectorColumns, otable);
 
             otable.close();
+            auto single_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - single_table_print_start);
+            BOOST_LOG_TRIVIAL(debug) << "single_table_print_duration: " << single_table_print_duration.count() << "ms";
         }
 
         // print circuit
@@ -582,6 +626,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
             if (gen_mode.has_assignments()) {
+                auto multi_table_print_start = std::chrono::high_resolution_clock::now();
                 std::ofstream otable;
                 otable.open(assignment_table_file_name + std::to_string(idx),
                             std::ios_base::binary | std::ios_base::out);
@@ -596,6 +641,8 @@ int curve_dependent_main(std::string bytecode_file_name,
                     ComponentSelectorColumns, otable);
 
                 otable.close();
+                auto multi_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - multi_table_print_start);
+                BOOST_LOG_TRIVIAL(debug) << "multi_table_print_duration: " << multi_table_print_duration.count() << "ms";
             }
 
             // print circuit
@@ -619,7 +666,10 @@ int curve_dependent_main(std::string bytecode_file_name,
                   << assigner_instance.assignments.size() << std::endl;
         return 1;
     }
+    auto overall_table_printing_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - overall_table_printing_start);
+    BOOST_LOG_TRIVIAL(debug) << "overall_table_printing_duration: " << overall_table_printing_duration.count() << "ms";
 
+    auto check_validity_start = std::chrono::high_resolution_clock::now();
     if (check_validity && gen_mode.has_assignments() && gen_mode.has_circuit()) {
         if (assigner_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
             ASSERT_MSG(nil::blueprint::is_satisfied(assigner_instance.circuits[0].get(), assigner_instance.assignments[0].get()),
@@ -642,6 +692,8 @@ int curve_dependent_main(std::string bytecode_file_name,
             return 1;
         }
     }
+    auto check_validity_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - check_validity_start);
+    BOOST_LOG_TRIVIAL(debug) << "check_validity_duration: " << check_validity_duration.count() << "ms";
     return 0;
 }
 
