@@ -1,32 +1,15 @@
 set(INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inputs)
 
 #generate assignment table and circuit
-function(assign_ir)
-    list(POP_FRONT ARGV target)
-    list(POP_FRONT ARGV binary_name)
-    list(POP_FRONT ARGV input)
-    list(POP_FRONT ARGV private_input)
-    list(POP_FRONT ARGV curve_type)
-    list(POP_FRONT ARGV arithmetization)
-    if(NOT arithmetization STREQUAL "none")
-        set(witness_cols ${arithmetization})
-        list(POP_FRONT ARGV public_input_cols)
-        list(POP_FRONT ARGV component_constant_cols)
-        list(POP_FRONT ARGV lookup_constant_cols)
-        list(POP_FRONT ARGV component_selector_cols)
-        list(POP_FRONT ARGV lookup_selector_cols)
-        set(arithmetization_flag --column-sizes)
-        set(arithmetization_amount ${witness_cols} ${public_input_cols} ${component_constant_cols} ${lookup_constant_cols} ${component_selector_cols} ${lookup_selector_cols})
-    endif()
-    list(POP_FRONT ARGV max_num_provers_amount)
+function(assign_ir target binary_name input private_input curve_type max_num_provers_amount)
 
     if(NOT max_num_provers_amount EQUAL 0)
         set(max_num_provers_flag --max-num-provers)
         set(max_num_provers_amount ${max_num_provers_amount})
     endif()
 
-    if(NOT private_input STREQUAL "none")
-        set(minus_p -p)
+    if(NOT private_input STREQUAL "")
+        set (minus_p -p)
         set(private_input_string ${INPUTS_DIR}/${private_input})
     endif()
 
@@ -37,7 +20,6 @@ function(assign_ir)
             -e ${curve_type}
             --generate-type circuit
             ${max_num_provers_flag} ${max_num_provers_amount}
-            ${arithmetization_flag} ${arithmetization_amount}
             DEPENDS ${target} $<TARGET_FILE:assigner>
             COMMAND_EXPAND_LISTS
             VERBATIM)
@@ -51,7 +33,6 @@ function(assign_ir)
             -t assignment_${target}.tbl -e ${curve_type} --check
             --generate-type circuit-assignment
             ${max_num_provers_flag} ${max_num_provers_amount}
-            ${arithmetization_flag} ${arithmetization_amount}
         DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
         COMMAND_EXPAND_LISTS
         VERBATIM)
@@ -64,7 +45,6 @@ function(assign_ir)
             -t assignment_${target}.tbl -e ${curve_type} --check
             --generate-type assignment
             ${max_num_provers_flag} ${max_num_provers_amount}
-            ${arithmetization_flag} ${arithmetization_amount}
         DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
         COMMAND_EXPAND_LISTS
         VERBATIM)
@@ -75,7 +55,6 @@ function(assign_ir)
             -e ${curve_type}
             --generate-type size_estimation
             ${max_num_provers_flag} ${max_num_provers_amount}
-            ${arithmetization_flag} ${arithmetization_amount}
         DEPENDS ${target} $<TARGET_FILE:assigner>
         COMMAND_EXPAND_LISTS
         VERBATIM)
@@ -87,22 +66,21 @@ function(assign_ir)
             --generate-type public-input-column
             --input-column ${target}_input_column.inp
             -e ${curve_type}
-            ${arithmetization_flag} ${arithmetization_amount}
         DEPENDS ${target} ${INPUTS_DIR}/${input}
         COMMAND_EXPAND_LISTS
         VERBATIM)
 endfunction()
 
-function(gen_proof target curve_type provers_amount)
+function(gen_proof target input curve_type provers_amount)
 
     if(provers_amount EQUAL 0)
-        gen_single_proof(${target} ${curve_type} 0)
+        gen_single_proof(${target} ${input} ${curve_type} 0)
     else()
         add_custom_target(${target}_prove)
 
         foreach(prover_num RANGE 1 ${provers_amount})
             math(EXPR prover_num_minus_1 "${prover_num} - 1")
-            gen_single_proof(${target} ${curve_type} ${prover_num})
+            gen_single_proof(${target} ${input} ${curve_type} ${prover_num})
             add_dependencies(${target}_prove ${target}_prove${prover_num_minus_1})
         endforeach()
 
@@ -116,7 +94,7 @@ function(gen_proof target curve_type provers_amount)
     endif()
 endfunction()
 
-function(gen_single_proof target curve_type provers_amount)
+function(gen_single_proof target input curve_type provers_amount)
 
     if(NOT provers_amount EQUAL 0)
         set(multi_prover_flag --multi-prover)
@@ -137,16 +115,16 @@ function(gen_single_proof target curve_type provers_amount)
         VERBATIM)
 endfunction()
 
-function(gen_evm_verifier target curve_type provers_amount)
+function(gen_evm_verifier target input curve_type provers_amount)
 
     if(provers_amount EQUAL 0)
-    gen_single_evm_verifier(${target} ${curve_type} 0)
+    gen_single_evm_verifier(${target} ${input} ${curve_type} 0)
     else()
         add_custom_target(${target}_evm_verifier)
 
         foreach(prover_num RANGE 1 ${provers_amount})
             math(EXPR prover_num_minus_1 "${prover_num} - 1")
-            gen_single_evm_verifier(${target} ${curve_type} ${prover_num})
+            gen_single_evm_verifier(${target} ${input} ${curve_type} ${prover_num})
             add_dependencies(${target}_evm_verifier ${target}_evm_verifier${prover_num_minus_1})
         endforeach()
 
@@ -159,7 +137,7 @@ function(gen_evm_verifier target curve_type provers_amount)
     add_dependencies(${target}_evm_verifier ${target}_copy_input_for_evm_verifier)
 endfunction()
 
-function(gen_single_evm_verifier target curve_type provers_amount)
+function(gen_single_evm_verifier target input curve_type provers_amount)
 
     if(NOT provers_amount EQUAL 0)
         set(multi_prover_flag --multi-prover)

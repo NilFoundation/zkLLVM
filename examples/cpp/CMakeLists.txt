@@ -9,13 +9,12 @@ function(add_example_without_proving example_target)
     set(prefix ARG)
     set(noValues "")
     set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE MAX_NUM_PROVERS)
-    set(multiValues SOURCES COMPILER_OPTIONS ARITHMETIZARION)
+    set(multiValues SOURCES COMPILER_OPTIONS)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
                         "${singleValues}"
                         "${multiValues}"
                         ${ARGN})
-
     add_circuit(${example_target}
                 SOURCES ${ARG_SOURCES}
                 COMPILER_OPTIONS ${ARG_COMPILER_OPTIONS}
@@ -52,19 +51,19 @@ function(add_example_without_proving example_target)
 
     add_dependencies(compile_cpp_examples ${example_target})
 
-    if(NOT DEFINED ARG_PRIVATE_INPUT)
-        set(ARG_PRIVATE_INPUT "none")
+    if(DEFINED ARG_PRIVATE_INPUT)
+        if(DEFINED ARG_MAX_NUM_PROVERS)
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+        else()
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} 0)
+        endif()
+    else()
+        if(DEFINED ARG_MAX_NUM_PROVERS)
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+        else()
+            assign_ir(${example_target} ${binary_name} ${ARG_INPUT} "" ${ARG_CURVE_TYPE} 0)
+        endif()
     endif()
-
-    if(NOT DEFINED ARG_MAX_NUM_PROVERS)
-        set(ARG_MAX_NUM_PROVERS 0)
-    endif()
-
-    if(NOT DEFINED ARG_ARITHMETIZARION)
-        set(ARG_ARITHMETIZARION "none")
-    endif()
-
-    assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_ARITHMETIZARION} ${ARG_MAX_NUM_PROVERS})
 
     add_dependencies(cpp_examples_generate_tbl ${example_target}_generate_tbl)
     add_dependencies(cpp_examples_generate_crct ${example_target}_generate_crct)
@@ -89,11 +88,11 @@ function(add_example_with_proving example_target)
         set(ARG_MAX_NUM_PROVERS 0)
     endif()
 
-    gen_proof(${example_target} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+    gen_proof(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
     add_dependencies(prove_cpp_examples ${example_target}_prove)
 
     if(GENERATE_EVM_VERIFIER)
-        gen_evm_verifier(${example_target} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+        gen_evm_verifier(${example_target} ${ARG_INPUT} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
         add_dependencies(prove_cpp_examples ${example_target}_evm_verifier)
     endif()
 
@@ -150,7 +149,7 @@ add_example_without_proving(compare_less_than_cpp SOURCES compare/less_than.cpp 
 add_example_without_proving(balances_tree_cpp_example SOURCES balances_tree.cpp INPUT balances_tree_public.inp PRIVATE_INPUT balances_tree_private.inp CURVE_TYPE pallas)
 
 add_example_without_proving(eddsa_signature_verification_cpp SOURCES eddsa_signature_verification.cpp INPUT eddsa_signature_verification.inp CURVE_TYPE pallas)
-add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp CURVE_TYPE pallas ARITHMETIZARION 15 1 5 30 50 6)
+add_example_without_proving(zkbridge_cpp SOURCES zkbridge.cpp INPUT zkbridge.inp CURVE_TYPE pallas)
 
 add_example_with_proving(private_input_cpp SOURCES private_input.cpp INPUT private_input_public.inp PRIVATE_INPUT private_input_private.inp CURVE_TYPE pallas)
 add_example_with_proving(private_input_array_cpp SOURCES private_input_array.cpp INPUT private_input_array_public.inp PRIVATE_INPUT private_input_array_private.inp CURVE_TYPE pallas)
