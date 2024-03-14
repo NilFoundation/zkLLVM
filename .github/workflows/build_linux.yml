@@ -306,10 +306,10 @@ jobs:
       always() && !cancelled() &&
       (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
       needs.build-and-test-linux.result == 'success'
-    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@5bb7c4b0790f56b3a339e33ba442816fac17ab88
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.transpiler-artifact-name }}
-      evm-placeholder-verification-ref: 202fbd0402eda22ae91348800dea7366110b1501
+      evm-placeholder-verification-ref: 2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
 
@@ -323,11 +323,11 @@ jobs:
       always() && !cancelled() &&
       (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
       needs.build-and-test-linux.result == 'success'
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@b1e380040b4714b6ad5fe9223555d854c49cf065
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@4ddd85878d66f9b916e9fbdafe51180058e5bdaa
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       # Update next line if you need new version of proof producer
-      proof-producer-ref: d6d8d18cd7a6e15dd9497140350efadb6af5179b
+      proof-producer-ref: 4ddd85878d66f9b916e9fbdafe51180058e5bdaa
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 
@@ -401,10 +401,10 @@ jobs:
       (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
       needs.build-and-test-linux.result == 'success' &&
       needs.merge-proofs-to-transpiler-output.result == 'success'
-    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@5bb7c4b0790f56b3a339e33ba442816fac17ab88
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
     with:
       artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
-      evm-placeholder-verification-ref: 202fbd0402eda22ae91348800dea7366110b1501
+      evm-placeholder-verification-ref: 2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
 

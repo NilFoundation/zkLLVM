@@ -69,7 +69,7 @@ using namespace nil::blueprint;
 template<typename Endianness, typename ArithmetizationType, typename ConstraintSystemType>
 void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
                    const assignment_proxy<ArithmetizationType> &table_proxy,
-                   bool rename_required, std::ostream &out = std::cout) {
+                   bool multi_prover, std::uint32_t idx, std::ostream &out = std::cout) {
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using value_marshalling_type =
         nil::crypto3::marshalling::types::plonk_constraint_system<TTypeBase, ConstraintSystemType>;
@@ -90,7 +90,7 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
         used_copy_constraints.push_back(copy_constraints[it]);
     }
 
-    if (rename_required) {
+    if (multi_prover && idx > 0) {
         const auto& used_rows = table_proxy.get_used_rows();
         std::uint32_t local_row = 0;
         for (const auto &row : used_rows) {
@@ -128,13 +128,26 @@ void print_circuit(const circuit_proxy<ArithmetizationType> &circuit_proxy,
         used_lookup_tables.push_back(lookup_tables[it]);
     }
 
+
+    // fill public input sizes
+    nil::crypto3::marshalling::types::public_input_sizes_type<TTypeBase> public_input_sizes;
+    using public_input_size_type = typename nil::crypto3::marshalling::types::public_input_sizes_type<TTypeBase>::element_type;
+    const auto public_input_size = table_proxy.public_inputs_amount();
+    for (std::uint32_t i = 0; i < public_input_size; i++) {
+        public_input_sizes.value().push_back(public_input_size_type(table_proxy.public_input_column_size(i)));
+    }
+    if (multi_prover) {
+        public_input_sizes.value().push_back(public_input_size_type(table_proxy.shared_column_size(0)));
+    }
+
     auto filled_val =
         value_marshalling_type(std::make_tuple(
             nil::crypto3::marshalling::types::fill_plonk_gates<Endianness, typename ConstraintSystemType::gates_container_type::value_type>(used_gates),
             nil::crypto3::marshalling::types::fill_plonk_copy_constraints<Endianness, typename ConstraintSystemType::variable_type>(used_copy_constraints),
             nil::crypto3::marshalling::types::fill_plonk_lookup_gates<Endianness, typename ConstraintSystemType::lookup_gates_container_type::value_type>(used_lookup_gates),
-            nil::crypto3::marshalling::types::fill_plonk_lookup_tables<Endianness, typename ConstraintSystemType::lookup_tables_type::value_type>(used_lookup_tables)
-                ));
+            nil::crypto3::marshalling::types::fill_plonk_lookup_tables<Endianness, typename ConstraintSystemType::lookup_tables_type::value_type>(used_lookup_tables),
+            public_input_sizes
+    ));
 
     std::vector<std::uint8_t> cv;
     cv.resize(filled_val.length(), 0x00);
@@ -559,7 +572,7 @@ int curve_dependent_main(std::string bytecode_file_name,
             }
 
             print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
-                assigner_instance.circuits[0], assigner_instance.assignments[0], false, ocircuit);
+                assigner_instance.circuits[0], assigner_instance.assignments[0], false, 0, ocircuit);
             ocircuit.close();
         }
     } else if (assigner_instance.assignments.size() > 1 &&
@@ -596,7 +609,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
                 ASSERT_MSG(idx < assigner_instance.circuits.size(), "Not found circuit");
                 print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
-                    assigner_instance.circuits[idx], assigner_instance.assignments[idx], (idx > 0), ocircuit);
+                    assigner_instance.circuits[idx], assigner_instance.assignments[idx], true, idx, ocircuit);
 
                 ocircuit.close();
             }

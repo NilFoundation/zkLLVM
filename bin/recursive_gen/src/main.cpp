@@ -177,8 +177,6 @@ int main(int argc, char *argv[]) {
             It'll be better to create an empty folder for output")
             ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
             ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster paralel proving")
-            ("public-input-rows,p", boost::program_options::value<int>(), "Used public input column rows")
-            ("shared-rows,s", boost::program_options::value<int>(), "Used shared rows")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)");
 
     // clang-format on
@@ -303,37 +301,11 @@ int curve_dependent_main(
         return 1;
     }
 
-    std::uint32_t public_input_rows = 50;
-    if (vm.count("public-input-rows")) {
-        public_input_rows = vm["public-input-rows"].as<int>();    }
-
-    std::uint32_t shared_rows = 50;
-    if (vm.count("shared-rows")) {
-        if( !vm.count("shared-rows") )
-            std::cout << "shared-rows parameter will be ignored because it is single-prover example" << std::endl;
-        shared_rows = vm["shared-rows"].as<int>();
-    }
-
     using parameters_policy = ParametersPolicy<BlueprintFieldType>;
     constexpr std::size_t WitnessColumns = parameters_policy::WitnessColumns;
     constexpr std::size_t PublicInputColumns = is_multi_prover? parameters_policy::PublicInputColumns + 1: parameters_policy::PublicInputColumns;
     constexpr std::size_t ConstantColumns = parameters_policy::ComponentConstantColumns + parameters_policy::LookupConstantColumns;
     constexpr std::size_t SelectorColumns = parameters_policy::ComponentSelectorColumns + parameters_policy::LookupSelectorColumns;
-
-    std::cout << "WitnessColumns = " << WitnessColumns << std::endl;
-    std::cout << "PublicInputColumns = " << PublicInputColumns << std::endl;
-    std::cout << "ConstantColumns = " << ConstantColumns << ": LookupConstantColumns = " << parameters_policy::LookupConstantColumns << std::endl;
-    std::cout << "SelectorColumns = " << SelectorColumns << ": LookupSelectorColumns = " << parameters_policy::LookupSelectorColumns << std::endl;
-
-    std::vector<std::size_t> public_input_sizes(PublicInputColumns);
-    for(std::size_t i = 0; i < PublicInputColumns; i++){
-        public_input_sizes[i] = public_input_rows;
-    }
-    if( is_multi_prover )
-        public_input_sizes[PublicInputColumns - 1] = shared_rows;
-
-    zk::snark::plonk_table_description<BlueprintFieldType> desc(
-        WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns);
 
     // Circuit-specific parameter
     using ConstraintSystemType =
@@ -364,6 +336,7 @@ int curve_dependent_main(
     }
 
     ConstraintSystemType constraint_system;
+    std::vector<std::size_t> public_input_sizes(PublicInputColumns);
     {
         std::ifstream ifile;
         ifile.open(circuit_file_name, std::ios_base::binary | std::ios_base::in);
@@ -389,9 +362,16 @@ int curve_dependent_main(
         constraint_system = nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
                 marshalled_data
         );
+
+        for(std::size_t i = 0; i < constraint_system.public_input_sizes_num(); i++){
+            public_input_sizes[i] = constraint_system.public_input_size(i);
+            std::cout << "Public input size " << i << " = " << public_input_sizes[i] << std::endl;
+        }
     }
 
     AssignmentTableType assignment_table;
+    zk::snark::plonk_table_description<BlueprintFieldType> desc(
+        WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns);
     {
         std::ifstream iassignment;
         iassignment.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
@@ -419,6 +399,12 @@ int curve_dependent_main(
             );
         desc.rows_amount = assignment_table.rows_amount();
     }
+
+    std::cout << "WitnessColumns = " << desc.witness_columns << std::endl;
+    std::cout << "PublicInputColumns = " << desc.public_input_columns << std::endl;
+    std::cout << "ConstantColumns = " << desc.constant_columns << ": LookupConstantColumns = " << parameters_policy::LookupConstantColumns << std::endl;
+    std::cout << "SelectorColumns = " << desc.selector_columns << ": LookupSelectorColumns = " << parameters_policy::LookupSelectorColumns << std::endl;
+
     std::vector<std::set<int>> columns_rotations;
 
     const std::size_t Lambda = parameters_policy::lambda;
