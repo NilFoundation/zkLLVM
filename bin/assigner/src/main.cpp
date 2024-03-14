@@ -165,253 +165,12 @@ enum class print_column_kind {
     SELECTOR
 };
 
-template<typename Endianness>
-void print_size_t(
-    std::size_t input,
-    std::ostream &out
-) {
-    using TTypeBase = nil::marshalling::field_type<Endianness>;
-    auto integer_container = nil::marshalling::types::integral<TTypeBase, std::size_t>(input);
-    std::vector<std::uint8_t> char_vector;
-    char_vector.resize(integer_container.length(), 0x00);
-    auto write_iter = char_vector.begin();
-    nil::marshalling::status_type status = integer_container.write(write_iter, char_vector.size());
-    out.write(reinterpret_cast<char*>(char_vector.data()), char_vector.size());
-}
-
-template<typename Endianness, typename ArithmetizationType>
-void print_field(
-    const typename assignment_proxy<ArithmetizationType>::field_type::value_type &input,
-    std::ostream &out
-) {
-    using TTypeBase = nil::marshalling::field_type<Endianness>;
-    using AssignmentTableType = assignment_proxy<ArithmetizationType>;
-    auto field_container = nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>(input);
-    std::vector<std::uint8_t> char_vector;
-    char_vector.resize(field_container.length(), 0x00);
-    auto write_iter = char_vector.begin();
-    nil::marshalling::status_type status = field_container.write(write_iter, char_vector.size());
-    out.write(reinterpret_cast<char*>(char_vector.data()), char_vector.size());
-}
-
-template<typename Endianness, typename ArithmetizationType, typename ContainerType>
-void print_vector_value(
-    const ContainerType &table_col,
-    std::ostream &out
-) {
-    for (const auto& val : table_col) {
-        print_field<Endianness, ArithmetizationType>(val, out);
-    }
-}
-
 
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
 void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_proxy,
                             print_table_kind print_kind,
                             std::uint32_t ComponentConstantColumns, std::uint32_t ComponentSelectorColumns,
-                            std::ostream &out = std::cout) {
-    using AssignmentTableType = assignment_proxy<ArithmetizationType>;
-    std::uint32_t usable_rows_amount;
-    std::uint32_t total_columns;
-    std::uint32_t total_size;
-    std::uint32_t shared_size = (print_kind == print_table_kind::MULTI_PROVER) ? 1 : 0;
-    std::uint32_t public_input_size = table_proxy.public_inputs_amount();
-    std::uint32_t witness_size = table_proxy.witnesses_amount();
-    std::uint32_t constant_size = table_proxy.constants_amount();
-    std::uint32_t selector_size = table_proxy.selectors_amount();
-    const auto lookup_constant_cols = table_proxy.get_lookup_constant_cols();
-    const auto lookup_selector_cols = table_proxy.get_lookup_selector_cols();
-
-    std::uint32_t max_public_inputs_size = 0;
-    std::uint32_t max_constant_size = 0;
-    std::uint32_t max_selector_size = 0;
-
-    for (std::uint32_t i = 0; i < public_input_size; i++) {
-        max_public_inputs_size = std::max(max_public_inputs_size, table_proxy.public_input_column_size(i));
-    }
-
-    auto calc_params_start = std::chrono::high_resolution_clock::now();
-    if (print_kind == print_table_kind::MULTI_PROVER) {
-        total_columns = witness_size + shared_size + public_input_size + constant_size + selector_size;
-        std::uint32_t max_shared_size = 0;
-        for (std::uint32_t i = 0; i < shared_size; i++) {
-            max_shared_size = std::max(max_shared_size, table_proxy.shared_column_size(i));
-        }
-        for (const auto &i : lookup_constant_cols) {
-            max_constant_size = std::max(max_constant_size, table_proxy.constant_column_size(i));
-        }
-        for (const auto &i : lookup_selector_cols) {
-            max_selector_size = std::max(max_selector_size, table_proxy.selector_column_size(i));
-        }
-        usable_rows_amount = table_proxy.get_used_rows().size();
-        usable_rows_amount = std::max({usable_rows_amount, max_shared_size, max_public_inputs_size, max_constant_size, max_selector_size});
-    } else { // SINGLE_PROVER
-        total_columns = witness_size + shared_size + public_input_size + constant_size + selector_size;
-        std::uint32_t max_witness_size = 0;
-        for (std::uint32_t i = 0; i < witness_size; i++) {
-            max_witness_size = std::max(max_witness_size, table_proxy.witness_column_size(i));
-        }
-        for (std::uint32_t i = 0; i < constant_size; i++) {
-            max_constant_size = std::max(max_constant_size, table_proxy.constant_column_size(i));
-        }
-        for (std::uint32_t i = 0; i < selector_size; i++) {
-            max_selector_size = std::max(max_selector_size, table_proxy.selector_column_size(i));
-        }
-        usable_rows_amount = std::max({max_witness_size, max_public_inputs_size, max_constant_size, max_selector_size});
-    }
-
-    std::uint32_t padded_rows_amount = std::pow(2, std::ceil(std::log2(usable_rows_amount)));
-    if (padded_rows_amount == usable_rows_amount) {
-        padded_rows_amount *= 2;
-    }
-    if (padded_rows_amount < 8) {
-        padded_rows_amount = 8;
-    }
-    total_size = padded_rows_amount * total_columns;
-
-    using TTypeBase = nil::marshalling::field_type<Endianness>;
-    using plonk_assignment_table = nil::marshalling::types::bundle<
-        TTypeBase,
-        std::tuple<
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // witness_amount
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // public_input_amount
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // constant_amount
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // selector_amount
-
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // usable_rows
-            nil::marshalling::types::integral<TTypeBase, std::size_t>, // padded_rows_amount
-
-            // table_witness_values
-            nil::marshalling::types::array_list<
-                TTypeBase,
-                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
-                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
-            >,
-            // table_public_input_values
-            nil::marshalling::types::array_list<
-                TTypeBase,
-                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
-                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
-            >,
-            // table_constant_values
-            nil::marshalling::types::array_list<
-                TTypeBase,
-                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
-                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
-            >,
-            // table_selector_values
-            nil::marshalling::types::array_list<
-                TTypeBase,
-                nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>,
-                nil::marshalling::option::sequence_size_field_prefix<nil::marshalling::types::integral<TTypeBase, std::size_t>>
-            >
-        >
-    >;
-    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
-    auto calc_params_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - calc_params_start);
-    BOOST_LOG_TRIVIAL(info) << "calc_params_duration: " << calc_params_duration.count() << "ms";
-
-    print_size_t<Endianness>(witness_size, out);
-    print_size_t<Endianness>(public_input_size + shared_size, out);
-    print_size_t<Endianness>(constant_size, out);
-    print_size_t<Endianness>(selector_size, out);
-    print_size_t<Endianness>(usable_rows_amount, out);
-    print_size_t<Endianness>(padded_rows_amount, out);
-
-    auto fill_columns_start = std::chrono::high_resolution_clock::now();
-    if (print_kind == print_table_kind::SINGLE_PROVER) {
-    print_size_t<Endianness>(witness_size, out);
-        for (std::uint32_t i = 0; i < witness_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.witness(i), out);
-        }
-    print_size_t<Endianness>(public_input_size + shared_size, out);
-        for (std::uint32_t i = 0; i < public_input_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type> (table_proxy.public_input(i), out);
-        }
-    print_size_t<Endianness>(constant_size, out);
-        for (std::uint32_t i = 0; i < constant_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.constant(i), out);
-        }
-    print_size_t<Endianness>(selector_size, out);
-        for (std::uint32_t i = 0; i < selector_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.selector(i), out);
-        }
-    } else {
-        const auto& rows = table_proxy.get_used_rows();
-        const auto& selector_rows = table_proxy.get_used_selector_rows();
-        std::uint32_t witness_idx = 0;
-
-        // witness
-        print_size_t<Endianness>(witness_size, out);
-        for( std::size_t i = 0; i < witness_size; i++ ){
-            const auto column_size = table_proxy.witness_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    print_field<Endianness, ArithmetizationType>(table_proxy.witness(i, j), out);
-                    offset++;
-                }
-            }
-            witness_idx += padded_rows_amount;
-        }
-        // public input
-        std::uint32_t pub_inp_idx = 0;
-        print_size_t<Endianness>(public_input_size + shared_size, out);
-        for (std::uint32_t i = 0; i < public_input_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.public_input(i), out);
-            pub_inp_idx += padded_rows_amount;
-        }
-        for (std::uint32_t i = 0; i < shared_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.shared(i), out);
-            pub_inp_idx += padded_rows_amount;
-        }
-        // constant
-        print_size_t<Endianness>(constant_size, out);
-        std::uint32_t constant_idx = 0;
-        for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
-            const auto column_size = table_proxy.constant_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    print_field<Endianness, ArithmetizationType>(table_proxy.constant(i, j), out);
-                    offset++;
-                }
-            }
-
-            constant_idx += padded_rows_amount;
-        }
-
-        for (std::uint32_t i = ComponentConstantColumns; i < constant_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.constant(i), out);
-            constant_idx += padded_rows_amount;
-        }
-
-        // selector
-        print_size_t<Endianness>(selector_size, out);
-        std::uint32_t selector_idx = 0;
-        for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
-            const auto column_size = table_proxy.selector_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    if (selector_rows.find(j) != selector_rows.end()) {
-                        print_field<Endianness, ArithmetizationType>(table_proxy.selector(i, j), out);
-                    }
-                    offset++;
-                }
-            }
-            selector_idx += padded_rows_amount;
-        }
-
-        for (std::uint32_t i = ComponentSelectorColumns; i < selector_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.selector(i), out);
-            selector_idx += padded_rows_amount;
-        }
-        ASSERT_MSG(witness_idx + pub_inp_idx + constant_idx + selector_idx == total_size, "Printed index not equal required assignment size" );
-    }
-    auto fill_columns_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fill_columns_start);
-    BOOST_LOG_TRIVIAL(info) << "fill_columns_duration: " << fill_columns_duration.count() << "ms";
-}
+                            std::ostream &out = std::cout) {}
 
 bool read_json(
     std::string input_file_name,
@@ -465,15 +224,9 @@ void assignment_table_printer(
     const std::size_t &ComponentConstantColumns,
     const std::size_t &ComponentSelectorColumns
 ) {
-    auto multi_table_print_start = std::chrono::high_resolution_clock::now();
-
-    print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-        assigner_instance.assignments[idx], print_table_kind::MULTI_PROVER, ComponentConstantColumns,
-        ComponentSelectorColumns, otable);
-
+    BOOST_LOG_TRIVIAL(info) << "start thread " << idx;
     otable.close();
-    auto multi_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - multi_table_print_start);
-    BOOST_LOG_TRIVIAL(info) << "multi_table_print_duration: " << multi_table_print_duration.count() << "ms";
+    BOOST_LOG_TRIVIAL(info) << "end thread " << idx;
 }
 
 template<typename BlueprintFieldType>
@@ -648,6 +401,17 @@ int curve_dependent_main(std::string bytecode_file_name,
                     return 1;
                 }
 
+                // assignment_table_printer<ArithmetizationType, BlueprintFieldType>(
+                //     std::ref(otable),
+                //     idx,
+                //     std::ref(assigner_instance),
+                //     std::ref(ComponentConstantColumns),
+                //     std::ref(ComponentSelectorColumns)
+                // );
+
+                BOOST_LOG_TRIVIAL(info) << "loop " << idx << " start";
+
+
                 threads.emplace_back(
                     assignment_table_printer<ArithmetizationType, BlueprintFieldType>,
                     std::ref(otable),
@@ -656,6 +420,17 @@ int curve_dependent_main(std::string bytecode_file_name,
                     std::ref(ComponentConstantColumns),
                     std::ref(ComponentSelectorColumns)
                 );
+                BOOST_LOG_TRIVIAL(info) << "loop " << idx << " endbt";
+
+                // if (threads.back().joinable()) {
+                //     threads.back().join();
+                // }
+
+                // for (auto& thread : threads) {
+                //     if (thread.joinable()) {
+                //         thread.join();
+                //     }
+                // }
             }
 
             // print circuit
@@ -674,10 +449,16 @@ int curve_dependent_main(std::string bytecode_file_name,
                 ocircuit.close();
             }
         }
+
+        BOOST_LOG_TRIVIAL(info) << "join threads start";
+        int thread_counter = 0;
         for (auto& thread : threads) {
+            BOOST_LOG_TRIVIAL(info) << "join thread " << thread_counter;
             if (thread.joinable()) {
+                BOOST_LOG_TRIVIAL(info) << "is joinable " << thread_counter;
                 thread.join();
             }
+            thread_counter++;
         }
 
     } else {
