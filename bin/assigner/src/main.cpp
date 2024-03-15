@@ -63,6 +63,7 @@
 #include <llvm/Support/Signals.h>
 
 #include <thread>
+#include <chrono>
 
 using namespace nil;
 using namespace nil::crypto3;
@@ -418,21 +419,27 @@ struct ParametersPolicy {
 
 template<typename ArithmetizationType, typename BlueprintFieldType>
 void assignment_table_printer(
-    std::ofstream& otable,
+    std::string assignment_table_file_name,
     std::uint32_t idx,
     nil::blueprint::assigner<BlueprintFieldType> &assigner_instance,
     const std::size_t &ComponentConstantColumns,
     const std::size_t &ComponentSelectorColumns
 ) {
-    auto multi_table_print_start = std::chrono::high_resolution_clock::now();
+    BOOST_LOG_TRIVIAL(info) << "start thread " << idx;
+    std::ofstream otable;
+    otable.open(assignment_table_file_name + std::to_string(idx),
+                std::ios_base::binary | std::ios_base::out);
+    if (!otable) {
+        std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(idx)
+                  << std::endl;
+        std::abort();
+        // return 1;
+    }
+    // std::this_thread::sleep_for(std::chrono::seconds(5));
 
-    print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-        assigner_instance.assignments[idx], print_table_kind::MULTI_PROVER, ComponentConstantColumns,
-        ComponentSelectorColumns, otable);
-
+    // BOOST_LOG_TRIVIAL(info) << "table opened " << idx;
     otable.close();
-    auto multi_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - multi_table_print_start);
-    BOOST_LOG_TRIVIAL(info) << "multi_table_print_duration: " << multi_table_print_duration.count() << "ms";
+    BOOST_LOG_TRIVIAL(info) << "end thread " << idx;
 }
 
 template<typename BlueprintFieldType>
@@ -608,23 +615,46 @@ int curve_dependent_main(std::string bytecode_file_name,
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
             if (gen_mode.has_assignments()) {
-                std::ofstream otable;
-                otable.open(assignment_table_file_name + std::to_string(idx),
-                            std::ios_base::binary | std::ios_base::out);
-                if (!otable) {
-                    std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(idx)
-                              << std::endl;
-                    return 1;
-                }
+                // std::ofstream otable;
+                // otable.open(assignment_table_file_name + std::to_string(idx),
+                //             std::ios_base::binary | std::ios_base::out);
+                // if (!otable) {
+                //     std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(idx)
+                //               << std::endl;
+                //     return 1;
+                // }
+
+                // assignment_table_printer<ArithmetizationType, BlueprintFieldType>(
+                //     std::ref(otable),
+                //     idx,
+                //     std::ref(assigner_instance),
+                //     std::ref(ComponentConstantColumns),
+                //     std::ref(ComponentSelectorColumns)
+                // );
+
+                BOOST_LOG_TRIVIAL(info) << "loop " << idx << " start";
+
 
                 threads.emplace_back(
                     assignment_table_printer<ArithmetizationType, BlueprintFieldType>,
-                    std::ref(otable),
+                    // std::ref(otable),
+                    assignment_table_file_name,
                     idx,
                     std::ref(assigner_instance),
                     std::ref(ComponentConstantColumns),
                     std::ref(ComponentSelectorColumns)
                 );
+                BOOST_LOG_TRIVIAL(info) << "loop " << idx << " endbt";
+
+                // if (threads.back().joinable()) {
+                //     threads.back().join();
+                // }
+
+                // for (auto& thread : threads) {
+                //     if (thread.joinable()) {
+                //         thread.join();
+                //     }
+                // }
             }
 
             // print circuit
@@ -643,10 +673,16 @@ int curve_dependent_main(std::string bytecode_file_name,
                 ocircuit.close();
             }
         }
+
+        BOOST_LOG_TRIVIAL(info) << "join threads start";
+        int thread_counter = 0;
         for (auto& thread : threads) {
+            BOOST_LOG_TRIVIAL(info) << "join thread " << thread_counter;
             if (thread.joinable()) {
+                BOOST_LOG_TRIVIAL(info) << "is joinable " << thread_counter;
                 thread.join();
             }
+            thread_counter++;
         }
 
     } else {
