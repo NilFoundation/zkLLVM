@@ -19,17 +19,26 @@ using namespace nil::crypto3;
             hash<hashes::sha2<256>>(layer_0_leaves[2 * leaf_index], layer_0_leaves[2 * leaf_index + 1]);
     }
 
+#pragma zk_multi_prover 1
+    {
     for (std::size_t leaf_index = 0; leaf_index < layer_2_size; leaf_index++) {
         layer_2_leaves[leaf_index] =
             hash<hashes::sha2<256>>(layer_1_leaves[2 * leaf_index], layer_1_leaves[2 * leaf_index + 1]);
     }
+    }
 
+#pragma zk_multi_prover 2
+    {
     for (std::size_t leaf_index = 0; leaf_index < layer_3_size; leaf_index++) {
         layer_3_leaves[leaf_index] =
             hash<hashes::sha2<256>>(layer_2_leaves[2 * leaf_index], layer_2_leaves[2 * leaf_index + 1]);
     }
+    }
 
+#pragma zk_multi_prover 3
+    {
     root = hash<hashes::sha2<256>>(layer_3_leaves[0], layer_3_leaves[1]);
+    }
 
     return root;
 }
