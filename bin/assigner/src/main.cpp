@@ -180,12 +180,24 @@ void print_size_t(
 ) {
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     auto integer_container = nil::marshalling::types::integral<TTypeBase, std::size_t>(input);
-    std::vector<std::uint8_t> char_vector;
-    char_vector.resize(integer_container.length(), 0x00);
-    auto write_iter = char_vector.begin();
-    nil::marshalling::status_type status = integer_container.write(write_iter, char_vector.size());
-    out.write(reinterpret_cast<char*>(char_vector.data()), char_vector.size());
+    std::array<std::uint8_t, integer_container.length()> char_array{};
+    auto write_iter = char_array.begin();
+    ASSERT(integer_container.write(write_iter, char_array.size()) == nil::marshalling::status_type::success);
+    out.write(reinterpret_cast<char*>(char_array.data()), char_array.size());
 }
+
+template<typename Endianness, typename ArithmetizationType>
+inline void print_zero_field(
+    std::ostream &out
+) {
+    using TTypeBase = nil::marshalling::field_type<Endianness>;
+    using AssignmentTableType = assignment_proxy<ArithmetizationType>;
+    using field_element = nil::crypto3::marshalling::types::field_element<
+        TTypeBase, typename AssignmentTableType::field_type::value_type>;
+    std::array<std::uint8_t, field_element().length()> array{};
+    out.write(reinterpret_cast<char*>(array.data()), array.size());
+}
+
 
 template<typename Endianness, typename ArithmetizationType>
 void print_field(
@@ -195,11 +207,10 @@ void print_field(
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using AssignmentTableType = assignment_proxy<ArithmetizationType>;
     auto field_container = nil::crypto3::marshalling::types::field_element<TTypeBase, typename AssignmentTableType::field_type::value_type>(input);
-    std::vector<std::uint8_t> char_vector;
-    char_vector.resize(field_container.length(), 0x00);
-    auto write_iter = char_vector.begin();
-    nil::marshalling::status_type status = field_container.write(write_iter, char_vector.size());
-    out.write(reinterpret_cast<char*>(char_vector.data()), char_vector.size());
+    std::array<std::uint8_t, field_container.length()> char_array{};
+    auto write_iter = char_array.begin();
+    ASSERT(field_container.write(write_iter, char_array.size()) == nil::marshalling::status_type::success);
+    out.write(reinterpret_cast<char*>(char_array.data()), char_array.size());
 }
 
 template<typename Endianness, typename ArithmetizationType, typename ContainerType>
@@ -212,7 +223,7 @@ void print_vector_value(
         if (i < table_col.size()) {
             print_field<Endianness, ArithmetizationType>(table_col[i], out);
         } else {
-            print_field<Endianness, ArithmetizationType>(0, out);
+            print_zero_field<Endianness, ArithmetizationType>(out);
         }
     }
 }
@@ -329,7 +340,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
             }
             ASSERT(offset < padded_rows_amount);
             while(offset < padded_rows_amount) {
-                print_field<Endianness, ArithmetizationType>(0, out);
+                print_zero_field<Endianness, ArithmetizationType>(out);
                 offset++;
             }
             witness_idx += padded_rows_amount;
@@ -359,7 +370,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
             }
             ASSERT(offset < padded_rows_amount);
             while(offset < padded_rows_amount) {
-                print_field<Endianness, ArithmetizationType>(0, out);
+                print_zero_field<Endianness, ArithmetizationType>(out);
                 offset++;
             }
 
@@ -382,15 +393,15 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                     if (selector_rows.find(j) != selector_rows.end()) {
                         print_field<Endianness, ArithmetizationType>(table_proxy.selector(i, j), out);
                     } else {
-                        print_field<Endianness, ArithmetizationType>(0, out);
+                        print_zero_field<Endianness, ArithmetizationType>(out);
                     }
                     offset++;
                 }
             }
             ASSERT(offset < padded_rows_amount);
             while(offset < padded_rows_amount) {
-                    print_field<Endianness, ArithmetizationType>(0, out);
-                    offset++;
+                print_zero_field<Endianness, ArithmetizationType>(out);
+                offset++;
             }
 
             selector_idx += padded_rows_amount;
