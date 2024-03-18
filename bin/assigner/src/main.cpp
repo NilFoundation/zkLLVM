@@ -524,7 +524,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         check_validity
     );
     auto assigner_instance_creation_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - assigner_instance_creation_start);
-    BOOST_LOG_TRIVIAL(info) << "assigner_instance_creation_duration: " << assigner_instance_creation_duration.count() << "ms";
+    BOOST_LOG_TRIVIAL(debug) << "assigner_instance_creation_duration: " << assigner_instance_creation_duration.count() << "ms";
 
     auto parse_ir_file_start = std::chrono::high_resolution_clock::now();
     if (!assigner_instance.parse_ir_file(bytecode_file_name.c_str())) {
@@ -537,14 +537,14 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 0;
     }
     auto parse_ir_file_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - parse_ir_file_start);
-    BOOST_LOG_TRIVIAL(info) << "parse_ir_file_duration: " << parse_ir_file_duration.count() << "ms";
+    BOOST_LOG_TRIVIAL(debug) << "parse_ir_file_duration: " << parse_ir_file_duration.count() << "ms";
 
     auto parser_evaluation_start = std::chrono::high_resolution_clock::now();
     if (!assigner_instance.evaluate(public_input_json_value.as_array(), private_input_json_value.as_array())) {
         return 1;
     }
     auto parser_evaluation_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - parser_evaluation_start);
-    BOOST_LOG_TRIVIAL(info) << "parser_evaluation_duration: " << parser_evaluation_duration.count() << "ms";
+    BOOST_LOG_TRIVIAL(debug) << "parser_evaluation_duration: " << parser_evaluation_duration.count() << "ms";
 
     ASSERT_MSG(!assigner_instance.assignments.empty() && !assigner_instance.circuits.empty(), "Not found any proxy for prover" );
 
@@ -582,7 +582,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         );
     }
     auto pack_lookup_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - pack_lookup_start);
-    BOOST_LOG_TRIVIAL(info) << "pack_lookup_duration: " << pack_lookup_duration.count() << "ms";
+    BOOST_LOG_TRIVIAL(debug) << "pack_lookup_duration: " << pack_lookup_duration.count() << "ms";
 
     auto overall_table_printing_start = std::chrono::high_resolution_clock::now();
     constexpr std::uint32_t invalid_target_prover = std::numeric_limits<std::uint32_t>::max();
@@ -605,7 +605,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
             otable.close();
             auto single_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - single_table_print_start);
-            BOOST_LOG_TRIVIAL(info) << "single_table_print_duration: " << single_table_print_duration.count() << "ms";
+            BOOST_LOG_TRIVIAL(debug) << "single_table_print_duration: " << single_table_print_duration.count() << "ms";
         }
 
         // print circuit
@@ -671,7 +671,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
     auto overall_table_printing_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - overall_table_printing_start);
-    BOOST_LOG_TRIVIAL(info) << "overall_table_printing_duration: " << overall_table_printing_duration.count() << "ms";
+    BOOST_LOG_TRIVIAL(debug) << "overall_table_printing_duration: " << overall_table_printing_duration.count() << "ms";
 
     auto check_validity_start = std::chrono::high_resolution_clock::now();
     if (check_validity && gen_mode.has_assignments() && gen_mode.has_circuit()) {
@@ -697,7 +697,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         }
     }
     auto check_validity_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - check_validity_start);
-    BOOST_LOG_TRIVIAL(info) << "check_validity_duration: " << check_validity_duration.count() << "ms";
+    BOOST_LOG_TRIVIAL(debug) << "check_validity_duration: " << check_validity_duration.count() << "ms";
     return 0;
 }
 
