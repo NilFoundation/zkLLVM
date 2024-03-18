@@ -190,11 +190,16 @@ void print_field(
 
 template<typename Endianness, typename ArithmetizationType, typename ContainerType>
 void print_vector_value(
+    const std::size_t padded_rows_amount,
     const ContainerType &table_col,
     std::ostream &out
 ) {
-    for (const auto& val : table_col) {
-        print_field<Endianness, ArithmetizationType>(val, out);
+    for (std::size_t i = 0; i < padded_rows_amount; i++) {
+        if (i < table_col.size()) {
+            print_field<Endianness, ArithmetizationType>(table_col[i], out);
+        } else {
+            print_field<Endianness, ArithmetizationType>(0, out);
+        }
     }
 }
 
@@ -224,7 +229,6 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         max_public_inputs_size = std::max(max_public_inputs_size, table_proxy.public_input_column_size(i));
     }
 
-    auto calc_params_start = std::chrono::high_resolution_clock::now();
     if (print_kind == print_table_kind::MULTI_PROVER) {
         total_columns = witness_size + shared_size + public_input_size + constant_size + selector_size;
         std::uint32_t max_shared_size = 0;
@@ -268,8 +272,6 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
 
     using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
-    auto calc_params_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - calc_params_start);
-    BOOST_LOG_TRIVIAL(info) << "calc_params_duration: " << calc_params_duration.count() << "ms";
 
     print_size_t<Endianness>(witness_size, out);
     print_size_t<Endianness>(public_input_size + shared_size, out);
@@ -278,23 +280,22 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     print_size_t<Endianness>(usable_rows_amount, out);
     print_size_t<Endianness>(padded_rows_amount, out);
 
-    auto fill_columns_start = std::chrono::high_resolution_clock::now();
     if (print_kind == print_table_kind::SINGLE_PROVER) {
-    print_size_t<Endianness>(witness_size, out);
+    print_size_t<Endianness>(witness_size * padded_rows_amount, out);
         for (std::uint32_t i = 0; i < witness_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.witness(i), out);
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.witness(i), out);
         }
-    print_size_t<Endianness>(public_input_size + shared_size, out);
+    print_size_t<Endianness>((public_input_size + shared_size) * padded_rows_amount, out);
         for (std::uint32_t i = 0; i < public_input_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type> (table_proxy.public_input(i), out);
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.public_input(i), out);
         }
-    print_size_t<Endianness>(constant_size, out);
+    print_size_t<Endianness>(constant_size * padded_rows_amount, out);
         for (std::uint32_t i = 0; i < constant_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.constant(i), out);
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.constant(i), out);
         }
-    print_size_t<Endianness>(selector_size, out);
+    print_size_t<Endianness>(selector_size * padded_rows_amount, out);
         for (std::uint32_t i = 0; i < selector_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.selector(i), out);
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.selector(i), out);
         }
     } else {
         const auto& rows = table_proxy.get_used_rows();
@@ -302,7 +303,7 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         std::uint32_t witness_idx = 0;
 
         // witness
-        print_size_t<Endianness>(witness_size, out);
+        print_size_t<Endianness>(witness_size * padded_rows_amount, out);
         for( std::size_t i = 0; i < witness_size; i++ ){
             const auto column_size = table_proxy.witness_column_size(i);
             std::uint32_t offset = 0;
@@ -312,21 +313,26 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                     offset++;
                 }
             }
+            ASSERT(offset < padded_rows_amount);
+            while(offset < padded_rows_amount) {
+                print_field<Endianness, ArithmetizationType>(0, out);
+                offset++;
+            }
             witness_idx += padded_rows_amount;
         }
         // public input
         std::uint32_t pub_inp_idx = 0;
-        print_size_t<Endianness>(public_input_size + shared_size, out);
+        print_size_t<Endianness>((public_input_size + shared_size) * padded_rows_amount, out);
         for (std::uint32_t i = 0; i < public_input_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.public_input(i), out);
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.public_input(i), out);
             pub_inp_idx += padded_rows_amount;
         }
         for (std::uint32_t i = 0; i < shared_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.shared(i), out);
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.shared(i), out);
             pub_inp_idx += padded_rows_amount;
         }
         // constant
-        print_size_t<Endianness>(constant_size, out);
+        print_size_t<Endianness>(constant_size * padded_rows_amount, out);
         std::uint32_t constant_idx = 0;
         for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
             const auto column_size = table_proxy.constant_column_size(i);
@@ -337,17 +343,22 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                     offset++;
                 }
             }
+            ASSERT(offset < padded_rows_amount);
+            while(offset < padded_rows_amount) {
+                print_field<Endianness, ArithmetizationType>(0, out);
+                offset++;
+            }
 
             constant_idx += padded_rows_amount;
         }
 
         for (std::uint32_t i = ComponentConstantColumns; i < constant_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.constant(i), out);
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.constant(i), out);
             constant_idx += padded_rows_amount;
         }
 
         // selector
-        print_size_t<Endianness>(selector_size, out);
+        print_size_t<Endianness>(selector_size * padded_rows_amount, out);
         std::uint32_t selector_idx = 0;
         for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
             const auto column_size = table_proxy.selector_column_size(i);
@@ -356,21 +367,27 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
                 if (j < column_size) {
                     if (selector_rows.find(j) != selector_rows.end()) {
                         print_field<Endianness, ArithmetizationType>(table_proxy.selector(i, j), out);
+                    } else {
+                        print_field<Endianness, ArithmetizationType>(0, out);
                     }
                     offset++;
                 }
             }
+            ASSERT(offset < padded_rows_amount);
+            while(offset < padded_rows_amount) {
+                    print_field<Endianness, ArithmetizationType>(0, out);
+                    offset++;
+            }
+
             selector_idx += padded_rows_amount;
         }
 
         for (std::uint32_t i = ComponentSelectorColumns; i < selector_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(table_proxy.selector(i), out);
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.selector(i), out);
             selector_idx += padded_rows_amount;
         }
         ASSERT_MSG(witness_idx + pub_inp_idx + constant_idx + selector_idx == total_size, "Printed index not equal required assignment size" );
     }
-    auto fill_columns_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fill_columns_start);
-    BOOST_LOG_TRIVIAL(info) << "fill_columns_duration: " << fill_columns_duration.count() << "ms";
 }
 
 bool read_json(
@@ -425,7 +442,6 @@ void assignment_table_printer(
     const std::size_t &ComponentConstantColumns,
     const std::size_t &ComponentSelectorColumns
 ) {
-    BOOST_LOG_TRIVIAL(info) << "start thread " << idx;
     std::ofstream otable;
     otable.open(assignment_table_file_name + std::to_string(idx),
                 std::ios_base::binary | std::ios_base::out);
@@ -433,13 +449,13 @@ void assignment_table_printer(
         std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(idx)
                   << std::endl;
         std::abort();
-        // return 1;
     }
-    // std::this_thread::sleep_for(std::chrono::seconds(5));
 
-    // BOOST_LOG_TRIVIAL(info) << "table opened " << idx;
+    print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+        assigner_instance.assignments[idx], print_table_kind::MULTI_PROVER, ComponentConstantColumns,
+            ComponentSelectorColumns, otable);
+
     otable.close();
-    BOOST_LOG_TRIVIAL(info) << "end thread " << idx;
 }
 
 template<typename BlueprintFieldType>
@@ -615,46 +631,15 @@ int curve_dependent_main(std::string bytecode_file_name,
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
             if (gen_mode.has_assignments()) {
-                // std::ofstream otable;
-                // otable.open(assignment_table_file_name + std::to_string(idx),
-                //             std::ios_base::binary | std::ios_base::out);
-                // if (!otable) {
-                //     std::cout << "Something wrong with output " << assignment_table_file_name + std::to_string(idx)
-                //               << std::endl;
-                //     return 1;
-                // }
-
-                // assignment_table_printer<ArithmetizationType, BlueprintFieldType>(
-                //     std::ref(otable),
-                //     idx,
-                //     std::ref(assigner_instance),
-                //     std::ref(ComponentConstantColumns),
-                //     std::ref(ComponentSelectorColumns)
-                // );
-
-                BOOST_LOG_TRIVIAL(info) << "loop " << idx << " start";
-
 
                 threads.emplace_back(
                     assignment_table_printer<ArithmetizationType, BlueprintFieldType>,
-                    // std::ref(otable),
                     assignment_table_file_name,
                     idx,
                     std::ref(assigner_instance),
                     std::ref(ComponentConstantColumns),
                     std::ref(ComponentSelectorColumns)
                 );
-                BOOST_LOG_TRIVIAL(info) << "loop " << idx << " endbt";
-
-                // if (threads.back().joinable()) {
-                //     threads.back().join();
-                // }
-
-                // for (auto& thread : threads) {
-                //     if (thread.joinable()) {
-                //         thread.join();
-                //     }
-                // }
             }
 
             // print circuit
@@ -674,15 +659,10 @@ int curve_dependent_main(std::string bytecode_file_name,
             }
         }
 
-        BOOST_LOG_TRIVIAL(info) << "join threads start";
-        int thread_counter = 0;
         for (auto& thread : threads) {
-            BOOST_LOG_TRIVIAL(info) << "join thread " << thread_counter;
             if (thread.joinable()) {
-                BOOST_LOG_TRIVIAL(info) << "is joinable " << thread_counter;
                 thread.join();
             }
-            thread_counter++;
         }
 
     } else {
