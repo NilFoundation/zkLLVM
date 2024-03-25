@@ -38,7 +38,7 @@ Languages currently supported are:
 #### Install Dependencies
 
 * [Boost](https://www.boost.org/) >= 1.76.0
-* [CMake](https://cmake.org/) >= 3.5
+* [CMake](https://cmake.org/) >= 3.2
 * [Clang](https://clang.llvm.org/) >= 12.0
 * [Python](https://www.python.org/) >= 3.7
 * [Rust](https://www.rust-lang.org/) >= 1.68 (if you want to build Rust compiler)
