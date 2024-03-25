@@ -167,13 +167,13 @@ int main(int argc, char *argv[]) {
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
             ("optimize-gates", "Put multiple small gates into several .sol file, sets reasonable threshold limits")
-            ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
+            ("skip-verification", "Used with gen-test-proof, if set - skips verifying the generated proof")
             ("gates-contract-size-threshold", boost::program_options::value<std::size_t>(), "Gates library size limit, per module. Default = 0, each constraint in a separate library")
             ("lookups-library-threshold", boost::program_options::value<std::size_t>(), "Lookups library size limit, per module. Default = 0, each lookup in a separate library")
             ("lookups-inline-threshold", boost::program_options::value<std::size_t>(), "Lookups inline size limit. Default = 0, none of the lookups are inlined")
             ("deduce-horner", "Detect polynomials over one variable and deduce to Horner's formula")
             ("optimize-powers", "Optimize terms that are powers of single variable")
-            ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster paralel proving")
+            ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster parallel proving")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ;
     // clang-format on

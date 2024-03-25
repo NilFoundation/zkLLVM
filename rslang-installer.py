@@ -556,7 +556,7 @@ def download_asset(asset: Asset, tmpdir: Path) -> Path:
 def unpack_archive(path: Path, tmpdir: Path) -> Path:
     """Unpack given archive inplace, returning the name of root directory inside it."""
 
-    # FIXME: probably there is a better way to get ouput dir name.
+    # FIXME: probably there is a better way to get output dir name.
     # We should consider supporting different archive types,
     # since we don't know exactly which one will be used in the future.
     with tarfile.open(path, "r") as tar:

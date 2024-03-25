@@ -175,8 +175,8 @@ int main(int argc, char *argv[]) {
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit input file")
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
-            ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
-            ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster paralel proving")
+            ("skip-verification", "Used with gen-test-proof, if set - skips verifying the generated proof")
+            ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster parallel proving")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)");
 
     // clang-format on
