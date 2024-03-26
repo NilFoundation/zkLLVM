@@ -216,7 +216,7 @@ add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/loop")
 add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/mul")
 add_zkllvm_unit_test("algebra/fields/pallas_arithmetics/sub")
 
-# add_zkllvm_unit_test("algebra/fields/private_input/private_input_add")
+add_zkllvm_unit_test("algebra/fields/private_input/private_input_add")
 add_zkllvm_unit_test("algebra/fields/conversion/itogf_pallas")
 
 # int tests
@@ -252,6 +252,7 @@ add_zkllvm_unit_test("libc/memset/memset")
 # hashes
 add_zkllvm_unit_test("hashes/sha256/sha2_256")
 add_zkllvm_unit_test("hashes/poseidon/poseidon")
+add_zkllvm_unit_test("hashes/merkle_tree/poseidon/0x800_inputs/test")
 
 # recursive prover tests
 add_zkllvm_unit_test("algebra/recursive_prover/fri_lin_inter/fri_lin_inter")
