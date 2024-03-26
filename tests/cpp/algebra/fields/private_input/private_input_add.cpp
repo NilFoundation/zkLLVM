@@ -44,7 +44,7 @@ int main (int argc, char *argv[]){
 
 
     using BlueprintFieldType = typename pallas::base_field_type;
-    typename BlueprintFieldType::value_type a = read_field <BlueprintFieldType>(pubic_input_json, 0);
+    typename BlueprintFieldType::value_type a = read_field <BlueprintFieldType>(public_input_json, 0);
     typename BlueprintFieldType::value_type b = read_field <BlueprintFieldType>(private_input_json, 0);
 
     pallas_field_add(a, b);
