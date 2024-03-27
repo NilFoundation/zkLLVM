@@ -1,12 +1,11 @@
 set -e
+ninja -C build  assigner recursive_gen -j4
 mkdir -p ./recursive
 
-ninja -C build merkle_tree_poseidon_cpp_example_generate_both
+ninja -C build merkle_tree_poseidon_cpp_example_generate_both -j4
+
 ./build/bin/recursive_gen/recursive_gen -m gen-input -i ./examples/inputs/merkle_tree_poseidon.inp -t ./build/examples/cpp/assignment_merkle_tree_poseidon_cpp_example.tbl -c ./build/examples/cpp/circuit_merkle_tree_poseidon_cpp_example.crct -o ./recursive -e pallas
 ./build/bin/recursive_gen/recursive_gen -m gen-verifier -i ./examples/inputs/merkle_tree_poseidon.inp -t ./build/examples/cpp/assignment_merkle_tree_poseidon_cpp_example.tbl -c ./build/examples/cpp/circuit_merkle_tree_poseidon_cpp_example.crct -o ./recursive -e pallas
 
-cp -rf ./recursive/placeholder_verifier.cpp ./examples/cpp/placeholder_verifier.cpp
-cp -rf ./recursive/placeholder_verifier.inp ./examples/inputs/placeholder_verifier.inp
-
-ninja -C build placeholder_verifier_cpp_example
-./build/bin/assigner/assigner -i ./examples/inputs/placeholder_verifier.inp -b ./build/examples/cpp/placeholder_verifier_cpp_example.ll -c recursive/circuit.crct -t recursive/assignment.tbl --max-num-provers 100 -e pallas --check --column-sizes {15,1,2,0,60,0}
+./build/libs/circifier/llvm/bin/clang-17 -target assigner -Xclang -fpreserve-vec3-type -Werror=unknown-attributes -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -D__ZKLLVM__ -I./libs/crypto3/libs/algebra/include -I./build/include -I/usr/local/include -I -I./libs/crypto3/libs/block/include -I/usr/local/include -I./libs/blueprint/include -I./libs/crypto3/libs/codec/include -I./libs/crypto3/libs/containers/include -I./libs/crypto3/libs/hash/include -I./libs/crypto3/libs/kdf/include -I./libs/crypto3/libs/mac/include -I./libs/crypto3/libs/marshalling/core/include -I./libs/crypto3/libs/marshalling/algebra/include -I./libs/crypto3/libs/marshalling/multiprecision/include -I./libs/crypto3/libs/marshalling/zk/include -I./libs/crypto3/libs/math/include -I./libs/crypto3/libs/modes/include -I./libs/crypto3/libs/multiprecision/include -I./libs/crypto3/libs/passhash/include -I./libs/crypto3/libs/pbkdf/include -I./libs/crypto3/libs/threshold/include -I./libs/crypto3/libs/pkpad/include -I./libs/crypto3/libs/pubkey/include -I./libs/crypto3/libs/random/include -I./libs/crypto3/libs/stream/include -I./libs/crypto3/libs/vdf/include -I./libs/crypto3/libs/zk/include -I./libs/stdlib/libcpp -I./libs/circifier/clang/lib/Headers -I./libs/stdlib/libc/include -emit-llvm -O1 -S -o ./recursive/placeholder_verifier_cpp_example.cpp.ll ./recursive/placeholder_verifier.cpp
+./build/bin/assigner/assigner -i ./recursive/placeholder_verifier.inp -b ./recursive/placeholder_verifier_cpp_example.cpp.ll -c recursive/circuit.crct -t recursive/assignment.tbl --max-num-provers 100 -e pallas --check --column-sizes {15,1,2,0,30,0}
