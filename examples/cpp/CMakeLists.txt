@@ -142,7 +142,6 @@ add_example_with_proving(merkle_poseidon_21prover_3layers_cpp_example SOURCES me
 add_example_without_proving(merkle_tree_sha2_256_cpp_example SOURCES merkle_tree_sha2_256.cpp INPUT merkle_tree_sha2_256.inp CURVE_TYPE pallas)
 add_example_without_proving(validate_merkle_path_sha2_256_cpp_example SOURCES validate_merkle_path_sha2_256.cpp INPUT validate_merkle_path_sha2_256.inp CURVE_TYPE pallas)
 add_example_without_proving(sha256_cpp_example SOURCES sha2_256.cpp INPUT sha2_256.inp CURVE_TYPE pallas)
-add_example_with_proving(balance_cpp_example SOURCES balance.cpp INPUT balance.inp CURVE_TYPE pallas)
 add_example_with_proving(memory_cpp_example SOURCES memory.cpp INPUT memory.inp CURVE_TYPE pallas)
 add_example_with_proving(polynomial_cpp_example SOURCES polynomial.cpp INPUT polynomial.inp COMPILER_OPTIONS -std=c++20 CURVE_TYPE pallas)
 add_example_with_proving(pallas_curve_addition_cpp_example
