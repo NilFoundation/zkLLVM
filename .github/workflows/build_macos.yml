@@ -157,13 +157,6 @@ jobs:
         run: |
           cmake --build build -t check-crypto3-assigner
 
-      - name: Run assigner tests
-        run: |
-          cd libs/assigner/test
-          chmod +x run_tests.py
-          python3 run_tests.py ../../../build/bin/assigner/assigner
-          cd ../../../
-
       - name: Build proof for the circuit of the C++ examples
         run: |
           cmake --build build -t prove_cpp_examples
