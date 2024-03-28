@@ -166,6 +166,23 @@ jobs:
           cmake --build build -t cpp_examples_generate_tbl
           ls -al ./build/examples/cpp
 
+      - name: Copy assigner output from separate generation mode
+        run: |
+          bash ./tests/copy_assigner_outputs.sh build/separate_generatuon
+
+      - name: Run simultaneous .tbl and .crct generation of the C++ examples
+        run: |
+          cmake --build build -t cpp_examples_generate_both
+          ls -al ./build/examples/cpp
+
+      - name: Copy assigner output from simultaneous generation mode
+        run: |
+          bash ./tests/copy_assigner_outputs.sh build/simultaneous_generation
+
+      - name: Compare different assigner modes output
+        run: |
+          bash ./tests/compare_folders_content.sh build/separate_generatuon build/simultaneous_generation
+
       - name: Run size estimation for C++ examples
         run: |
           cmake --build build -t cpp_examples_estimate_size
