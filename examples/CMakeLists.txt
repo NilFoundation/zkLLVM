@@ -132,7 +132,7 @@ function(gen_single_proof target curve_type provers_amount)
             -o transpiler_output_${target}${prover_num}
             -e ${curve_type}
             ${multi_prover_flag}
-            DEPENDS ${target}_generate_both $<TARGET_FILE:transpiler>
+            DEPENDS ${target}_generate_crct ${target}_generate_tbl $<TARGET_FILE:transpiler>
         COMMAND_EXPAND_LISTS
         VERBATIM)
 endfunction()
