@@ -249,15 +249,9 @@ jobs:
         run: |
           cmake --build build -t compile_and_run_transpiler_tests
 
-      - name: Run recursive verifier single prover version
+      - name: Run recursive verifier tests
         run: |
-          chmod +x ./gen_and_check.sh
-          bash ./gen_and_check.sh
-
-      - name: Run recursive verifier multi prover version
-        run: |
-          chmod +x ./multi_gen_and_check.sh
-          bash ./multi_gen_and_check.sh
+          cmake --build build -t recursion
 
       - name: Build rslang
         run: |
@@ -323,11 +317,11 @@ jobs:
       always() && !cancelled() &&
       (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
       needs.build-and-test-linux.result == 'success'
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@4ddd85878d66f9b916e9fbdafe51180058e5bdaa
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@b1e380040b4714b6ad5fe9223555d854c49cf065
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       # Update next line if you need new version of proof producer
-      proof-producer-ref: 4ddd85878d66f9b916e9fbdafe51180058e5bdaa
+      proof-producer-ref: 938426d309e586d87cd2b7895a0dea05ff88c0c5
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 

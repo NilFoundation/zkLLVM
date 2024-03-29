@@ -37,6 +37,7 @@
 #include <nil/marshalling/endianness.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/constraint_system.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/assignment_table.hpp>
+#include <nil/crypto3/marshalling/zk/types/placeholder/common_data.hpp>
 
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/preprocessor.hpp>
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/prover.hpp>
@@ -52,6 +53,58 @@
 #include <nil/blueprint/transpiler/public_input.hpp>
 #include <nil/blueprint/transpiler/recursive_verifier_generator.hpp>
 
+template<typename StreamType>
+std::optional<StreamType> open_file(const std::string& path, std::ios_base::openmode mode) {
+    StreamType file(path, mode);
+    if (!file.is_open()) {
+        std::cerr << "Unable to open file: " << path;
+        return std::nullopt;
+    }
+
+    return file;
+}
+
+std::optional<std::vector<std::uint8_t>> read_file_to_vector(const std::string& path) {
+
+    auto file = open_file<std::ifstream>(path, std::ios_base::in | std::ios::binary | std::ios::ate);
+    if (!file.has_value()) {
+        return std::nullopt;
+    }
+
+    std::ifstream& stream = file.value();
+    std::streamsize fsize = stream.tellg();
+    stream.seekg(0, std::ios::beg);
+    std::vector<std::uint8_t> v(static_cast<size_t>(fsize));
+
+    stream.read(reinterpret_cast<char*>(v.data()), fsize);
+
+    if (stream.fail()) {
+        std::cerr << "Error occurred during reading file " << path << std::endl;
+        return std::nullopt;
+    }
+
+    return v;
+}
+
+template<typename MarshallingType>
+std::optional<MarshallingType> decode_marshalling_from_file(
+    const boost::filesystem::path& path
+    //bool hex = false  // Used only for placeholder proof
+) {
+    const auto v =  read_file_to_vector(path.c_str());
+    if (!v.has_value()) {
+        return std::nullopt;
+    }
+
+    MarshallingType marshalled_data;
+    auto read_iter = v->begin();
+    auto status = marshalled_data.read(read_iter, v->size());
+    if (status != nil::marshalling::status_type::success) {
+        std::cerr << "Marshalled structure decoding failed" << std::endl;
+        return std::nullopt;
+    }
+    return marshalled_data;
+}
 
 template<typename BlueprintFieldType>
 struct ParametersPolicy {
@@ -173,6 +226,7 @@ int main(int argc, char *argv[]) {
             ("public-input,i", boost::program_options::value<std::string>(), "Public input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table input file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit input file")
+            ("common-data,d", boost::program_options::value<std::string>(), "Common data file")
             ("output-folder-path,o", boost::program_options::value<std::string>(), "Output folder absolute path.\
             It'll be better to create an empty folder for output")
             ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
@@ -254,6 +308,7 @@ int curve_dependent_main(
 
     std::string mode;
     std::string assignment_table_file_name;
+    std::string common_data_file_name;
     std::string circuit_file_name;
     std::string output_folder_path;
     std::string public_input;
@@ -274,10 +329,10 @@ int curve_dependent_main(
 
     if (vm.count("assignment-table")) {
         assignment_table_file_name = vm["assignment-table"].as<std::string>();
-    } else {
-        std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
+    }
+
+    if (vm.count("common-data")) {
+        common_data_file_name = vm["common-data"].as<std::string>();
     }
 
     if (vm.count("circuit")) {
@@ -314,98 +369,12 @@ int curve_dependent_main(
         nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType>;
     using Endianness = nil::marshalling::option::big_endian;
     using TTypeBase = nil::marshalling::field_type<Endianness>;
-    using value_marshalling_type =
+    using constraint_system_marshalling_type =
         nil::crypto3::marshalling::types::plonk_constraint_system<TTypeBase, ConstraintSystemType>;
 
     using ColumnType = nil::crypto3::zk::snark::plonk_column<BlueprintFieldType>;
     using AssignmentTableType =
         nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ColumnType>;
-    using table_value_marshalling_type =
-        nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
-
-    using ColumnsRotationsType = std::vector<std::set<int>>;
-    using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType>;
-
-    if( vm.count("public-input") ){
-        public_input = vm["public-input"].as<std::string>();
-        if( !boost::filesystem::exists(public_input) ){
-            std::cerr << "Invalid command line argument - public input file does not exist" << std::endl;
-            return 1;
-        }
-        boost::filesystem::copy(public_input, output_folder_path+"/public_input.json", boost::filesystem::copy_options::overwrite_existing);
-    }
-
-    ConstraintSystemType constraint_system;
-    std::vector<std::size_t> public_input_sizes(PublicInputColumns);
-    {
-        std::ifstream ifile;
-        ifile.open(circuit_file_name, std::ios_base::binary | std::ios_base::in);
-        if (!ifile.is_open()) {
-            std::cout << "Cannot find input file " << circuit_file_name << std::endl;
-            return 1;
-        }
-        std::vector<std::uint8_t> v;
-        ifile.seekg(0, std::ios_base::end);
-        const auto fsize = ifile.tellg();
-        v.resize(fsize);
-        ifile.seekg(0, std::ios_base::beg);
-        ifile.read(reinterpret_cast<char*>(v.data()), fsize);
-        if (!ifile) {
-            std::cout << "Cannot parse input file " << circuit_file_name << std::endl;
-            return 1;
-        }
-        ifile.close();
-
-        value_marshalling_type marshalled_data;
-        auto read_iter = v.begin();
-        auto status = marshalled_data.read(read_iter, v.size());
-        constraint_system = nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
-                marshalled_data
-        );
-
-        for(std::size_t i = 0; i < constraint_system.public_input_sizes_num(); i++){
-            public_input_sizes[i] = constraint_system.public_input_size(i);
-            std::cout << "Public input size " << i << " = " << public_input_sizes[i] << std::endl;
-        }
-    }
-
-    AssignmentTableType assignment_table;
-    zk::snark::plonk_table_description<BlueprintFieldType> desc(
-        WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns);
-    {
-        std::ifstream iassignment;
-        iassignment.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
-        if (!iassignment) {
-            std::cout << "Cannot open " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        std::vector<std::uint8_t> v;
-        iassignment.seekg(0, std::ios_base::end);
-        const auto fsize = iassignment.tellg();
-        v.resize(fsize);
-        iassignment.seekg(0, std::ios_base::beg);
-        iassignment.read(reinterpret_cast<char*>(v.data()), fsize);
-        if (!iassignment) {
-            std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        iassignment.close();
-        table_value_marshalling_type marshalled_table_data;
-        auto read_iter = v.begin();
-        auto status = marshalled_table_data.read(read_iter, v.size());
-        std::tie(desc, assignment_table) =
-            nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
-                marshalled_table_data
-            );
-        desc.rows_amount = assignment_table.rows_amount();
-    }
-
-    std::cout << "WitnessColumns = " << desc.witness_columns << std::endl;
-    std::cout << "PublicInputColumns = " << desc.public_input_columns << std::endl;
-    std::cout << "ConstantColumns = " << desc.constant_columns << ": LookupConstantColumns = " << parameters_policy::LookupConstantColumns << std::endl;
-    std::cout << "SelectorColumns = " << desc.selector_columns << ": LookupSelectorColumns = " << parameters_policy::LookupSelectorColumns << std::endl;
-
-    std::vector<std::set<int>> columns_rotations;
 
     const std::size_t Lambda = parameters_policy::lambda;
     using Hash = typename parameters_policy::hash;
@@ -413,7 +382,6 @@ int curve_dependent_main(
         BlueprintFieldType
     >;
 
-    std::size_t table_rows_log = std::ceil(std::log2(desc.rows_amount));
     using lpc_params_type = nil::crypto3::zk::commitments::list_polynomial_commitment_params<
         Hash,
         Hash,
@@ -425,21 +393,143 @@ int curve_dependent_main(
     using placeholder_params = nil::crypto3::zk::snark::placeholder_params<circuit_params, lpc_scheme_type>;
     using policy_type = nil::crypto3::zk::snark::detail::placeholder_policy<BlueprintFieldType, placeholder_params>;
 
+    using CommonDataType = typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type;
+    using common_data_marshalling_type = nil::crypto3::marshalling::types::placeholder_common_data<TTypeBase, CommonDataType>;
+    using assignment_table_marshalling_type =
+        nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
+
+    using ColumnsRotationsType = std::vector<std::set<int>>;
+    using ProfilingType = nil::blueprint::minimized_profiling_plonk_circuit<BlueprintFieldType>;
+
+    std::optional<TableDescriptionType> desc;
+    std::optional<ConstraintSystemType> constraint_system;
+    std::optional<AssignmentTableType> assignment_table;
+    std::optional<CommonDataType> common_data;
+    {
+        auto marshalled_value = decode_marshalling_from_file<constraint_system_marshalling_type>(circuit_file_name);
+        if (!marshalled_value) {
+            return false;
+        }
+        constraint_system.emplace(
+            nil::crypto3::marshalling::types::make_plonk_constraint_system<Endianness, ConstraintSystemType>(
+                *marshalled_value
+            )
+        );
+    }
+    if( !constraint_system ) return false;
+    std::vector<std::size_t> public_input_sizes(PublicInputColumns);
+    public_input_sizes = (*constraint_system).public_input_sizes();
+
+    if( vm.count("assignment-table") ){
+        auto marshalled_value = decode_marshalling_from_file<assignment_table_marshalling_type>(assignment_table_file_name);
+        if (!marshalled_value) {
+            return false;
+        }
+        auto [description, table] = nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
+            *marshalled_value
+        );
+        assignment_table.emplace(table);
+        desc.emplace(description);
+    }
+
+    if( vm.count("common-data") ){
+        auto marshalled_value = decode_marshalling_from_file<common_data_marshalling_type>(common_data_file_name);
+        if (!marshalled_value) {
+            return false;
+        }
+        auto [c_data, description] = nil::crypto3::marshalling::types::make_placeholder_common_data<Endianness, CommonDataType>(
+            *marshalled_value
+        );
+        desc.emplace(description);
+        common_data.emplace(c_data);
+    }
+
+    if(!desc){
+        std::cerr << "Table description is not provided" << std::endl;
+        return 1;
+    }
+    std::cout << "WitnessColumns = " << desc->witness_columns << std::endl;
+    std::cout << "PublicInputColumns = " << desc->public_input_columns << std::endl;
+    std::cout << "ConstantColumns = " << desc->constant_columns << std::endl;
+    std::cout << "SelectorColumns = " << desc->selector_columns << std::endl;
+
+    std::vector<std::set<int>> columns_rotations;
+
+    std::size_t table_rows_log = std::ceil(std::log2(desc->rows_amount));
+    using lpc_params_type = nil::crypto3::zk::commitments::list_polynomial_commitment_params<
+        Hash,
+        Hash,
+        Lambda,
+        2
+    >;
     auto fri_params = create_fri_params<typename lpc_type::fri_type, BlueprintFieldType>(table_rows_log);
     std::size_t permutation_size =
-        desc.witness_columns + desc.public_input_columns + 2;
+        desc->witness_columns + desc->public_input_columns + desc->constant_columns;
     lpc_scheme_type lpc_scheme(fri_params);
 
 
-    if ((mode != "gen-input" && mode != "gen-verifier")) {
-        return 0;
+    if( mode == "gen-verifier" && !assignment_table && !common_data ){
+        std::cerr << "Invalid command line argument - assignment table file name or common data file name should be specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
+    }
+    if( mode == "gen-input" ){
+        if( !assignment_table ){
+            std::cerr << "Invalid command line argument - assignment table file name should be specified for proof generation" << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
+        if( common_data ){
+            std::cerr << "Common data will be ignored for proof generation" << std::endl;
+        }
     }
 
-    std::cout << "Preprocessing public data..." << std::endl;
-    typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
-        BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
-    nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
-        constraint_system, assignment_table.public_table(), desc, lpc_scheme, permutation_size);
+    if( mode == "gen-input" || (mode == "gen-verifier" && !common_data) ){
+        std::cout << "Preprocessing public data..." << std::endl;
+        typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
+            BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
+        nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
+            *constraint_system, assignment_table->public_table(), *desc, lpc_scheme, permutation_size);
+        common_data.emplace(public_preprocessed_data.common_data);
+
+        if (mode == "gen-input") {
+            std::cout << "Preprocessing private data..." << std::endl;
+            typename nil::crypto3::zk::snark::placeholder_private_preprocessor<
+                BlueprintFieldType, placeholder_params>::preprocessed_data_type private_preprocessed_data =
+                nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
+                    *constraint_system, assignment_table->private_table(), *desc
+                );
+
+            std::cout << "Generating proof..." << std::endl;
+            using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
+            ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
+                public_preprocessed_data, private_preprocessed_data, *desc, *constraint_system, lpc_scheme);
+            std::cout << "Proof generated" << std::endl;
+
+            if( !vm.count("skip-verification") ) {
+                std::cout << "Verifying proof..." << std::endl;
+                bool verification_result =
+                    nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
+                        public_preprocessed_data, proof, *desc, *constraint_system, lpc_scheme
+                    );
+
+                ASSERT_MSG(verification_result, "Proof is not verified" );
+                std::cout << "Proof is verified" << std::endl;
+            }
+
+            std::string inp_path = output_folder_path + "/placeholder_verifier.inp";
+            std::ofstream output_file;
+            output_file.open(inp_path);
+            output_file << nil::blueprint::recursive_verifier_generator<
+                placeholder_params,
+                nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>,
+                typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type
+            >(*desc).generate_input(
+                assignment_table->public_inputs(), proof, public_input_sizes
+            );
+            output_file.close();
+        }
+    }
     if( mode == "gen-verifier"){
         std::string cpp_path = output_folder_path + "/placeholder_verifier.cpp";
         std::ofstream output_file;
@@ -448,49 +538,12 @@ int curve_dependent_main(
             placeholder_params,
             nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>,
             typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type
-        >(desc).generate_recursive_verifier(
-            constraint_system, public_preprocessed_data.common_data, lpc_scheme, permutation_size, public_input_sizes
+        >(*desc).generate_recursive_verifier(
+            *constraint_system, *common_data, lpc_scheme, permutation_size, public_input_sizes
         );
         output_file.close();
         return 0;
     }
 
-    if (mode == "gen-input") {
-        std::cout << "Preprocessing private data..." << std::endl;
-        typename nil::crypto3::zk::snark::placeholder_private_preprocessor<
-            BlueprintFieldType, placeholder_params>::preprocessed_data_type private_preprocessed_data =
-            nil::crypto3::zk::snark::placeholder_private_preprocessor<BlueprintFieldType, placeholder_params>::process(
-                constraint_system, assignment_table.private_table(), desc
-            );
-
-        std::cout << "Generating proof..." << std::endl;
-        using ProofType = nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>;
-        ProofType proof = nil::crypto3::zk::snark::placeholder_prover<BlueprintFieldType, placeholder_params>::process(
-            public_preprocessed_data, private_preprocessed_data, desc, constraint_system, lpc_scheme);
-        std::cout << "Proof generated" << std::endl;
-
-        if( !vm.count("skip-verification") ) {
-            std::cout << "Verifying proof..." << std::endl;
-            bool verification_result =
-                nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                    public_preprocessed_data, proof, desc, constraint_system, lpc_scheme
-                );
-
-            ASSERT_MSG(verification_result, "Proof is not verified" );
-            std::cout << "Proof is verified" << std::endl;
-        }
-
-        std::string inp_path = output_folder_path + "/placeholder_verifier.inp";
-        std::ofstream output_file;
-        output_file.open(inp_path);
-        output_file << nil::blueprint::recursive_verifier_generator<
-            placeholder_params,
-            nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>,
-            typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type
-        >(desc).generate_input(
-            public_preprocessed_data.common_data.vk, assignment_table.public_inputs(), proof, public_input_sizes
-        );
-        output_file.close();
-    }
     return 0;
 }

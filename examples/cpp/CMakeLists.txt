@@ -16,7 +16,8 @@ function(add_example_without_proving example_target)
                         "${multiValues}"
                         ${ARGN})
 
-    add_circuit(${example_target}
+    add_circuit(
+        ${example_target}
                 SOURCES ${ARG_SOURCES}
                 COMPILER_OPTIONS ${ARG_COMPILER_OPTIONS}
 
@@ -99,15 +100,38 @@ function(add_example_with_proving example_target)
 
 endfunction()
 
-add_example_without_proving(placeholder_verifier_cpp_example SOURCES placeholder_verifier.cpp INPUT placeholder_verifier.inp CURVE_TYPE pallas)
+function(add_example_with_proving_and_recursion example_target)
+    set(prefix ARG)
+    set(noValues "")
+    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE MAX_NUM_PROVERS)
+    set(multiValues SOURCES)
+    cmake_parse_arguments(${prefix}
+                        "${noValues}"
+                        "${singleValues}"
+                        "${multiValues}"
+                        ${ARGN})
+
+    add_example_with_proving(${example_target}  ${ARG_CURVE_TYPE} ${ARGN})
+
+    if(NOT DEFINED ARG_MAX_NUM_PROVERS)
+        set(ARG_MAX_NUM_PROVERS 0)
+    endif()
+
+    add_custom_target(${example_target}_recursion)
+    assign_recursive_verifiers(${example_target} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+    add_dependencies(${example_target}_recursion ${example_target}_assign_placeholder_verifiers)
+    add_dependencies(recursion ${example_target}_recursion)
+endfunction()
+
+add_custom_target("recursion")
+
 add_example_with_proving(arithmetics_cpp_example SOURCES arithmetics.cpp INPUT arithmetics.inp CURVE_TYPE pallas)
 add_example_with_proving(integer_arithmetics_cpp_example SOURCES integer_arithmetics.cpp INPUT integer_arithmetics.inp CURVE_TYPE pallas)
-
 add_example_with_proving(poseidon_cpp_example SOURCES poseidon.cpp INPUT poseidon.inp CURVE_TYPE pallas)
-add_example_with_proving(merkle_tree_poseidon_cpp_example SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp CURVE_TYPE pallas)
+add_example_with_proving_and_recursion(merkle_tree_poseidon_cpp_example SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp CURVE_TYPE pallas)
 add_example_with_proving(merkle_poseidon_1prover_cpp_example SOURCES merkle_poseidon_1prover.cpp INPUT merkle_poseidon_1prover_public.inp PRIVATE_INPUT merkle_poseidon_1prover_private.inp CURVE_TYPE pallas)
 add_example_with_proving(merkle_poseidon_2provers_cpp_example SOURCES merkle_poseidon_2provers.cpp INPUT merkle_poseidon_2provers_public.inp PRIVATE_INPUT merkle_poseidon_2provers_private.inp CURVE_TYPE pallas MAX_NUM_PROVERS 2)
-add_example_with_proving(merkle_poseidon_3provers_cpp_example SOURCES merkle_poseidon_3provers.cpp INPUT merkle_poseidon_3provers_public.inp PRIVATE_INPUT merkle_poseidon_3provers_private.inp CURVE_TYPE pallas MAX_NUM_PROVERS 3)
+add_example_with_proving_and_recursion(merkle_poseidon_3provers_cpp_example SOURCES merkle_poseidon_3provers.cpp INPUT merkle_poseidon_3provers_public.inp PRIVATE_INPUT merkle_poseidon_3provers_private.inp CURVE_TYPE pallas MAX_NUM_PROVERS 3)
 add_example_with_proving(merkle_poseidon_5provers_cpp_example SOURCES merkle_poseidon_5provers.cpp INPUT merkle_poseidon_5provers_public.inp PRIVATE_INPUT merkle_poseidon_5provers_private.inp CURVE_TYPE pallas MAX_NUM_PROVERS 5)
 add_example_with_proving(merkle_poseidon_21prover_3layers_cpp_example SOURCES merkle_poseidon_21prover_3layers.cpp INPUT merkle_poseidon_21prover_3layers_public.inp PRIVATE_INPUT merkle_poseidon_21prover_3layers_private.inp CURVE_TYPE pallas MAX_NUM_PROVERS 21)
 
