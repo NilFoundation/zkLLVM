@@ -703,7 +703,7 @@ int curve_dependent_main(std::string bytecode_file_name,
     BOOST_LOG_TRIVIAL(debug) << "overall_table_printing_duration: " << overall_table_printing_duration.count() << "ms";
 
     auto check_validity_start = std::chrono::high_resolution_clock::now();
-    if (check_validity && gen_mode.has_assignments() && gen_mode.has_circuit()) {
+    if (check_validity && gen_mode.has_assignments()) {
         if (assigner_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
             ASSERT_MSG(nil::blueprint::is_satisfied(assigner_instance.circuits[0].get(), assigner_instance.assignments[0].get()),
                        "The circuit is not satisfied");

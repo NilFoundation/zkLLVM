@@ -120,7 +120,7 @@ jobs:
 
       - name: Build assignment tables(.tbl) of the C++ examples
         run: |
-          cmake --build build -t cpp_examples_generate_tbl
+          cmake --build build -t cpp_examples_generate_tbl_no_check
           ls -al ./build/examples/cpp
 
       - name: Run size estimation for C++ examples
