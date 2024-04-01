@@ -1,7 +1,9 @@
 add_custom_target(compile_cpp_examples)
 add_custom_target(cpp_examples_generate_tbl)
+add_custom_target(cpp_examples_generate_tbl_no_check)
 add_custom_target(cpp_examples_generate_crct)
 add_custom_target(cpp_examples_generate_both)
+add_custom_target(cpp_examples_generate_both_no_check)
 add_custom_target(prove_cpp_examples)
 add_custom_target(cpp_examples_estimate_size)
 
@@ -68,8 +70,10 @@ function(add_example_without_proving example_target)
     assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_ARITHMETIZARION} ${ARG_MAX_NUM_PROVERS})
 
     add_dependencies(cpp_examples_generate_tbl ${example_target}_generate_tbl)
+    add_dependencies(cpp_examples_generate_tbl_no_check ${example_target}_generate_tbl_no_check)
     add_dependencies(cpp_examples_generate_crct ${example_target}_generate_crct)
     add_dependencies(cpp_examples_generate_both ${example_target}_generate_both)
+    add_dependencies(cpp_examples_generate_both_no_check ${example_target}_generate_both_no_check)
     add_dependencies(cpp_examples_estimate_size ${example_target}_estimate_size)
 endfunction()
 
