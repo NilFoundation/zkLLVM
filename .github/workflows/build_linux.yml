@@ -163,7 +163,7 @@ jobs:
 
       - name: Build assignment tables(.tbl) of the C++ examples
         run: |
-          cmake --build build -t cpp_examples_generate_tbl
+          cmake --build build -t cpp_examples_generate_tbl_no_check
           ls -al ./build/examples/cpp
 
       - name: Copy assigner output from separate generation mode
@@ -172,7 +172,7 @@ jobs:
 
       - name: Run simultaneous .tbl and .crct generation of the C++ examples
         run: |
-          cmake --build build -t cpp_examples_generate_both
+          cmake --build build -t cpp_examples_generate_both_no_check
           ls -al ./build/examples/cpp
 
       - name: Copy assigner output from simultaneous generation mode

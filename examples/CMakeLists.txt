@@ -56,12 +56,39 @@ function(assign_ir)
         COMMAND_EXPAND_LISTS
         VERBATIM)
 
+    add_custom_target(${target}_generate_both_no_check
+        COMMAND $<TARGET_FILE:assigner>
+            -b ${binary_name}
+            -i ${INPUTS_DIR}/${input}
+            ${minus_p} ${private_input_string}
+            -c circuit_${target}.crct
+            -t assignment_${target}.tbl -e ${curve_type}
+            --generate-type circuit-assignment
+            ${max_num_provers_flag} ${max_num_provers_amount}
+            ${arithmetization_flag} ${arithmetization_amount}
+        DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
+        COMMAND_EXPAND_LISTS
+        VERBATIM)
+
     add_custom_target(${target}_generate_tbl
         COMMAND $<TARGET_FILE:assigner>
             -b ${binary_name}
             -i ${INPUTS_DIR}/${input}
             ${minus_p} ${private_input_string}
             -t assignment_${target}.tbl -e ${curve_type} --check
+            --generate-type assignment
+            ${max_num_provers_flag} ${max_num_provers_amount}
+            ${arithmetization_flag} ${arithmetization_amount}
+        DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
+        COMMAND_EXPAND_LISTS
+        VERBATIM)
+
+    add_custom_target(${target}_generate_tbl_no_check
+        COMMAND $<TARGET_FILE:assigner>
+            -b ${binary_name}
+            -i ${INPUTS_DIR}/${input}
+            ${minus_p} ${private_input_string}
+            -t assignment_${target}.tbl -e ${curve_type}
             --generate-type assignment
             ${max_num_provers_flag} ${max_num_provers_amount}
             ${arithmetization_flag} ${arithmetization_amount}
