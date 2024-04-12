@@ -487,6 +487,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::string private_input_file_name,
                           std::string assignment_table_file_name,
                           std::string circuit_file_name,
+                          std::string table_pieces_file_name,
                           std::string processed_public_input_file_name,
                           long stack_size,
                           bool check_validity,
@@ -534,6 +535,27 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 1;
     }
 
+    using var = crypto3::zk::snark::plonk_variable<typename AssignmentTableType::field_type::value_type>;
+    std::vector<table_piece<var>> table_pieces = {}; // we create table pieces in any case and pass into assigner by reference
+    if (gen_mode.has_fast_tbl()) { // if we are generating tables in a fast way then need to parse table_pieces from file
+
+        std::ifstream inp_json(table_pieces_file_name);
+
+        if (!inp_json.is_open()) {
+            std::cerr << "unable to open table_pieces file" << std::endl;
+            return 1;
+        }
+
+        std::string str((std::istreambuf_iterator<char>(inp_json)),
+                        std::istreambuf_iterator<char>());
+        auto parsed = boost::json::parse(str);
+        boost::json::array arr = parsed.as_array();
+
+        for (const auto& item : arr) {
+            table_pieces.emplace_back(item.as_object());
+        }
+    }
+
     auto assigner_instance_creation_start = std::chrono::high_resolution_clock::now();
     nil::blueprint::assigner<BlueprintFieldType> assigner_instance(
         desc,
@@ -563,7 +585,13 @@ int curve_dependent_main(std::string bytecode_file_name,
     BOOST_LOG_TRIVIAL(debug) << "parse_ir_file_duration: " << parse_ir_file_duration.count() << "ms";
 
     auto parser_evaluation_start = std::chrono::high_resolution_clock::now();
-    if (!assigner_instance.evaluate(public_input_json_value.as_array(), private_input_json_value.as_array())) {
+    if (
+        !assigner_instance.evaluate(
+            public_input_json_value.as_array(),
+            private_input_json_value.as_array(),
+            table_pieces
+        )
+    ) {
         return 1;
     }
     auto parser_evaluation_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - parser_evaluation_start);
@@ -573,6 +601,20 @@ int curve_dependent_main(std::string bytecode_file_name,
 
     if (gen_mode.has_size_estimation()) {
         return 0;
+    }
+
+    if (gen_mode.has_circuit()) { // if we are generation circuit then we are generation table pieces in the same time. Need to write itno file
+        boost::json::array pieces_json;
+        // for (const auto& piece : nil::blueprint::table_pieces) {
+        for (const auto& piece : table_pieces) {
+            pieces_json.push_back(piece.to_json());
+        }
+
+        std::string serialized = boost::json::serialize(pieces_json);
+
+        std::ofstream file(table_pieces_file_name);
+        file << serialized;
+        file.close();
     }
 
     auto pack_lookup_start = std::chrono::high_resolution_clock::now();
@@ -744,6 +786,7 @@ int main(int argc, char *argv[]) {
             ("private-input,p", boost::program_options::value<std::string>(), "Private input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
+            ("table-pieces,j", boost::program_options::value<std::string>(), "Table pieces json file")
             ("input-column", boost::program_options::value<std::string>(), "Output file for public input column")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ("stack-size,s", boost::program_options::value<long>(), "Stack size in bytes")
@@ -752,7 +795,7 @@ int main(int argc, char *argv[]) {
             ("print_circuit_output", "deprecated, use \"-f\" instead")
             ("print-circuit-output-format,f", boost::program_options::value<std::string>(), "print output of the circuit (dec, hex)")
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
-            ("generate-type", boost::program_options::value<std::string>(), "Define generated output. Possible values: circuit, assignment, circuit-assignment, public-input-column, size_estimation(does not generate anything, just evaluates circuit size). Default value is circuit-assignment")
+            ("generate-type", boost::program_options::value<std::string>(), "Define generated output. Possible values: circuit, assignment, assignment-fast, circuit-assignment, public-input-column, size_estimation(does not generate anything, just evaluates circuit size). Default value is circuit-assignment")
             ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
             ("max-lookup-rows", boost::program_options::value<int>(), "Maximum number of lookup rows")
             ("target-prover", boost::program_options::value<int>(), "Assignment table and circuit will be generated only for defined prover. Possible values [0, max-num-provers)")
@@ -794,6 +837,7 @@ int main(int argc, char *argv[]) {
     std::string private_input_file_name;
     std::string assignment_table_file_name;
     std::string circuit_file_name;
+    std::string table_pieces_file_name;
     std::string processed_public_input_file_name;
     std::string elliptic_curve;
     nil::blueprint::print_format circuit_output_print_format;
@@ -815,6 +859,8 @@ int main(int argc, char *argv[]) {
             gen_mode = nil::blueprint::generation_mode::circuit();
         } else if (generate_type == "assignment") {
             gen_mode = nil::blueprint::generation_mode::assignments();
+        } else if (generate_type == "assignment-fast") {
+            gen_mode = nil::blueprint::generation_mode::fast_tbl();
         } else if (generate_type == "size_estimation") {
             gen_mode = nil::blueprint::generation_mode::size_estimation();
         } else if (generate_type == "public-input-column") {
@@ -867,6 +913,14 @@ int main(int argc, char *argv[]) {
             std::cout << options_desc << std::endl;
             return 1;
         }
+    }
+
+    if (vm.count("table-pieces")) {
+        table_pieces_file_name = vm["table-pieces"].as<std::string>();
+    } else {
+        std::cerr << "Invalid command line argument - table-pieces file name is not specified" << std::endl;
+        std::cout << options_desc << std::endl;
+        return 1;
     }
 
     if (vm.count("elliptic-curve-type")) {
@@ -1010,6 +1064,7 @@ int main(int argc, char *argv[]) {
                                                                           private_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
+                                                                          table_pieces_file_name,
                                                                           processed_public_input_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),
@@ -1033,24 +1088,25 @@ int main(int argc, char *argv[]) {
             break;
         }
         case 3: {
-            return curve_dependent_main<typename algebra::fields::bls12_base_field<381>>(
-                                                                          bytecode_file_name,
-                                                                          public_input_file_name,
-                                                                          private_input_file_name,
-                                                                          assignment_table_file_name,
-                                                                          circuit_file_name,
-                                                                          processed_public_input_file_name,
-                                                                          stack_size,
-                                                                          vm.count("check"),
-                                                                          log_options[log_level],
-                                                                          policy,
-                                                                          gen_mode,
-                                                                          max_num_provers,
-                                                                          max_lookup_rows,
-                                                                          target_prover,
-                                                                          circuit_output_print_format,
-                                                                          column_sizes
-                                                                          );
+            UNREACHABLE("bls12381 curve based circuits are not supported yet");
+            // return curve_dependent_main<typename algebra::fields::bls12_base_field<381>>(
+            //                                                               bytecode_file_name,
+            //                                                               public_input_file_name,
+            //                                                               private_input_file_name,
+            //                                                               assignment_table_file_name,
+            //                                                               circuit_file_name,
+            //                                                               processed_public_input_file_name,
+            //                                                               stack_size,
+            //                                                               vm.count("check"),
+            //                                                               log_options[log_level],
+            //                                                               policy,
+            //                                                               gen_mode,
+            //                                                               max_num_provers,
+            //                                                               max_lookup_rows,
+            //                                                               target_prover,
+            //                                                               circuit_output_print_format,
+            //                                                               column_sizes
+            //                                                               );
             break;
         }
     };
