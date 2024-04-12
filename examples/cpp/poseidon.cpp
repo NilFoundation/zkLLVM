@@ -8,6 +8,8 @@ using namespace nil::crypto3::algebra::curves;
                                                                    typename pallas::base_field_type::value_type c) {
 
     typename pallas::base_field_type::value_type hash_result = hash<hashes::poseidon>(b, c);
+    typename pallas::base_field_type::value_type hash_result_2 = hash<hashes::poseidon>(hash_result, c);
+    typename pallas::base_field_type::value_type hash_result_3 = hash<hashes::poseidon>(hash_result_2, hash_result);
 
-    return hash_result;
+    return hash_result_3;
 }
