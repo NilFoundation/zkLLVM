@@ -34,6 +34,7 @@ function(assign_ir)
             COMMAND $<TARGET_FILE:assigner>
             -b ${binary_name}
             -c circuit_${target}.crct
+            -j table_pieces_${target}.json
             -e ${curve_type}
             --generate-type circuit
             ${max_num_provers_flag} ${max_num_provers_amount}
@@ -48,6 +49,7 @@ function(assign_ir)
             -i ${INPUTS_DIR}/${input}
             ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
+            -j table_pieces_${target}.json
             -t assignment_${target}.tbl -e ${curve_type} --check
             --generate-type circuit-assignment
             ${max_num_provers_flag} ${max_num_provers_amount}
@@ -62,6 +64,7 @@ function(assign_ir)
             -i ${INPUTS_DIR}/${input}
             ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
+            -j table_pieces_${target}.json
             -t assignment_${target}.tbl -e ${curve_type}
             --generate-type circuit-assignment
             ${max_num_provers_flag} ${max_num_provers_amount}
@@ -77,6 +80,20 @@ function(assign_ir)
             ${minus_p} ${private_input_string}
             -t assignment_${target}.tbl -e ${curve_type} --check
             --generate-type assignment
+            ${max_num_provers_flag} ${max_num_provers_amount}
+            ${arithmetization_flag} ${arithmetization_amount}
+        DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
+        COMMAND_EXPAND_LISTS
+        VERBATIM)
+
+    add_custom_target(${target}_generate_tbl_fast
+        COMMAND $<TARGET_FILE:assigner>
+            -b ${binary_name}
+            -i ${INPUTS_DIR}/${input}
+            ${minus_p} ${private_input_string}
+            -j table_pieces_${target}.json
+            -t assignment_${target}.tbl -e ${curve_type} --check
+            --generate-type assignment-fast
             ${max_num_provers_flag} ${max_num_provers_amount}
             ${arithmetization_flag} ${arithmetization_amount}
         DEPENDS ${target} ${INPUTS_DIR}/${input} $<TARGET_FILE:assigner>
