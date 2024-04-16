@@ -606,7 +606,7 @@ int curve_dependent_main(std::string bytecode_file_name,
     if (gen_mode.has_circuit()) { // if we are generation circuit then we are generation table pieces in the same time. Need to write itno file
         boost::json::array pieces_json;
         // for (const auto& piece : nil::blueprint::table_pieces) {
-        for (const auto& piece : table_pieces) {
+        for (const auto& piece : nil::blueprint::table_pieces) {
             pieces_json.push_back(piece.to_json());
         }
 
