@@ -860,7 +860,7 @@ int main(int argc, char *argv[]) {
         } else if (generate_type == "assignment") {
             gen_mode = nil::blueprint::generation_mode::assignments();
         } else if (generate_type == "assignment-fast") {
-            gen_mode = nil::blueprint::generation_mode::fast_tbl();
+            gen_mode = nil::blueprint::generation_mode::fast_tbl() | nil::blueprint::generation_mode::assignments();
         } else if (generate_type == "size_estimation") {
             gen_mode = nil::blueprint::generation_mode::size_estimation();
         } else if (generate_type == "public-input-column") {
