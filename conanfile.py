@@ -1,5 +1,5 @@
 from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 class ZkllvmConanfile(ConanFile):
     name = "zkllvm"
@@ -8,7 +8,7 @@ class ZkllvmConanfile(ConanFile):
     license = "<Your project license goes here>"
     homepage = "<Your project homepage goes here>"
     exports_sources = "bin/*", "build/*", "cmake/*", "CMakeLists.txt", "libs/*", "examples/*", ".git/*", "detect-platform.py"
-  
+    no_copy_source = True 
     settings = "os", "arch", "compiler", "build_type"
     options = {
         "shared": [True, False],
@@ -18,6 +18,14 @@ class ZkllvmConanfile(ConanFile):
         "shared": False,
         "fPIC": True,
     }
+
+    #def source(self):
+    #    download(self, f"hhttps://github.com/NilFoundation/zkLLVM/archive/refs/tags/{self.version}.zip", zip_name)
+    #    # Recommended practice, always check hashes of downloaded files
+    #    check_sha1(self, zip_name, "8d87812ce591ced8ce3a022beec1df1c8b2fac87")
+    #    unzip(self, zip_name)
+    #    shutil.move(f"zkllvm-{self.version}", "zkllvm")
+    #    os.unlink(zip_name)
     
     def validate(self):
         if self.settings.os == "Windows":
@@ -49,8 +57,13 @@ class ZkllvmConanfile(ConanFile):
     # and specific build system files among others
     def generate(self):
         tc = CMakeToolchain(self)
+        tc.variables["BUILD_SHARED_LIBS"] = self.options.shared
+        tc.variables["BUILD_WITH_BOOST_STATIC_LIBS"] = not self.dependencies["boost"].options.shared
         tc.generate()
-        
+
+        tc = CMakeDeps(self)
+        tc.generate()
+
     # This method is used to build the source code of the recipe using the desired commands.
     def build(self):
         # You can use your command line tools to invoke your build system
@@ -64,5 +77,7 @@ class ZkllvmConanfile(ConanFile):
     # Using the copy() method from tools.files, artifacts are copied
     # from the build folder to the package folder
     def package(self):
+        #cmake = CMake(self)
+        #cmake.install()
         # copy(self, "*.h", self.source_folder, join(self.package_folder, "include"), keep_path=False)
         pass
