@@ -51,7 +51,7 @@ set(RSLANG_BUILD_TOOLS "<none>" CACHE STRING "Rust tools to build (see build.too
 include(TargetArchitecture)
 include(CircuitCompile)
 
-find_package(Boost REQUIRED COMPONENTS json)
+find_package(Boost REQUIRED COMPONENTS json log log_setup exception)
 
 if(BUILD_WITH_BOOST_STATIC_LIBS)
     set(Boost_USE_STATIC_LIBS TRUE)
@@ -74,7 +74,7 @@ else()
 endif()
 
 if(BUILD_TESTS)
-    cm_find_package(Boost COMPONENTS REQUIRED unit_test_framework)
+    cm_find_package(Boost COMPONENTS REQUIRED unit_test_framework random)
 endif()
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3")
