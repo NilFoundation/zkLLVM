@@ -43,7 +43,7 @@
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/prover.hpp>
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/verifier.hpp>
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/params.hpp>
-#include <nil/crypto3/zk/snark/systems/plonk/placeholder/profiling.hpp>
+#include <nil/crypto3/zk/snark/systems/plonk/placeholder/detail/profiling.hpp>
 
 #include <nil/crypto3/math/polynomial/polynomial.hpp>
 #include <nil/crypto3/math/algorithms/calculate_domain_set.hpp>
@@ -166,18 +166,6 @@ inline std::vector<std::size_t> generate_random_step_list(const std::size_t r, c
     return step_list;
 }
 
-template<typename FRIScheme, typename FieldType>
-typename FRIScheme::params_type create_fri_params(std::size_t degree_log, const int max_step = 1, const int expand_factor = 2) {
-    std::size_t r = degree_log - 1;
-
-    return typename FRIScheme::params_type(
-        (1 << degree_log) - 1, // max_degree
-        math::calculate_domain_set<FieldType>(degree_log + expand_factor, r),
-        generate_random_step_list(r, max_step),
-        expand_factor
-    );
-}
-
 template<typename TIter>
 void print_hex_byteblob(std::ostream &os, TIter iter_begin, TIter iter_end, bool endl) {
     os << "0x" << std::hex;
@@ -231,6 +219,9 @@ int main(int argc, char *argv[]) {
             It'll be better to create an empty folder for output")
             ("skip-verification", "Used with gen-test-proof, if set - skips verifiyng the generated proof")
             ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster paralel proving")
+            ("lambda,l", boost::program_options::value<std::size_t>(), "Number of FRI rounds")
+            ("expand-factor", boost::program_options::value<std::size_t>(), "FRI blow-up factor")
+            ("max-quotient-chunks", boost::program_options::value<std::size_t>(), "Maximal parts of quotient polynomial")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)");
 
     // clang-format on
@@ -376,7 +367,10 @@ int curve_dependent_main(
     using AssignmentTableType =
         nil::crypto3::zk::snark::plonk_table<BlueprintFieldType, ColumnType>;
 
-    const std::size_t Lambda = parameters_policy::lambda;
+    const std::size_t Lambda = vm.count("lambda")? vm["lambda"].as<std::size_t>() : parameters_policy::lambda;
+    const std::size_t max_quotient_chunks = vm.count("max-quotient-chunks")? vm["max-quotient-chunks"].as<std::size_t>() : 0;
+    const std::size_t expand_factor = vm.count("expand-factor")? vm["expand-factor"].as<std::size_t>() : 2;
+
     using Hash = typename parameters_policy::hash;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<
         BlueprintFieldType
@@ -385,7 +379,6 @@ int curve_dependent_main(
     using lpc_params_type = nil::crypto3::zk::commitments::list_polynomial_commitment_params<
         Hash,
         Hash,
-        Lambda,
         2
     >;
     using lpc_type = nil::crypto3::zk::commitments::list_polynomial_commitment<BlueprintFieldType, lpc_params_type>;
@@ -437,10 +430,10 @@ int curve_dependent_main(
         if (!marshalled_value) {
             return false;
         }
-        auto [c_data, description] = nil::crypto3::marshalling::types::make_placeholder_common_data<Endianness, CommonDataType>(
+        auto c_data = nil::crypto3::marshalling::types::make_placeholder_common_data<Endianness, CommonDataType>(
             *marshalled_value
         );
-        desc.emplace(description);
+        desc.emplace(c_data.desc);
         common_data.emplace(c_data);
     }
 
@@ -459,14 +452,14 @@ int curve_dependent_main(
     using lpc_params_type = nil::crypto3::zk::commitments::list_polynomial_commitment_params<
         Hash,
         Hash,
-        Lambda,
         2
     >;
-    auto fri_params = create_fri_params<typename lpc_type::fri_type, BlueprintFieldType>(table_rows_log);
-    std::size_t permutation_size =
-        desc->witness_columns + desc->public_input_columns + desc->constant_columns;
-    lpc_scheme_type lpc_scheme(fri_params);
 
+    // TODO: grinding bits
+    typename lpc_type::fri_type::params_type fri_params(
+        1, table_rows_log, Lambda, expand_factor
+    );
+    lpc_scheme_type lpc_scheme(fri_params);
 
     if( mode == "gen-verifier" && !assignment_table && !common_data ){
         std::cerr << "Invalid command line argument - assignment table file name or common data file name should be specified" << std::endl;
@@ -489,7 +482,7 @@ int curve_dependent_main(
         typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
             BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
         nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
-            *constraint_system, assignment_table->public_table(), *desc, lpc_scheme, permutation_size);
+            *constraint_system, assignment_table->public_table(), *desc, lpc_scheme, max_quotient_chunks);
         common_data.emplace(public_preprocessed_data.common_data);
 
         if (mode == "gen-input") {
@@ -510,7 +503,7 @@ int curve_dependent_main(
                 std::cout << "Verifying proof..." << std::endl;
                 bool verification_result =
                     nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                        public_preprocessed_data, proof, *desc, *constraint_system, lpc_scheme
+                        public_preprocessed_data.common_data, proof, *desc, *constraint_system, lpc_scheme
                     );
 
                 ASSERT_MSG(verification_result, "Proof is not verified" );
@@ -539,7 +532,7 @@ int curve_dependent_main(
             nil::crypto3::zk::snark::placeholder_proof<BlueprintFieldType, placeholder_params>,
             typename nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::preprocessed_data_type::common_data_type
         >(*desc).generate_recursive_verifier(
-            *constraint_system, *common_data, lpc_scheme, permutation_size, public_input_sizes
+            *constraint_system, *common_data, public_input_sizes
         );
         output_file.close();
         return 0;
