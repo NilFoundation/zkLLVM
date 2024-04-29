@@ -26,6 +26,7 @@
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
+#include <nil/crypto3/marshalling/zk/types/commitments/lpc.hpp>
 #include <nil/crypto3/marshalling/zk/types/placeholder/proof.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/constraint_system.hpp>
 #include <nil/crypto3/marshalling/zk/types/plonk/assignment_table.hpp>
@@ -34,7 +35,7 @@
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/prover.hpp>
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/verifier.hpp>
 #include <nil/crypto3/zk/snark/systems/plonk/placeholder/params.hpp>
-#include <nil/crypto3/zk/snark/systems/plonk/placeholder/profiling.hpp>
+#include <nil/crypto3/zk/snark/systems/plonk/placeholder/detail/profiling.hpp>
 
 #include <nil/crypto3/math/polynomial/polynomial.hpp>
 #include <nil/crypto3/math/algorithms/calculate_domain_set.hpp>
@@ -83,19 +84,6 @@ inline std::vector<std::size_t> generate_random_step_list(const std::size_t r, c
         }
     }
     return step_list;
-}
-
-template<typename FRIScheme, typename FieldType>
-typename FRIScheme::params_type create_fri_params(
-        std::size_t degree_log, const int max_step = 1, std::size_t expand_factor = 2) {
-    std::size_t r = degree_log - 1;
-
-    return typename FRIScheme::params_type(
-        (1 << degree_log) - 1, // max_degree
-        nil::crypto3::math::calculate_domain_set<FieldType>(degree_log + expand_factor, r),
-        generate_random_step_list(r, max_step),
-        expand_factor
-    );
 }
 
 template<typename TIter>
@@ -174,6 +162,9 @@ int main(int argc, char *argv[]) {
             ("deduce-horner", "Detect polynomials over one variable and deduce to Horner's formula")
             ("optimize-powers", "Optimize terms that are powers of single variable")
             ("multi-prover", "Pass this flag if input circuit is a part of larger circuit, divided for faster paralel proving")
+            ("lambda,l", boost::program_options::value<std::size_t>(), "Number of FRI rounds")
+            ("expand-factor", boost::program_options::value<std::size_t>(), "FRI blow-up factor")
+            ("max-quotient-chunks", boost::program_options::value<std::size_t>(), "Maximal quotient polynomial parts amount")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ;
     // clang-format on
@@ -394,13 +385,14 @@ int curve_dependent_main(
             nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
                 marshalled_table_data
             );
-        desc.rows_amount = assignment_table.rows_amount();
     }
 
 
     std::vector<std::set<int>> columns_rotations;
 
-    const std::size_t Lambda = 9;//ParametersPolicy::lambda;
+    std::size_t Lambda =  vm.count("lambda") > 0 ? vm["lambda"].as<std::size_t>() : 9;//ParametersPolicy::lambda;
+    std::size_t expand_factor = vm.count("expand-factor") > 0 ? vm["expand-factor"].as<std::size_t>() : 2;//ParametersPolicy::lambda;
+    std::size_t max_quotient_chunks = vm.count("max-quotient-chunks") > 0 ? vm["max-quotient-chunks"].as<std::size_t>() : 0;
     using Hash = nil::crypto3::hashes::keccak_1600<256>;
     using circuit_params = nil::crypto3::zk::snark::placeholder_circuit_params<BlueprintFieldType>;
 
@@ -409,19 +401,18 @@ int curve_dependent_main(
     using lpc_params_type = nil::crypto3::zk::commitments::list_polynomial_commitment_params<
         Hash,
         Hash,
-        Lambda,
-        2,
-        ParametersPolicy::UseGrinding,
-        nil::crypto3::zk::commitments::proof_of_work<Hash, std::uint32_t, ParametersPolicy::GrindingBits>
+        2
     >;
+
     using lpc_type = nil::crypto3::zk::commitments::list_polynomial_commitment<BlueprintFieldType, lpc_params_type>;
     using lpc_scheme_type = typename nil::crypto3::zk::commitments::lpc_commitment_scheme<lpc_type>;
     using placeholder_params = nil::crypto3::zk::snark::placeholder_params<circuit_params, lpc_scheme_type>;
     using policy_type = nil::crypto3::zk::snark::detail::placeholder_policy<BlueprintFieldType, placeholder_params>;
 
-    auto fri_params = create_fri_params<typename lpc_type::fri_type, BlueprintFieldType>(table_rows_log);
-    std::size_t permutation_size =
-        desc.witness_columns + desc.public_input_columns + ParametersPolicy::ComponentConstantColumns;
+    // TODO: grinding bits
+    typename lpc_type::fri_type::params_type fri_params(
+        1, table_rows_log, Lambda, expand_factor
+    );
     lpc_scheme_type lpc_scheme(fri_params);
 
 
@@ -442,7 +433,8 @@ int curve_dependent_main(
     typename nil::crypto3::zk::snark::placeholder_public_preprocessor<
         BlueprintFieldType, placeholder_params>::preprocessed_data_type public_preprocessed_data =
     nil::crypto3::zk::snark::placeholder_public_preprocessor<BlueprintFieldType, placeholder_params>::process(
-        constraint_system, assignment_table.public_table(), desc, lpc_scheme, permutation_size);
+        constraint_system, assignment_table.public_table(), desc, lpc_scheme, max_quotient_chunks
+    );
 
     if (mode == "gen-evm-verifier") {
         std::size_t gates_contract_size_threshold = 800;
@@ -474,11 +466,8 @@ int curve_dependent_main(
             optimize_powers = true;
         }
         nil::blueprint::evm_verifier_printer<placeholder_params>(
-            desc,
             constraint_system,
             public_preprocessed_data.common_data,
-            lpc_scheme,
-            permutation_size,
             output_folder_path,
             gates_contract_size_threshold,
             lookups_library_threshold,
@@ -531,7 +520,7 @@ int curve_dependent_main(
                 std::cout << "Verifying proof..." << std::endl;
                 bool verification_result =
                     nil::crypto3::zk::snark::placeholder_verifier<BlueprintFieldType, placeholder_params>::process(
-                        public_preprocessed_data,
+                        public_preprocessed_data.common_data,
                         proof,
                         desc,
                         constraint_system,

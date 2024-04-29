@@ -42,7 +42,7 @@ jobs:
       CONTAINER_TMP: /opt/
       HOST_TMP: /home/runner/work/_temp/
       DEBIAN_FRONTEND: noninteractive
-      BOOST_VERSION: "1.80.0"
+      BOOST_VERSION: "1.78.0"
       INTEGRATION_TESTING_TARGETS: |
         arithmetics_cpp_example
         polynomial_cpp_example
@@ -327,11 +327,11 @@ jobs:
       always() && !cancelled() &&
       (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
       needs.build-and-test-linux.result == 'success'
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@b1e380040b4714b6ad5fe9223555d854c49cf065
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@ef8cd9152b4bec871e7efdc1d6b606e445bad274
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       # Update next line if you need new version of proof producer
-      proof-producer-ref: 938426d309e586d87cd2b7895a0dea05ff88c0c5
+      proof-producer-ref: ef8cd9152b4bec871e7efdc1d6b606e445bad274
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 
@@ -411,7 +411,6 @@ jobs:
       evm-placeholder-verification-ref: 2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       test-names: ${{ needs.build-and-test-linux.outputs.evm-targets }}
-
 
   cleanup-integration-testing:
     # For now each artifact is 12 GB. Better clean it up to keep the space
