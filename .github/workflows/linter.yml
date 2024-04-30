@@ -9,7 +9,7 @@ permissions: { }
 jobs:
   build:
     name: Lint
-    runs-on: [ self-hosted, Linux, X64, aws_autoscaling ]
+    runs-on: ubuntu-latest
 
     permissions:
       contents: read
