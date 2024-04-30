@@ -21,14 +21,13 @@ typedef std::array<typename pallas::base_field_type::value_type, size> array_typ
         __builtin_assigner_print_native_pallas_field(res[i]);
     }
 #else
-    for(std::size_t i = 0; i < size / 2; i++) {
+    for (std::size_t i = 0; i < size / 2; i++) {
         if (swap) {
-            std::cout << input[2*i + 1].data << "\n";
-            std::cout << input[2*i    ].data << "\n";
-        }
-        else {
-            std::cout << input[2*i    ].data << "\n";
-            std::cout << input[2*i + 1].data << "\n";
+            std::cout << input[2 * i + 1].data << "\n";
+            std::cout << input[2 * i].data << "\n";
+        } else {
+            std::cout << input[2 * i].data << "\n";
+            std::cout << input[2 * i + 1].data << "\n";
         }
     }
     res = input;
@@ -36,11 +35,9 @@ typedef std::array<typename pallas::base_field_type::value_type, size> array_typ
     return res;
 }
 
-
-
 #ifndef __ZKLLVM__
 
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();
@@ -49,11 +46,11 @@ int main (int argc, char *argv[]){
     boost::json::value input_json = read_boost_json(std::string(argv[1]));
 
     using BlueprintFieldType = typename pallas::base_field_type;
-    bool swap = read_uint <uint32_t>(input_json, 0);
-    std::array<typename pallas::base_field_type::value_type, size> input = read_array_field <BlueprintFieldType, size>(input_json, 1);
+    bool swap = read_uint<uint32_t>(input_json, 0);
+    std::array<typename pallas::base_field_type::value_type, size> input =
+        read_array_field<BlueprintFieldType, size>(input_json, 1);
 
     swap_array(swap, input);
     return 0;
 }
 #endif
-

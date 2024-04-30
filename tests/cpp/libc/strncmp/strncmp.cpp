@@ -10,7 +10,7 @@
     int out = strncmp(s1, s2, n);
 
 #ifndef __ZKLLVM__
-    std::cout << out <<std::endl;
+    std::cout << out << std::endl;
 #endif
 
     return out;
@@ -18,7 +18,7 @@
 
 #ifndef __ZKLLVM__
 
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();
@@ -29,7 +29,6 @@ int main (int argc, char *argv[]){
     std::string s1 = read_string(input_json, 0);
     std::string s2 = read_string(input_json, 1);
     uint32_t n = read_uint<uint32_t>(input_json, 2);
-
 
     test_func(s1.c_str(), s2.c_str(), n);
 

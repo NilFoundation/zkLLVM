@@ -5,9 +5,9 @@
 
 using namespace nil::crypto3::algebra::curves;
 
-[[circuit]] typename ed25519::template g1_type<>::value_type curve_addition(
-        typename ed25519::template g1_type<>::value_type a,
-        typename ed25519::template g1_type<>::value_type b) {
+[[circuit]] typename ed25519::template g1_type<>::value_type
+    curve_addition(typename ed25519::template g1_type<>::value_type a,
+                   typename ed25519::template g1_type<>::value_type b) {
 
     return a + b;
 }

@@ -8,28 +8,29 @@
 using namespace nil::crypto3::algebra::curves;
 
 [[circuit]] bool curve_comparison(
-        typename pallas::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type a,
-        typename pallas::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type b) {
+    typename pallas::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type a,
+    typename pallas::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type b) {
 
     bool c = a == b;
 
-    #ifndef __ZKLLVM__
+#ifndef __ZKLLVM__
     std::cout << c << std::endl;
-    #endif
+#endif
 
     return c;
 }
 
 #ifndef __ZKLLVM__
 
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();
     }
 
     using curve_type = pallas;
-    using curve_point_type = typename curve_type::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type;
+    using curve_point_type =
+        typename curve_type::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type;
     using field_type = typename curve_type::base_field_type;
 
     boost::json::value input_json = read_boost_json(std::string(argv[1]));

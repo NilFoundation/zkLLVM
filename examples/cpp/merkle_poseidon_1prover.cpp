@@ -5,21 +5,21 @@
 using namespace nil::crypto3;
 using namespace nil::crypto3::algebra::curves;
 
-[[circuit]] bool merkle_tree_poseidon (
-    typename pallas::base_field_type::value_type expected_root,
-    [[private_input]] std::array<typename pallas::base_field_type::value_type, 0x20> layer_0_leaves) {
+[[circuit]] bool merkle_tree_poseidon(typename pallas::base_field_type::value_type expected_root,
+                                      [[private_input]] std::array<typename pallas::base_field_type::value_type, 0x20>
+                                          layer_0_leaves) {
 
-        std::array<typename pallas::base_field_type::value_type, 0x10> layer_1_leaves;
-        std::size_t layer_1_size = 0x10;
-        std::array<typename pallas::base_field_type::value_type, 0x8> layer_2_leaves;
-        std::size_t layer_2_size = 0x8;
-        std::array<typename pallas::base_field_type::value_type, 0x4> layer_3_leaves;
-        std::size_t layer_3_size = 0x4;
-        std::array<typename pallas::base_field_type::value_type, 0x2> layer_4_leaves;
-        std::size_t layer_4_size = 0x2;
-        typename pallas::base_field_type::value_type root;
+    std::array<typename pallas::base_field_type::value_type, 0x10> layer_1_leaves;
+    std::size_t layer_1_size = 0x10;
+    std::array<typename pallas::base_field_type::value_type, 0x8> layer_2_leaves;
+    std::size_t layer_2_size = 0x8;
+    std::array<typename pallas::base_field_type::value_type, 0x4> layer_3_leaves;
+    std::size_t layer_3_size = 0x4;
+    std::array<typename pallas::base_field_type::value_type, 0x2> layer_4_leaves;
+    std::size_t layer_4_size = 0x2;
+    typename pallas::base_field_type::value_type root;
 
-        for (std::size_t leaf_index = 0; leaf_index < layer_1_size; leaf_index++) {
+    for (std::size_t leaf_index = 0; leaf_index < layer_1_size; leaf_index++) {
         layer_1_leaves[leaf_index] =
             hash<hashes::poseidon>(layer_0_leaves[2 * leaf_index], layer_0_leaves[2 * leaf_index + 1]);
     }
@@ -39,7 +39,8 @@ using namespace nil::crypto3::algebra::curves;
             hash<hashes::poseidon>(layer_3_leaves[2 * leaf_index], layer_3_leaves[2 * leaf_index + 1]);
     }
 
-    typename pallas::base_field_type::value_type real_root = hash<hashes::poseidon>(layer_4_leaves[0], layer_4_leaves[1]);
+    typename pallas::base_field_type::value_type real_root =
+        hash<hashes::poseidon>(layer_4_leaves[0], layer_4_leaves[1]);
 
     bool res = (real_root == expected_root);
     __builtin_assigner_exit_check(res);

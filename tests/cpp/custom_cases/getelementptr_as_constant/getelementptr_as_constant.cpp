@@ -6,11 +6,10 @@
 
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 
-struct lumpinfo_s
-{
-    lumpinfo_s * next;
-    lumpinfo_s * prev;
-    int     data1;
+struct lumpinfo_s {
+    lumpinfo_s *next;
+    lumpinfo_s *prev;
+    int data1;
 };
 
 lumpinfo_s first;
@@ -20,7 +19,7 @@ lumpinfo_s first;
     first.next = first.prev = &first;
 
 #ifndef __ZKLLVM__
-    std::cout << 0 <<std::endl;
+    std::cout << 0 << std::endl;
 #endif
 
     return 0;
@@ -28,7 +27,7 @@ lumpinfo_s first;
 
 #ifndef __ZKLLVM__
 
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();

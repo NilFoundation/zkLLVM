@@ -11,12 +11,9 @@
 using namespace nil::crypto3;
 using namespace nil::crypto3::algebra::curves;
 
-
-
-[[circuit]] typename algebra::curves::bls12<381>::gt_type::value_type fp12_mul(
-    typename algebra::curves::bls12<381>::gt_type::value_type x,
-    typename algebra::curves::bls12<381>::gt_type::value_type y
-) {
+[[circuit]] typename algebra::curves::bls12<381>::gt_type::value_type
+    fp12_mul(typename algebra::curves::bls12<381>::gt_type::value_type x,
+             typename algebra::curves::bls12<381>::gt_type::value_type y) {
 
 #ifdef __ZKLLVM__
     typename algebra::curves::bls12<381>::gt_type::value_type res = __builtin_assigner_gt_multiplication(x, y);
@@ -39,9 +36,8 @@ using namespace nil::crypto3::algebra::curves;
     return res;
 }
 
-
 #ifndef __ZKLLVM__
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();
@@ -54,7 +50,6 @@ int main (int argc, char *argv[]){
 
     fp12_element x = read_fp12<blueprint_field_type, fp12_element>(input_json, 0);
     fp12_element y = read_fp12<blueprint_field_type, fp12_element>(input_json, 1);
-
 
     fp12_mul(x, y);
     return 0;

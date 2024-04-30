@@ -12,16 +12,16 @@ constexpr uint32_t shift = 1;
 
     uint32_t c = a << shift;
 
-    #ifndef __ZKLLVM__
-    std::cout << c <<std::endl;
-    #endif
+#ifndef __ZKLLVM__
+    std::cout << c << std::endl;
+#endif
 
     return c;
 }
 
 #ifndef __ZKLLVM__
 
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();

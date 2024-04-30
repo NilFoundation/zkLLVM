@@ -18,8 +18,7 @@ void print_field(typename pallas::base_field_type::value_type result_i) {
 #endif
 }
 
-[[circuit]] std::array<typename pallas::base_field_type::value_type, bits_amount>
-        decompose(uint64_t input) {
+[[circuit]] std::array<typename pallas::base_field_type::value_type, bits_amount> decompose(uint64_t input) {
 
     std::array<typename pallas::base_field_type::value_type, bits_amount> result;
 
@@ -42,7 +41,7 @@ void print_field(typename pallas::base_field_type::value_type result_i) {
 
 #ifndef __ZKLLVM__
 
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();
@@ -57,4 +56,3 @@ int main (int argc, char *argv[]){
     return 0;
 }
 #endif
-

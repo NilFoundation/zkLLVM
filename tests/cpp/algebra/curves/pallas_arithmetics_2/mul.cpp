@@ -7,30 +7,32 @@
 
 using namespace nil::crypto3::algebra::curves;
 
-[[circuit]] typename pallas::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type curve_mul(
-        typename pallas::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type point,
-        typename pallas::scalar_field_type::value_type scalar) {
+[[circuit]] typename pallas::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type
+    curve_mul(typename pallas::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type point,
+              typename pallas::scalar_field_type::value_type scalar) {
 
-    typename pallas::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type res = point * scalar;
+    typename pallas::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type res =
+        point * scalar;
 
-    #ifndef __ZKLLVM__
-    std::cout << res.X.data <<std::endl;
-    std::cout << res.Y.data <<std::endl;
-    #endif
+#ifndef __ZKLLVM__
+    std::cout << res.X.data << std::endl;
+    std::cout << res.Y.data << std::endl;
+#endif
 
     return res;
 }
 
 #ifndef __ZKLLVM__
 
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();
     }
 
     using curve_type = pallas;
-    using curve_point_type = typename curve_type::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type;
+    using curve_point_type =
+        typename curve_type::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type;
     using base_type = typename curve_type::base_field_type;
     using scalar_type = typename curve_type::scalar_field_type;
 

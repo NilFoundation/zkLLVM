@@ -10,29 +10,31 @@
 
 using namespace nil::crypto3::algebra::curves;
 
-[[circuit]] typename ed25519::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type curve_addition(
+[[circuit]] typename ed25519::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type
+    curve_addition(
         typename ed25519::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type a,
         typename ed25519::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type b) {
 
     typename ed25519::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type c = a + b;
 
-    #ifndef __ZKLLVM__
-    std::cout << c.X.data <<std::endl;
-    std::cout << c.Y.data <<std::endl;
-    #endif
+#ifndef __ZKLLVM__
+    std::cout << c.X.data << std::endl;
+    std::cout << c.Y.data << std::endl;
+#endif
 
     return c;
 }
 
 #ifndef __ZKLLVM__
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();
     }
 
     using curve_type = ed25519;
-    using curve_point_type = typename curve_type::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type;
+    using curve_point_type =
+        typename curve_type::template g1_type<nil::crypto3::algebra::curves::coordinates::affine>::value_type;
     using field_type = typename curve_type::base_field_type;
 
     boost::json::value input_json = read_boost_json(std::string(argv[1]));

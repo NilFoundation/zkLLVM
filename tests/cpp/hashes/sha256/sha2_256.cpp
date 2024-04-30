@@ -11,8 +11,9 @@
 
 using namespace nil::crypto3;
 
-[[circuit]] typename hashes::sha2<256>::block_type test_func(typename hashes::sha2<256>::block_type first_input_block,
-                                                             typename hashes::sha2<256>::block_type second_input_block) {
+[[circuit]] typename hashes::sha2<256>::block_type
+    test_func(typename hashes::sha2<256>::block_type first_input_block,
+              typename hashes::sha2<256>::block_type second_input_block) {
     typename hashes::sha2<256>::block_type hash_result = hash<hashes::sha2<256>>(first_input_block, second_input_block);
 
     return hash_result;
@@ -22,7 +23,7 @@ using namespace nil::crypto3;
 
 #ifndef __ZKLLVM__
 
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();

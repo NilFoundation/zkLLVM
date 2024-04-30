@@ -2,9 +2,8 @@
 
 using namespace nil::crypto3::algebra::fields;
 
-[[circuit]] typename bls12_base_field<381>::value_type sub(
-    typename bls12_base_field<381>::value_type a,
-    typename bls12_base_field<381>::value_type b) {
+[[circuit]] typename bls12_base_field<381>::value_type sub(typename bls12_base_field<381>::value_type a,
+                                                           typename bls12_base_field<381>::value_type b) {
 
     return a - b;
 }

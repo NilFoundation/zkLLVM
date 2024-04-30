@@ -11,11 +11,9 @@
 using namespace nil::crypto3;
 using namespace nil::crypto3::algebra::curves;
 
-
-[[circuit]] typename algebra::curves::bls12<381>::gt_type::value_type pairing_test(
-    typename algebra::curves::bls12<381>::template g1_type<>::value_type g1,
-    typename algebra::curves::bls12<381>::template g2_type<>::value_type g2
-) {
+[[circuit]] typename algebra::curves::bls12<381>::gt_type::value_type
+    pairing_test(typename algebra::curves::bls12<381>::template g1_type<>::value_type g1,
+                 typename algebra::curves::bls12<381>::template g2_type<>::value_type g2) {
 
     typename algebra::curves::bls12<381>::gt_type::value_type res = algebra::pair<algebra::curves::bls12<381>>(g1, g2);
 
@@ -36,9 +34,8 @@ using namespace nil::crypto3::algebra::curves;
     return res;
 }
 
-
 #ifndef __ZKLLVM__
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();

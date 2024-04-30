@@ -21,7 +21,7 @@
 #endif
 
 #ifndef __ZKLLVM__
-    std::cout << out <<std::endl;
+    std::cout << out << std::endl;
 #endif
 
     return out;
@@ -29,7 +29,7 @@
 
 #ifndef __ZKLLVM__
 
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();

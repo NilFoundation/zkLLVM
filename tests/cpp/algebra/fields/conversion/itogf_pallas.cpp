@@ -17,7 +17,7 @@ using field_type = nil::crypto3::algebra::curves::pallas::base_field_type::value
 
 #ifndef __ZKLLVM__
 
-int main (int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "one command line argument must be provided\n";
         std::abort();
