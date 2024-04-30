@@ -2,7 +2,6 @@ name: Lint
 
 on:
   push: null
-  pull_request: null
 
 permissions: { }
 
