@@ -13,10 +13,18 @@ class ZkllvmConanfile(ConanFile):
     options = {
         "shared": [True, False],
         "fPIC": [True, False],
+        "with_tests": [True, False],
+        "with_rslang": [True, False],
+        "rslang_build_tools": [None, "ANY"],
+        "with_evm_verifier": [True, False],
     }
     default_options = {
-        "shared": False,
+        "shared": True,
         "fPIC": True,
+        "with_tests": False,
+        "with_rslang": False,
+        "rslang_build_tools": "cargo",
+        "with_evm_verifier": True
     }
 
     #def source(self):
@@ -59,6 +67,10 @@ class ZkllvmConanfile(ConanFile):
         tc = CMakeToolchain(self)
         tc.variables["BUILD_SHARED_LIBS"] = self.options.shared
         tc.variables["BUILD_WITH_BOOST_STATIC_LIBS"] = not self.dependencies["boost"].options.shared
+        tc.variables["BUILD_TESTS"] = self.options.with_tests
+        tc.variables["RSLANG_BUILD_EXTENDED"] = self.options.with_rslang
+        tc.variables["RSLANG_BUILD_TOOLS"] = self.options.rslang_build_tools
+        tc.variables["GENERATE_EVM_VERIFIER"] = self.options.with_evm_verifier
         tc.generate()
 
         tc = CMakeDeps(self)
