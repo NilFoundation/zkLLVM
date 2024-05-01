@@ -30,3 +30,4 @@ jobs:
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_CPP: true
+          VALIDATE_ALL_CODEBASE: false # Validate only changed files
