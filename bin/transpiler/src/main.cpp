@@ -361,23 +361,70 @@ int curve_dependent_main(
 
     AssignmentTableType assignment_table;
     {
-        std::ifstream iassignment;
-        iassignment.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
-        if (!iassignment) {
-            std::cout << "Cannot open " << assignment_table_file_name << std::endl;
+        std::ifstream iassignment_header;
+        std::ifstream iassignment_witness;
+        std::ifstream iassignment_pub_inp;
+        std::ifstream iassignment_constants;
+        std::ifstream iassignment_selectors;
+
+        iassignment_header.open("header_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        if (!iassignment_header) {
+            std::cout << "Cannot open header_" << assignment_table_file_name << std::endl;
+            return 1;
+        }
+        iassignment_witness.open("witness_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        if (!iassignment_witness) {
+            std::cout << "Cannot open witness_" << assignment_table_file_name << std::endl;
+            return 1;
+        }
+        iassignment_pub_inp.open("pub_inp_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        if (!iassignment_pub_inp) {
+            std::cout << "Cannot open pub_inp_" << assignment_table_file_name << std::endl;
+            return 1;
+        }
+        iassignment_constants.open("constants_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        if (!iassignment_constants) {
+            std::cout << "Cannot open constants_" << assignment_table_file_name << std::endl;
+            return 1;
+        }
+        iassignment_selectors.open("selectors_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        if (!iassignment_selectors) {
+            std::cout << "Cannot open selectors_" << assignment_table_file_name << std::endl;
             return 1;
         }
         std::vector<std::uint8_t> v;
-        iassignment.seekg(0, std::ios_base::end);
-        const auto fsize = iassignment.tellg();
-        v.resize(fsize);
-        iassignment.seekg(0, std::ios_base::beg);
-        iassignment.read(reinterpret_cast<char*>(v.data()), fsize);
-        if (!iassignment) {
-            std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        iassignment.close();
+        iassignment_header.seekg(0, std::ios_base::end);
+        iassignment_witness.seekg(0, std::ios_base::end);
+        iassignment_pub_inp.seekg(0, std::ios_base::end);
+        iassignment_constants.seekg(0, std::ios_base::end);
+        iassignment_selectors.seekg(0, std::ios_base::end);
+
+        const auto header_size = iassignment_header.tellg();
+        const auto w_size = iassignment_witness.tellg();
+        const auto pi_size = iassignment_pub_inp.tellg();
+        const auto c_size = iassignment_constants.tellg();
+        const auto s_size = iassignment_selectors.tellg();
+
+        v.resize(header_size + w_size + pi_size + c_size + s_size);
+
+        iassignment_header.seekg(0, std::ios_base::beg);
+        iassignment_witness.seekg(0, std::ios_base::beg);
+        iassignment_pub_inp.seekg(0, std::ios_base::beg);
+        iassignment_constants.seekg(0, std::ios_base::beg);
+        iassignment_selectors.seekg(0, std::ios_base::beg);
+
+        iassignment_header.read(reinterpret_cast<char*>(v.data()),      header_size);
+        iassignment_witness.read(reinterpret_cast<char*>(v.data())    + header_size,  w_size);
+        iassignment_pub_inp.read(reinterpret_cast<char*>(v.data())    + header_size + w_size,  pi_size);
+        iassignment_constants.read(reinterpret_cast<char*>(v.data())  + header_size + w_size + pi_size,  c_size);
+        iassignment_selectors.read(reinterpret_cast<char*>(v.data())  + header_size + w_size + pi_size + c_size, s_size);
+
+        iassignment_header.close();
+        iassignment_witness.close();
+        iassignment_pub_inp.close();
+        iassignment_constants.close();
+        iassignment_selectors.close();
+
         table_value_marshalling_type marshalled_table_data;
         auto read_iter = v.begin();
         auto status = marshalled_table_data.read(read_iter, v.size());
