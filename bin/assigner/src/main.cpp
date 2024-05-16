@@ -228,12 +228,239 @@ void print_vector_value(
     }
 }
 
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_selectors(const assignment_proxy<ArithmetizationType> &table_proxy,
+                            print_table_kind print_kind,
+                            std::size_t padded_rows_amount,
+                            std::uint32_t ComponentSelectorColumns,
+                            std::ostream &out = std::cout) {
+    std::uint32_t selector_size = table_proxy.selectors_amount();
+
+    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+
+    print_size_t<Endianness>(selector_size * padded_rows_amount, out);
+    if (print_kind == print_table_kind::SINGLE_PROVER) {
+        for (std::uint32_t i = 0; i < selector_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.selector(i), out);
+        }
+    } else {
+        const auto& rows = table_proxy.get_used_rows();
+        const auto& selector_rows = table_proxy.get_used_selector_rows();
+
+        print_size_t<Endianness>(selector_size * padded_rows_amount, out);
+        std::uint32_t selector_idx = 0;
+        for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
+            const auto column_size = table_proxy.selector_column_size(i);
+            std::uint32_t offset = 0;
+            for(const auto& j : rows){
+                if (j < column_size) {
+                    if (selector_rows.find(j) != selector_rows.end()) {
+                        print_field<Endianness, ArithmetizationType>(table_proxy.selector(i, j), out);
+                    } else {
+                        print_zero_field<Endianness, ArithmetizationType>(out);
+                    }
+                    offset++;
+                }
+            }
+            ASSERT(offset < padded_rows_amount);
+            while(offset < padded_rows_amount) {
+                print_zero_field<Endianness, ArithmetizationType>(out);
+                offset++;
+            }
+
+            selector_idx += padded_rows_amount;
+        }
+
+        for (std::uint32_t i = ComponentSelectorColumns; i < selector_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.selector(i), out);
+            selector_idx += padded_rows_amount;
+        }
+    }
+}
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_constants(const assignment_proxy<ArithmetizationType> &table_proxy,
+                            print_table_kind print_kind,
+                            std::size_t padded_rows_amount,
+                            std::uint32_t ComponentConstantColumns,
+                            std::ostream &out = std::cout) {
+    std::uint32_t constant_size = table_proxy.constants_amount();
+
+    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+
+    print_size_t<Endianness>(constant_size * padded_rows_amount, out);
+    if (print_kind == print_table_kind::SINGLE_PROVER) {
+        for (std::uint32_t i = 0; i < constant_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.constant(i), out);
+        }
+    } else {
+        const auto& rows = table_proxy.get_used_rows();
+        std::uint32_t constant_idx = 0;
+        for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
+            const auto column_size = table_proxy.constant_column_size(i);
+            std::uint32_t offset = 0;
+            for(const auto& j : rows){
+                if (j < column_size) {
+                    print_field<Endianness, ArithmetizationType>(table_proxy.constant(i, j), out);
+                    offset++;
+                }
+            }
+            ASSERT(offset < padded_rows_amount);
+            while(offset < padded_rows_amount) {
+                print_zero_field<Endianness, ArithmetizationType>(out);
+                offset++;
+            }
+
+            constant_idx += padded_rows_amount;
+        }
+
+        for (std::uint32_t i = ComponentConstantColumns; i < constant_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.constant(i), out);
+            constant_idx += padded_rows_amount;
+        }
+    }
+}
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_pub_inp(const assignment_proxy<ArithmetizationType> &table_proxy,
+                            print_table_kind print_kind,
+                            std::size_t padded_rows_amount,
+                            std::ostream &out = std::cout) {
+    std::uint32_t shared_size = (print_kind == print_table_kind::MULTI_PROVER) ? 1 : 0;
+    std::uint32_t public_input_size = table_proxy.public_inputs_amount();
+
+    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+
+    print_size_t<Endianness>((public_input_size + shared_size) * padded_rows_amount, out);
+    if (print_kind == print_table_kind::SINGLE_PROVER) {
+        for (std::uint32_t i = 0; i < public_input_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.public_input(i), out);
+        }
+    } else {
+
+        std::uint32_t pub_inp_idx = 0;
+        for (std::uint32_t i = 0; i < public_input_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.public_input(i), out);
+            pub_inp_idx += padded_rows_amount;
+        }
+        for (std::uint32_t i = 0; i < shared_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.shared(i), out);
+            pub_inp_idx += padded_rows_amount;
+        }
+    }
+}
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_witness(const assignment_proxy<ArithmetizationType> &table_proxy,
+                            print_table_kind print_kind,
+                            std::size_t padded_rows_amount,
+                            std::ostream &out = std::cout) {
+    std::uint32_t witness_size = table_proxy.witnesses_amount();
+
+    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+
+    print_size_t<Endianness>(witness_size * padded_rows_amount, out);
+    if (print_kind == print_table_kind::SINGLE_PROVER) {
+        for (std::uint32_t i = 0; i < witness_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.witness(i), out);
+        }
+    } else {
+        const auto& rows = table_proxy.get_used_rows();
+        std::uint32_t witness_idx = 0;
+        for( std::size_t i = 0; i < witness_size; i++ ){
+            const auto column_size = table_proxy.witness_column_size(i);
+            std::uint32_t offset = 0;
+            for(const auto& j : rows){
+                if (j < column_size) {
+                    print_field<Endianness, ArithmetizationType>(table_proxy.witness(i, j), out);
+                    offset++;
+                }
+            }
+            ASSERT(offset < padded_rows_amount);
+            while(offset < padded_rows_amount) {
+                print_zero_field<Endianness, ArithmetizationType>(out);
+                offset++;
+            }
+            witness_idx += padded_rows_amount;
+        }
+    }
+}
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_assignment_table_fast(
+    const assignment_proxy<ArithmetizationType> &table_proxy,
+    print_table_kind print_kind,
+    std::string assignment_table_file_name
+) {
+
+    std::ifstream itable_header;
+    std::ofstream otable_witness;
+    std::ofstream otable_pub_inp;
+    itable_header.open("header_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+    if (!itable_header) {
+        throw std::runtime_error("Something wrong with input file header_" + assignment_table_file_name); // TODO: add catch
+    }
+    using TTypeBase = nil::marshalling::field_type<Endianness>;
+    using table_header_marshalling_type = nil::crypto3::marshalling::types::table_header_type<TTypeBase>;
+
+    table_header_marshalling_type marshalled_table_header;
+    std::vector<std::uint8_t> header_binary;
+    itable_header.seekg(0, std::ios_base::end);
+    const auto header_size = itable_header.tellg();
+    header_binary.resize(header_size);
+    auto hiter = header_binary.begin();
+    auto status = marshalled_table_header.read(hiter, header_binary.size());
+// TODO add status check
+
+    std::uint32_t padded_rows_amount = std::get<5>(marshalled_table_header.value()).value();
+
+    otable_witness.open("witness_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+    if (!otable_witness) {
+        throw std::runtime_error("Something wrong with output witness_" + assignment_table_file_name);
+    }
+    otable_pub_inp.open("pub_inp_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+    if (!otable_pub_inp) {
+        throw std::runtime_error("Something wrong with output pub_inp_" + assignment_table_file_name);
+    }
+
+    print_witness<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_witness);
+    print_pub_inp<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_pub_inp);
+}
 
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
 void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_proxy,
                             print_table_kind print_kind,
                             std::uint32_t ComponentConstantColumns, std::uint32_t ComponentSelectorColumns,
-                            std::ostream &out = std::cout) {
+                            std::string assignment_table_file_name,
+                            std::uint32_t idx
+                            ) {
+
+    if (print_kind == print_table_kind::MULTI_PROVER) {
+        assignment_table_file_name = assignment_table_file_name  + std::to_string(idx);
+    }
+
+    std::ofstream otable_header;
+    std::ofstream otable_witness;
+    std::ofstream otable_pub_inp;
+    std::ofstream otable_constants;
+    std::ofstream otable_selectors;
+    otable_header.open("header_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+    if (!otable_header)
+        throw std::runtime_error("Something wrong with output header_" + assignment_table_file_name);
+    otable_witness.open("witness_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+    if (!otable_witness)
+        throw std::runtime_error("Something wrong with output witness_" + assignment_table_file_name);
+    otable_pub_inp.open("pub_inp_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+    if (!otable_pub_inp)
+        throw std::runtime_error("Something wrong with output pub_inp_" + assignment_table_file_name);
+    otable_constants.open("constants_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+    if (!otable_constants)
+        throw std::runtime_error("Something wrong with output constants_" + assignment_table_file_name);
+    otable_selectors.open("selectors_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+    if (!otable_selectors)
+        throw std::runtime_error("Something wrong with output selectors_" + assignment_table_file_name);
+
+
     using AssignmentTableType = assignment_proxy<ArithmetizationType>;
     std::uint32_t usable_rows_amount;
     std::uint32_t total_columns;
@@ -290,129 +517,23 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     if (padded_rows_amount < 8) {
         padded_rows_amount = 8;
     }
-    total_size = padded_rows_amount * total_columns;
 
-    using TTypeBase = nil::marshalling::field_type<Endianness>;
-    using table_value_marshalling_type =
-        nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
+    print_size_t<Endianness>(witness_size,                    otable_header);
+    print_size_t<Endianness>(public_input_size + shared_size, otable_header);
+    print_size_t<Endianness>(constant_size,                   otable_header);
+    print_size_t<Endianness>(selector_size,                   otable_header);
+    print_size_t<Endianness>(usable_rows_amount,              otable_header);
+    print_size_t<Endianness>(padded_rows_amount,              otable_header);
 
-    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+    print_witness<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_witness);
+    print_pub_inp<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_pub_inp);
+    print_constants<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, ComponentConstantColumns, otable_constants);
+    print_selectors<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, ComponentSelectorColumns, otable_selectors);
 
-    print_size_t<Endianness>(witness_size, out);
-    print_size_t<Endianness>(public_input_size + shared_size, out);
-    print_size_t<Endianness>(constant_size, out);
-    print_size_t<Endianness>(selector_size, out);
-    print_size_t<Endianness>(usable_rows_amount, out);
-    print_size_t<Endianness>(padded_rows_amount, out);
-
-    if (print_kind == print_table_kind::SINGLE_PROVER) {
-    print_size_t<Endianness>(witness_size * padded_rows_amount, out);
-        for (std::uint32_t i = 0; i < witness_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.witness(i), out);
-        }
-    print_size_t<Endianness>((public_input_size + shared_size) * padded_rows_amount, out);
-        for (std::uint32_t i = 0; i < public_input_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.public_input(i), out);
-        }
-    print_size_t<Endianness>(constant_size * padded_rows_amount, out);
-        for (std::uint32_t i = 0; i < constant_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.constant(i), out);
-        }
-    print_size_t<Endianness>(selector_size * padded_rows_amount, out);
-        for (std::uint32_t i = 0; i < selector_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.selector(i), out);
-        }
-    } else {
-        const auto& rows = table_proxy.get_used_rows();
-        const auto& selector_rows = table_proxy.get_used_selector_rows();
-        std::uint32_t witness_idx = 0;
-
-        // witness
-        print_size_t<Endianness>(witness_size * padded_rows_amount, out);
-        for( std::size_t i = 0; i < witness_size; i++ ){
-            const auto column_size = table_proxy.witness_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    print_field<Endianness, ArithmetizationType>(table_proxy.witness(i, j), out);
-                    offset++;
-                }
-            }
-            ASSERT(offset < padded_rows_amount);
-            while(offset < padded_rows_amount) {
-                print_zero_field<Endianness, ArithmetizationType>(out);
-                offset++;
-            }
-            witness_idx += padded_rows_amount;
-        }
-        // public input
-        std::uint32_t pub_inp_idx = 0;
-        print_size_t<Endianness>((public_input_size + shared_size) * padded_rows_amount, out);
-        for (std::uint32_t i = 0; i < public_input_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.public_input(i), out);
-            pub_inp_idx += padded_rows_amount;
-        }
-        for (std::uint32_t i = 0; i < shared_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.shared(i), out);
-            pub_inp_idx += padded_rows_amount;
-        }
-        // constant
-        print_size_t<Endianness>(constant_size * padded_rows_amount, out);
-        std::uint32_t constant_idx = 0;
-        for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
-            const auto column_size = table_proxy.constant_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    print_field<Endianness, ArithmetizationType>(table_proxy.constant(i, j), out);
-                    offset++;
-                }
-            }
-            ASSERT(offset < padded_rows_amount);
-            while(offset < padded_rows_amount) {
-                print_zero_field<Endianness, ArithmetizationType>(out);
-                offset++;
-            }
-
-            constant_idx += padded_rows_amount;
-        }
-
-        for (std::uint32_t i = ComponentConstantColumns; i < constant_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.constant(i), out);
-            constant_idx += padded_rows_amount;
-        }
-
-        // selector
-        print_size_t<Endianness>(selector_size * padded_rows_amount, out);
-        std::uint32_t selector_idx = 0;
-        for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
-            const auto column_size = table_proxy.selector_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    if (selector_rows.find(j) != selector_rows.end()) {
-                        print_field<Endianness, ArithmetizationType>(table_proxy.selector(i, j), out);
-                    } else {
-                        print_zero_field<Endianness, ArithmetizationType>(out);
-                    }
-                    offset++;
-                }
-            }
-            ASSERT(offset < padded_rows_amount);
-            while(offset < padded_rows_amount) {
-                print_zero_field<Endianness, ArithmetizationType>(out);
-                offset++;
-            }
-
-            selector_idx += padded_rows_amount;
-        }
-
-        for (std::uint32_t i = ComponentSelectorColumns; i < selector_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.selector(i), out);
-            selector_idx += padded_rows_amount;
-        }
+    /*
+    TODO: maybe save this check in some form
         ASSERT_MSG(witness_idx + pub_inp_idx + constant_idx + selector_idx == total_size, "Printed index not equal required assignment size" );
-    }
+    */
 }
 
 bool read_json(
@@ -467,18 +588,14 @@ void assignment_table_printer(
     const std::size_t &ComponentConstantColumns,
     const std::size_t &ComponentSelectorColumns
 ) {
-    std::ofstream otable;
-    otable.open(assignment_table_file_name + std::to_string(idx),
-                std::ios_base::binary | std::ios_base::out);
-    if (!otable) {
-        throw std::runtime_error("Failed to open file: " + assignment_table_file_name + std::to_string(idx));
-    }
-
     print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-        assigner_instance.assignments[idx], print_table_kind::MULTI_PROVER, ComponentConstantColumns,
-            ComponentSelectorColumns, otable);
-
-    otable.close();
+        assigner_instance.assignments[idx],
+        print_table_kind::MULTI_PROVER,
+        ComponentConstantColumns,
+        ComponentSelectorColumns,
+        assignment_table_file_name,
+        idx
+    );
 }
 
 template<typename BlueprintFieldType>
@@ -520,6 +637,19 @@ int curve_dependent_main(std::string bytecode_file_name,
     using ArithmetizationType =
             crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
     using AssignmentTableType = zk::snark::plonk_table<BlueprintFieldType, zk::snark::plonk_column<BlueprintFieldType>>;
+
+    using Endianness = nil::marshalling::option::big_endian;
+    using TTypeBase = nil::marshalling::field_type<Endianness>;
+    using constant_column_marshalling_type =
+        nil::marshalling::types::array_list<
+            TTypeBase,
+            nil::crypto3::marshalling::types::field_element<
+                TTypeBase,
+                typename BlueprintFieldType::value_type>,
+                nil::marshalling::option::sequence_size_field_prefix<
+                    nil::marshalling::types::integral<TTypeBase, std::size_t>
+                >
+            >;
 
     boost::json::value public_input_json_value;
     if(public_input_file_name.empty()) {
@@ -584,11 +714,56 @@ int curve_dependent_main(std::string bytecode_file_name,
     auto parse_ir_file_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - parse_ir_file_start);
     BOOST_LOG_TRIVIAL(debug) << "parse_ir_file_duration: " << parse_ir_file_duration.count() << "ms";
 
+
+    std::vector<std::vector<std::vector<typename BlueprintFieldType::value_type>>> all_constant_columns;
+
+    if (gen_mode == nil::blueprint::generation_mode::fast_tbl()) {
+        // parse constant columns
+
+        for (std::size_t i = 0; i < max_num_provers; i++) {
+            std::ifstream iconstants;
+            std::string table_file_name = max_num_provers == 0 ? assignment_table_file_name : assignment_table_file_name + std::to_string(i);
+
+            iconstants.open("constants_" + table_file_name, std::ios_base::binary | std::ios_base::in);
+            if (!iconstants) {
+                std::cout << "Cannot open " << "constants_" + table_file_name << std::endl;
+                return 1;
+            }
+            std::vector<std::uint8_t> v;
+            std::vector<std::uint8_t> consant_cols_vector;
+            iconstants.seekg(0, std::ios_base::end);
+            const auto fsize = iconstants.tellg();
+            consant_cols_vector.resize(fsize);
+            iconstants.seekg(0, std::ios_base::beg);
+            iconstants.read(reinterpret_cast<char*>(consant_cols_vector.data()), fsize);
+            if (!iconstants) {
+                std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
+                return 1;
+            }
+            iconstants.close();
+            constant_column_marshalling_type marshalled_constant_column_data;
+            auto citer = consant_cols_vector.begin();
+            auto const_column_marshalling_status =   marshalled_constant_column_data.read(citer, consant_cols_vector.size());
+
+            std::vector<std::vector<typename BlueprintFieldType::value_type>> constant_columns =
+                nil::crypto3::marshalling::types::make_field_element_columns_vector<typename BlueprintFieldType::value_type, Endianness>
+                (
+                    marshalled_constant_column_data,
+                    // we must extract desc from table_header, but for now its ok to use default values
+                    desc.constant_columns, // take from header, now it is
+                    desc.rows_amount // take from header, now it is zero TODO
+                );
+            all_constant_columns.emplace_back(constant_columns);
+        }
+    }
+
+
     auto parser_evaluation_start = std::chrono::high_resolution_clock::now();
     if (
         !assigner_instance.evaluate(
             public_input_json_value.as_array(),
             private_input_json_value.as_array(),
+            all_constant_columns,
             table_pieces
         )
     ) {
@@ -657,18 +832,15 @@ int curve_dependent_main(std::string bytecode_file_name,
             auto single_table_print_start = std::chrono::high_resolution_clock::now();
         // print assignment table
         if (gen_mode.has_assignments()) {
-            std::ofstream otable;
-            otable.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
-            if (!otable) {
-                std::cout << "Something wrong with output " << assignment_table_file_name << std::endl;
-                return 1;
-            }
 
             print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-                assigner_instance.assignments[0], print_table_kind::SINGLE_PROVER, ComponentConstantColumns,
-                ComponentSelectorColumns, otable);
-
-            otable.close();
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER,
+                ComponentConstantColumns,
+                ComponentSelectorColumns,
+                assignment_table_file_name,
+                0
+            );
             auto single_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - single_table_print_start);
             BOOST_LOG_TRIVIAL(debug) << "single_table_print_duration: " << single_table_print_duration.count() << "ms";
         }
