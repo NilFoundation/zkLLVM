@@ -53,6 +53,8 @@
 #include <nil/blueprint/transpiler/public_input.hpp>
 #include <nil/blueprint/transpiler/recursive_verifier_generator.hpp>
 
+#include "../../table_packing.hpp"
+
 template<typename StreamType>
 std::optional<StreamType> open_file(const std::string& path, std::ios_base::openmode mode) {
     StreamType file(path, mode);
@@ -105,6 +107,31 @@ std::optional<MarshallingType> decode_marshalling_from_file(
     }
     return marshalled_data;
 }
+
+template<typename MarshallingType>
+std::optional<MarshallingType> decode_marshalling_from_different_column_types_files(
+    const std::string& assignment_table_file_name
+) {
+
+        std::vector<std::uint8_t> v = {};
+
+        ASSERT(append_binary_file_content_to_vector(v, "header_", assignment_table_file_name));
+        ASSERT(append_binary_file_content_to_vector(v, "witness_", assignment_table_file_name));
+        ASSERT(append_binary_file_content_to_vector(v, "pub_inp_", assignment_table_file_name));
+        ASSERT(append_binary_file_content_to_vector(v, "constants_", assignment_table_file_name));
+        ASSERT(append_binary_file_content_to_vector(v, "selectors_", assignment_table_file_name));
+
+        MarshallingType marshalled_data;
+        auto read_iter = v.begin();
+        auto status = marshalled_data.read(read_iter, v.size());
+
+        if (status != nil::marshalling::status_type::success) {
+            std::cerr << "Marshalled structure decoding failed" << std::endl;
+            return std::nullopt;
+        }
+        return marshalled_data;
+}
+
 
 template<typename BlueprintFieldType>
 struct ParametersPolicy {
@@ -414,7 +441,7 @@ int curve_dependent_main(
     public_input_sizes = (*constraint_system).public_input_sizes();
 
     if( vm.count("assignment-table") ){
-        auto marshalled_value = decode_marshalling_from_file<assignment_table_marshalling_type>(assignment_table_file_name);
+        auto marshalled_value = decode_marshalling_from_different_column_types_files<assignment_table_marshalling_type>(assignment_table_file_name);
         if (!marshalled_value) {
             return false;
         }
