@@ -247,7 +247,6 @@ void print_selectors(const assignment_proxy<ArithmetizationType> &table_proxy,
         const auto& rows = table_proxy.get_used_rows();
         const auto& selector_rows = table_proxy.get_used_selector_rows();
 
-        print_size_t<Endianness>(selector_size * padded_rows_amount, out);
         std::uint32_t selector_idx = 0;
         for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
             const auto column_size = table_proxy.selector_column_size(i);
