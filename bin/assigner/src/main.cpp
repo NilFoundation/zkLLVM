@@ -1088,11 +1088,12 @@ int main(int argc, char *argv[]) {
 
     if (vm.count("table-pieces")) {
         table_pieces_file_name = vm["table-pieces"].as<std::string>();
-    } else {
-        std::cerr << "Invalid command line argument - table-pieces file name is not specified" << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
     }
+    // else {
+    //     std::cerr << "Invalid command line argument - table-pieces file name is not specified" << std::endl;
+    //     std::cout << options_desc << std::endl;
+    //     return 1;
+    // }
 
     if (vm.count("elliptic-curve-type")) {
         elliptic_curve = vm["elliptic-curve-type"].as<std::string>();
