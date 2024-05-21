@@ -386,6 +386,20 @@ void print_witness(const assignment_proxy<ArithmetizationType> &table_proxy,
     }
 }
 
+std::string add_filename_prefix(
+    const std::string& prefix,
+    const std::string& file_name
+) {
+    std::filesystem::path path(file_name);
+    std::filesystem::path parent_path = path.parent_path();
+    std::filesystem::path filename = path.filename();
+
+    std::string new_filename = prefix + filename.string();
+    std::filesystem::path new_path = parent_path / new_filename;
+
+    return new_path.string();
+}
+
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
 void print_assignment_table_fast(
     const assignment_proxy<ArithmetizationType> &table_proxy,
@@ -425,20 +439,6 @@ void print_assignment_table_fast(
 
     print_witness<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_witness);
     print_pub_inp<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_pub_inp);
-}
-
-std::string add_filename_prefix(
-    const std::string& prefix,
-    const std::string& file_name
-) {
-    std::filesystem::path path(file_name);
-    std::filesystem::path parent_path = path.parent_path();
-    std::filesystem::path filename = path.filename();
-
-    std::string new_filename = prefix + filename.string();
-    std::filesystem::path new_path = parent_path / new_filename;
-
-    return new_path.string();
 }
 
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
