@@ -242,6 +242,20 @@ int main(int argc, char *argv[]) {
 
 }
 
+std::string add_filename_prefix(
+    const std::string& prefix,
+    const std::string& file_name
+) {
+    std::filesystem::path path(file_name);
+    std::filesystem::path parent_path = path.parent_path();
+    std::filesystem::path filename = path.filename();
+
+    std::string new_filename = prefix + filename.string();
+    std::filesystem::path new_path = parent_path / new_filename;
+
+    return new_path.string();
+}
+
 template<typename BlueprintFieldType, bool is_multi_prover>
 int curve_dependent_main(
     boost::program_options::options_description options_desc,
@@ -367,29 +381,29 @@ int curve_dependent_main(
         std::ifstream iassignment_constants;
         std::ifstream iassignment_selectors;
 
-        iassignment_header.open("header_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        iassignment_header.open(add_filename_prefix("header_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
         if (!iassignment_header) {
-            std::cout << "Cannot open header_" << assignment_table_file_name << std::endl;
+            std::cout << "Cannot open " << add_filename_prefix("header_", assignment_table_file_name) << std::endl;
             return 1;
         }
-        iassignment_witness.open("witness_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        iassignment_witness.open(add_filename_prefix("witness_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
         if (!iassignment_witness) {
-            std::cout << "Cannot open witness_" << assignment_table_file_name << std::endl;
+            std::cout << "Cannot open " << add_filename_prefix("witness_", assignment_table_file_name) << std::endl;
             return 1;
         }
-        iassignment_pub_inp.open("pub_inp_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        iassignment_pub_inp.open(add_filename_prefix("pub_inp_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
         if (!iassignment_pub_inp) {
-            std::cout << "Cannot open pub_inp_" << assignment_table_file_name << std::endl;
+            std::cout << "Cannot open " << add_filename_prefix("pub_inp_", assignment_table_file_name) << std::endl;
             return 1;
         }
-        iassignment_constants.open("constants_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        iassignment_constants.open(add_filename_prefix("constants_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
         if (!iassignment_constants) {
-            std::cout << "Cannot open constants_" << assignment_table_file_name << std::endl;
+            std::cout << "Cannot open " << add_filename_prefix("constants_", assignment_table_file_name) << std::endl;
             return 1;
         }
-        iassignment_selectors.open("selectors_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        iassignment_selectors.open(add_filename_prefix("selectors_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
         if (!iassignment_selectors) {
-            std::cout << "Cannot open selectors_" << assignment_table_file_name << std::endl;
+            std::cout << "Cannot open " << add_filename_prefix("selectors_", assignment_table_file_name) << std::endl;
             return 1;
         }
         std::vector<std::uint8_t> v;
