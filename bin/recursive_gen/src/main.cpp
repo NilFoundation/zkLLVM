@@ -106,6 +106,94 @@ std::optional<MarshallingType> decode_marshalling_from_file(
     return marshalled_data;
 }
 
+template<typename MarshallingType>
+std::optional<MarshallingType> decode_marshalling_from_different_column_types_files(
+    const std::string& assignment_table_file_name
+    //bool hex = false  // Used only for placeholder proof
+) {
+    ////////
+        std::ifstream iassignment_header;
+        std::ifstream iassignment_witness;
+        std::ifstream iassignment_pub_inp;
+        std::ifstream iassignment_constants;
+        std::ifstream iassignment_selectors;
+
+        iassignment_header.open("header_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        if (!iassignment_header) {
+            std::cout << "Cannot open header_" << assignment_table_file_name << std::endl;
+            return std::nullopt;
+        }
+        iassignment_witness.open("witness_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        if (!iassignment_witness) {
+            std::cout << "Cannot open witness_" << assignment_table_file_name << std::endl;
+            return std::nullopt;
+        }
+        iassignment_pub_inp.open("pub_inp_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        if (!iassignment_pub_inp) {
+            std::cout << "Cannot open pub_inp_" << assignment_table_file_name << std::endl;
+            return std::nullopt;
+        }
+        iassignment_constants.open("constants_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        if (!iassignment_constants) {
+            std::cout << "Cannot open constants_" << assignment_table_file_name << std::endl;
+            return std::nullopt;
+        }
+        iassignment_selectors.open("selectors_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+        if (!iassignment_selectors) {
+            std::cout << "Cannot open selectors_" << assignment_table_file_name << std::endl;
+            return std::nullopt;
+        }
+        std::vector<std::uint8_t> v;
+        iassignment_header.seekg(0, std::ios_base::end);
+        iassignment_witness.seekg(0, std::ios_base::end);
+        iassignment_pub_inp.seekg(0, std::ios_base::end);
+        iassignment_constants.seekg(0, std::ios_base::end);
+        iassignment_selectors.seekg(0, std::ios_base::end);
+
+        const auto header_size = iassignment_header.tellg();
+        const auto w_size = iassignment_witness.tellg();
+        const auto pi_size = iassignment_pub_inp.tellg();
+        const auto c_size = iassignment_constants.tellg();
+        const auto s_size = iassignment_selectors.tellg();
+
+        v.resize(header_size + w_size + pi_size + c_size + s_size);
+
+        iassignment_header.seekg(0, std::ios_base::beg);
+        iassignment_witness.seekg(0, std::ios_base::beg);
+        iassignment_pub_inp.seekg(0, std::ios_base::beg);
+        iassignment_constants.seekg(0, std::ios_base::beg);
+        iassignment_selectors.seekg(0, std::ios_base::beg);
+
+        iassignment_header.read(reinterpret_cast<char*>(v.data()),      header_size);
+        iassignment_witness.read(reinterpret_cast<char*>(v.data())    + header_size,  w_size);
+        iassignment_pub_inp.read(reinterpret_cast<char*>(v.data())    + header_size + w_size,  pi_size);
+        iassignment_constants.read(reinterpret_cast<char*>(v.data())  + header_size + w_size + pi_size,  c_size);
+        iassignment_selectors.read(reinterpret_cast<char*>(v.data())  + header_size + w_size + pi_size + c_size, s_size);
+
+        iassignment_header.close();
+        iassignment_witness.close();
+        iassignment_pub_inp.close();
+        iassignment_constants.close();
+        iassignment_selectors.close();
+
+        MarshallingType marshalled_data;
+        auto read_iter = v.begin();
+        auto status = marshalled_data.read(read_iter, v.size());
+
+        if (status != nil::marshalling::status_type::success) {
+            std::cerr << "Marshalled structure decoding failed" << std::endl;
+            return std::nullopt;
+        }
+        return marshalled_data;
+
+        // std::tie(desc, assignment_table) =
+        //     nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
+        //         marshalled_table_data
+        //     );
+    /////////
+}
+
+
 template<typename BlueprintFieldType>
 struct ParametersPolicy {
     constexpr static const std::size_t WitnessColumns = WITNESS_COLUMNS;
@@ -414,7 +502,7 @@ int curve_dependent_main(
     public_input_sizes = (*constraint_system).public_input_sizes();
 
     if( vm.count("assignment-table") ){
-        auto marshalled_value = decode_marshalling_from_file<assignment_table_marshalling_type>(assignment_table_file_name);
+        auto marshalled_value = decode_marshalling_from_different_column_types_files<assignment_table_marshalling_type>(assignment_table_file_name);
         if (!marshalled_value) {
             return false;
         }
