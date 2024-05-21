@@ -65,6 +65,7 @@
 #include <future>
 #include <thread>
 #include <chrono>
+#include <filesystem>
 
 using namespace nil;
 using namespace nil::crypto3;
@@ -426,6 +427,20 @@ void print_assignment_table_fast(
     print_pub_inp<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_pub_inp);
 }
 
+std::string add_filename_prefix(
+    const std::string& prefix,
+    const std::string& file_name
+) {
+    std::filesystem::path path(file_name);
+    std::filesystem::path parent_path = path.parent_path();
+    std::filesystem::path filename = path.filename();
+
+    std::string new_filename = prefix + filename.string();
+    std::filesystem::path new_path = parent_path / new_filename;
+
+    return new_path.string();
+}
+
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
 void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_proxy,
                             print_table_kind print_kind,
@@ -443,21 +458,22 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     std::ofstream otable_pub_inp;
     std::ofstream otable_constants;
     std::ofstream otable_selectors;
-    otable_header.open("header_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+
+    otable_header.open(add_filename_prefix("header_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_header)
-        throw std::runtime_error("Something wrong with output header_" + assignment_table_file_name);
-    otable_witness.open("witness_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("header_", assignment_table_file_name));
+    otable_witness.open(add_filename_prefix("witness_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_witness)
-        throw std::runtime_error("Something wrong with output witness_" + assignment_table_file_name);
-    otable_pub_inp.open("pub_inp_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("witness_", assignment_table_file_name));
+    otable_pub_inp.open(add_filename_prefix("pub_inp_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_pub_inp)
-        throw std::runtime_error("Something wrong with output pub_inp_" + assignment_table_file_name);
-    otable_constants.open("constants_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("pub_inp_", assignment_table_file_name));
+    otable_constants.open(add_filename_prefix("constants_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_constants)
-        throw std::runtime_error("Something wrong with output constants_" + assignment_table_file_name);
-    otable_selectors.open("selectors_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("constants_", assignment_table_file_name));
+    otable_selectors.open(add_filename_prefix("selectors_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_selectors)
-        throw std::runtime_error("Something wrong with output selectors_" + assignment_table_file_name);
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("selectors_", assignment_table_file_name));
 
 
     using AssignmentTableType = assignment_proxy<ArithmetizationType>;
@@ -867,6 +883,12 @@ int curve_dependent_main(std::string bytecode_file_name,
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
             if (gen_mode.has_assignments()) {
+
+                // print_table_human_readable<ArithmetizationType>(
+                //     assigner_instance.assignments[idx],
+                //     ComponentConstantColumns,
+                //     ComponentSelectorColumns
+                //     );
 
                 auto future = std::async(
                     std::launch::async,
