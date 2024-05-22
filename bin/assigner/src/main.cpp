@@ -404,13 +404,18 @@ template<typename Endianness, typename ArithmetizationType, typename BlueprintFi
 void print_assignment_table_fast(
     const assignment_proxy<ArithmetizationType> &table_proxy,
     print_table_kind print_kind,
-    std::string assignment_table_file_name
+    std::string assignment_table_file_name,
+    std::uint32_t idx
 ) {
+
+    if (print_kind == print_table_kind::MULTI_PROVER) {
+        assignment_table_file_name = assignment_table_file_name  + std::to_string(idx);
+    }
 
     std::ifstream itable_header;
     std::ofstream otable_witness;
     std::ofstream otable_pub_inp;
-    itable_header.open("header_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
+    itable_header.open(add_filename_prefix("header_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
     if (!itable_header) {
         throw std::runtime_error("Something wrong with input file header_" + assignment_table_file_name); // TODO: add catch
     }
@@ -422,19 +427,22 @@ void print_assignment_table_fast(
     itable_header.seekg(0, std::ios_base::end);
     const auto header_size = itable_header.tellg();
     header_binary.resize(header_size);
+    itable_header.seekg(0, std::ios_base::beg);
+    itable_header.read(reinterpret_cast<char*>(header_binary.data()), header_size);
+    itable_header.close();
     auto hiter = header_binary.begin();
     auto status = marshalled_table_header.read(hiter, header_binary.size());
-// TODO add status check
+    ASSERT(status == nil::marshalling::status_type::success);
 
     std::uint32_t padded_rows_amount = std::get<5>(marshalled_table_header.value()).value();
 
-    otable_witness.open("witness_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+    otable_witness.open(add_filename_prefix("witness_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_witness) {
-        throw std::runtime_error("Something wrong with output witness_" + assignment_table_file_name);
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("witness_", assignment_table_file_name));
     }
-    otable_pub_inp.open("pub_inp_" + assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
+    otable_pub_inp.open(add_filename_prefix("pub_inp_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_pub_inp) {
-        throw std::runtime_error("Something wrong with output pub_inp_" + assignment_table_file_name);
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("pub_inp_", assignment_table_file_name));
     }
 
     print_witness<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_witness);
@@ -732,7 +740,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
     std::vector<std::vector<std::vector<typename BlueprintFieldType::value_type>>> all_constant_columns;
 
-    if (gen_mode == nil::blueprint::generation_mode::fast_tbl()) {
+    if (gen_mode.has_fast_tbl()) {
         // parse constant columns
 
         for (std::size_t i = 0; i < max_num_provers; i++) {
@@ -759,14 +767,40 @@ int curve_dependent_main(std::string bytecode_file_name,
             constant_column_marshalling_type marshalled_constant_column_data;
             auto citer = consant_cols_vector.begin();
             auto const_column_marshalling_status =   marshalled_constant_column_data.read(citer, consant_cols_vector.size());
+///
+    std::ifstream itable_header;
+    std::ofstream otable_witness;
+    std::ofstream otable_pub_inp;
+    itable_header.open(add_filename_prefix("header_", table_file_name),  std::ios_base::in);
+    if (!itable_header) {
+        throw std::runtime_error("Something wrong with input file header_" + table_file_name); // TODO: add catch
+    }
 
+    using TTypeBase = nil::marshalling::field_type<Endianness>;
+    using table_header_marshalling_type = nil::crypto3::marshalling::types::table_header_type<TTypeBase>;
+
+    table_header_marshalling_type marshalled_table_header;
+    std::vector<std::uint8_t> header_binary;
+    itable_header.seekg(0, std::ios_base::end);
+    const auto header_size = itable_header.tellg();
+    header_binary.resize(header_size);
+    itable_header.seekg(0, std::ios_base::beg);
+    itable_header.read(reinterpret_cast<char*>(header_binary.data()),      header_size);
+    itable_header.close();
+    auto hiter = header_binary.begin();
+    auto status = marshalled_table_header.read(hiter, header_binary.size());
+    ASSERT(status == nil::marshalling::status_type::success);
+
+    std::uint32_t columns_rows_amount = std::get<5>(marshalled_table_header.value()).value();
+
+///
             std::vector<std::vector<typename BlueprintFieldType::value_type>> constant_columns =
                 nil::crypto3::marshalling::types::make_field_element_columns_vector<typename BlueprintFieldType::value_type, Endianness>
                 (
                     marshalled_constant_column_data,
                     // we must extract desc from table_header, but for now its ok to use default values
-                    desc.constant_columns, // take from header, now it is
-                    desc.rows_amount // take from header, now it is zero TODO
+                    desc.constant_columns, // TODO we should take it from header file, but it will almost always work okay without it
+                    columns_rows_amount
                 );
             all_constant_columns.emplace_back(constant_columns);
         }
@@ -805,6 +839,36 @@ int curve_dependent_main(std::string bytecode_file_name,
         std::ofstream file(table_pieces_file_name);
         file << serialized;
         file.close();
+    }
+
+    if (gen_mode.has_fast_tbl()) {
+        if (assigner_instance.assignments.size() == 1) {
+            auto fast_tbl_print_start = std::chrono::high_resolution_clock::now();
+            print_assignment_table_fast<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER,
+                assignment_table_file_name,
+                0
+            );
+            auto fast_tbl_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fast_tbl_print_start);
+            BOOST_LOG_TRIVIAL(debug) << "fast_tbl_print_duration: " << fast_tbl_print_duration.count() << "ms";
+            return 0;
+        }
+        else {
+            auto fast_tbl_print_start = std::chrono::high_resolution_clock::now();
+            // print assignment table
+            for (std::size_t i = 0; i < assigner_instance.assignments.size(); i++) {
+                print_assignment_table_fast<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                    assigner_instance.assignments[i],
+                    print_table_kind::MULTI_PROVER,
+                    assignment_table_file_name,
+                    i
+                );
+            }
+            auto fast_tbl_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fast_tbl_print_start);
+            BOOST_LOG_TRIVIAL(debug) << "fast_tbl_print_duration: " << fast_tbl_print_duration.count() << "ms";
+            return 0;
+        }
     }
 
     auto pack_lookup_start = std::chrono::high_resolution_clock::now();
