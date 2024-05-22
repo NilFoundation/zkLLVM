@@ -1053,7 +1053,7 @@ int main(int argc, char *argv[]) {
         } else if (generate_type == "assignment") {
             gen_mode = nil::blueprint::generation_mode::assignments();
         } else if (generate_type == "assignment-fast") {
-            gen_mode = nil::blueprint::generation_mode::fast_tbl() | nil::blueprint::generation_mode::assignments();
+            gen_mode = nil::blueprint::generation_mode::fast_tbl();
         } else if (generate_type == "size_estimation") {
             gen_mode = nil::blueprint::generation_mode::size_estimation();
         } else if (generate_type == "public-input-column") {
@@ -1088,7 +1088,7 @@ int main(int argc, char *argv[]) {
         public_input_file_name = vm["public-input"].as<std::string>();
     }
 
-    if (gen_mode.has_assignments()) {
+    if (gen_mode.has_assignments() || gen_mode.has_fast_tbl()) {
         if (vm.count("assignment-table")) {
             assignment_table_file_name = vm["assignment-table"].as<std::string>();
         } else {
