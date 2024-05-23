@@ -680,7 +680,12 @@ int curve_dependent_main(std::string bytecode_file_name,
     }
 
     using var = crypto3::zk::snark::plonk_variable<typename AssignmentTableType::field_type::value_type>;
+
     std::vector<table_piece<var>> table_pieces = {}; // we create table pieces in any case and pass into assigner by reference
+    std::vector<std::vector<std::uint32_t>> all_used_rows;
+    int provers_amount;
+    std::vector<std::pair<std::uint32_t, var>> to_be_shared;
+
     if (gen_mode.has_fast_tbl()) { // if we are generating tables in a fast way then need to parse table_pieces from file
 
         std::ifstream inp_json(table_pieces_file_name);
@@ -693,10 +698,30 @@ int curve_dependent_main(std::string bytecode_file_name,
         std::string str((std::istreambuf_iterator<char>(inp_json)),
                         std::istreambuf_iterator<char>());
         auto parsed = boost::json::parse(str);
-        boost::json::array arr = parsed.as_array();
+        boost::json::object obj = parsed.as_object();
 
+        boost::json::array arr = obj["table_pieces"].as_array();
         for (const auto& item : arr) {
             table_pieces.emplace_back(item.as_object());
+        }
+
+        provers_amount = obj["provers_amount"].as_int64();
+
+        boost::json::array used_rows_json = obj["used_rows"].as_array();
+        for (const auto& row : used_rows_json) {
+            std::vector<std::uint32_t> current_used_rows = {};
+            for (const auto& elem : row.as_array()) {
+                current_used_rows.push_back(elem.as_int64());
+            }
+            all_used_rows.push_back(current_used_rows);
+        }
+
+        boost::json::array to_be_shared_json = obj["to_be_shared"].as_array();
+        for (const auto& pair_json : to_be_shared_json) {
+            boost::json::object pair_obj = pair_json.as_object();
+            std::uint32_t first = pair_obj["first"].as_int64();
+            var second = var(pair_obj["second"].as_object());
+            to_be_shared.emplace_back(first, second);
         }
     }
 
@@ -767,6 +792,8 @@ int curve_dependent_main(std::string bytecode_file_name,
             public_input_json_value.as_array(),
             private_input_json_value.as_array(),
             all_constant_columns,
+            all_used_rows,
+            to_be_shared,
             table_pieces
         )
     ) {
@@ -781,14 +808,38 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 0;
     }
 
-    if (gen_mode.has_circuit()) { // if we are generation circuit then we are generation table pieces in the same time. Need to write itno file
+    if (gen_mode.has_circuit()) {
+
+        boost::json::object top_level_json;
+        top_level_json["provers_amount"] = assigner_instance.assignments.size();
+
         boost::json::array pieces_json;
-        // for (const auto& piece : nil::blueprint::table_pieces) {
-        for (const auto& piece : table_pieces) {
+        for (const auto& piece : assigner_instance.get_table_pieces()) {
             pieces_json.push_back(piece.to_json());
         }
+        top_level_json["table_pieces"] = pieces_json;
 
-        std::string serialized = boost::json::serialize(pieces_json);
+        boost::json::array used_rows_json;
+        for (std::size_t i = 0; i < assigner_instance.assignments.size(); i++) {
+            boost::json::array current_row;
+            for (const auto& r : assigner_instance.assignments[i].get_used_rows()) {
+                current_row.push_back(r);
+            }
+            used_rows_json.push_back(current_row);
+        }
+        top_level_json["used_rows"] = used_rows_json;
+
+        boost::json::array to_be_shared_json;
+
+        for (const auto& pair : assigner_instance.get_to_be_shared()) {
+            boost::json::object pair_json;
+            pair_json["first"] = pair.first;
+            pair_json["second"] = pair.second.to_json();
+            to_be_shared_json.push_back(pair_json);
+        }
+        top_level_json["to_be_shared"] = to_be_shared_json;
+
+        std::string serialized = boost::json::serialize(top_level_json);
 
         std::ofstream file(table_pieces_file_name);
         file << serialized;
