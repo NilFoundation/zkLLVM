@@ -80,7 +80,7 @@ endfunction()
 function(add_example_with_proving example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE MAX_NUM_PROVERS)
+    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE MAX_NUM_PROVERS TBL_GEN_SPEED)
     set(multiValues SOURCES)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
@@ -94,7 +94,11 @@ function(add_example_with_proving example_target)
         set(ARG_MAX_NUM_PROVERS 0)
     endif()
 
-    gen_proof(${example_target} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+    if(NOT DEFINED ARG_TBL_GEN_SPEED)
+        set(ARG_TBL_GEN_SPEED "slow")
+    endif()
+
+    gen_proof(${example_target} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS} ${ARG_TBL_GEN_SPEED})
     add_dependencies(prove_cpp_examples ${example_target}_prove)
 
     if(GENERATE_EVM_VERIFIER)
@@ -107,7 +111,7 @@ endfunction()
 function(add_example_with_proving_and_recursion example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE MAX_NUM_PROVERS)
+    set(singleValues INPUT PRIVATE_INPUT CURVE_TYPE TBL_GEN_SPEED MAX_NUM_PROVERS)
     set(multiValues SOURCES)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
@@ -115,11 +119,15 @@ function(add_example_with_proving_and_recursion example_target)
                         "${multiValues}"
                         ${ARGN})
 
-    add_example_with_proving(${example_target}  ${ARG_CURVE_TYPE} ${ARGN})
-
     if(NOT DEFINED ARG_MAX_NUM_PROVERS)
         set(ARG_MAX_NUM_PROVERS 0)
     endif()
+
+    if(NOT DEFINED ARG_TBL_GEN_SPEED)
+        set(ARG_TBL_GEN_SPEED "slow")
+    endif()
+
+    add_example_with_proving(${example_target}  ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS} ${ARG_TBL_GEN_SPEED} ${ARGN})
 
     add_custom_target(${example_target}_recursion)
     assign_recursive_verifiers(${example_target} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
@@ -129,7 +137,7 @@ endfunction()
 
 add_custom_target("recursion")
 
-add_example_with_proving(arithmetics_cpp_example SOURCES arithmetics.cpp INPUT arithmetics.inp CURVE_TYPE pallas)
+add_example_with_proving(arithmetics_cpp_example SOURCES arithmetics.cpp INPUT arithmetics.inp CURVE_TYPE pallas TBL_GEN_SPEED fast)
 add_example_with_proving(integer_arithmetics_cpp_example SOURCES integer_arithmetics.cpp INPUT integer_arithmetics.inp CURVE_TYPE pallas)
 add_example_with_proving(poseidon_cpp_example SOURCES poseidon.cpp INPUT poseidon.inp CURVE_TYPE pallas)
 add_example_with_proving_and_recursion(merkle_tree_poseidon_cpp_example SOURCES merkle_tree_poseidon.cpp INPUT merkle_tree_poseidon.inp CURVE_TYPE pallas)

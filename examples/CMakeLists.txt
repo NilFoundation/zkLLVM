@@ -137,15 +137,15 @@ function(assign_ir)
         VERBATIM)
 endfunction()
 
-function(gen_proof target curve_type provers_amount)
+function(gen_proof target curve_type provers_amount tbl_gen_speed)
     if(provers_amount EQUAL 0)
-        gen_single_proof(${target} ${curve_type} 0)
+        gen_single_proof(${target} ${curve_type} 0 ${tbl_gen_speed})
     else()
         add_custom_target(${target}_prove)
 
         foreach(prover_num RANGE 1 ${provers_amount})
             math(EXPR prover_num_minus_1 "${prover_num} - 1")
-            gen_single_proof(${target} ${curve_type} ${prover_num})
+            gen_single_proof(${target} ${curve_type} ${prover_num} ${tbl_gen_speed})
             add_dependencies(${target}_prove ${target}_prove${prover_num_minus_1})
         endforeach()
 
@@ -160,12 +160,17 @@ function(gen_proof target curve_type provers_amount)
 endfunction()
 
 
-function(gen_single_proof target curve_type provers_amount)
+function(gen_single_proof target curve_type provers_amount tbl_gen_speed)
     if(NOT provers_amount EQUAL 0)
         set(multi_prover_flag --multi-prover)
         math(EXPR prover_num "${provers_amount} - 1")
     else()
         set(prover_num "")
+    endif()
+
+    set (depends_tbl ${target}_generate_tbl)
+    if (tbl_gen_speed STREQUAL "fast")
+        set (depends_tbl ${target}_generate_tbl_fast)
     endif()
 
     add_custom_target(${target}_prove${prover_num}
@@ -175,7 +180,7 @@ function(gen_single_proof target curve_type provers_amount)
             -o transpiler_output_${target}${prover_num}
             -e ${curve_type}
             ${multi_prover_flag}
-            DEPENDS ${target}_generate_crct ${target}_generate_tbl $<TARGET_FILE:transpiler>
+            DEPENDS ${target}_generate_crct ${depends_tbl} $<TARGET_FILE:transpiler>
         COMMAND_EXPAND_LISTS
         VERBATIM)
 endfunction()
