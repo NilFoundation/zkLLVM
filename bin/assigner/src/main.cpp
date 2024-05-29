@@ -400,21 +400,18 @@ std::string add_filename_prefix(
     return new_path.string();
 }
 
+
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
-void print_assignment_table_fast(
+std::uint32_t padded_rows_from_table_header(
     const assignment_proxy<ArithmetizationType> &table_proxy,
     print_table_kind print_kind,
     std::string assignment_table_file_name,
     std::uint32_t idx
 ) {
-
     if (print_kind == print_table_kind::MULTI_PROVER) {
         assignment_table_file_name = assignment_table_file_name  + std::to_string(idx);
     }
-
     std::ifstream itable_header;
-    std::ofstream otable_witness;
-    std::ofstream otable_pub_inp;
     itable_header.open(add_filename_prefix("header_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
     if (!itable_header) {
         throw std::runtime_error("Something wrong with input file header_" + assignment_table_file_name); // TODO: add catch
@@ -435,6 +432,25 @@ void print_assignment_table_fast(
     ASSERT(status == nil::marshalling::status_type::success);
 
     std::uint32_t padded_rows_amount = std::get<5>(marshalled_table_header.value()).value();
+    return padded_rows_amount;
+
+}
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_assignment_table_dynamic(
+    std::uint32_t padded_rows_amount,
+    const assignment_proxy<ArithmetizationType> &table_proxy,
+    print_table_kind print_kind,
+    std::string assignment_table_file_name,
+    std::uint32_t idx
+) {
+
+    if (print_kind == print_table_kind::MULTI_PROVER) {
+        assignment_table_file_name = assignment_table_file_name  + std::to_string(idx);
+    }
+
+    std::ofstream otable_witness;
+    std::ofstream otable_pub_inp;
 
     otable_witness.open(add_filename_prefix("witness_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_witness) {
@@ -449,42 +465,13 @@ void print_assignment_table_fast(
     print_pub_inp<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_pub_inp);
 }
 
-template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
-void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_proxy,
-                            print_table_kind print_kind,
-                            std::uint32_t ComponentConstantColumns, std::uint32_t ComponentSelectorColumns,
-                            std::string assignment_table_file_name,
-                            std::uint32_t idx
-                            ) {
 
-    if (print_kind == print_table_kind::MULTI_PROVER) {
-        assignment_table_file_name = assignment_table_file_name  + std::to_string(idx);
-    }
+template<typename ArithmetizationType>
+std::array<std::uint32_t, 7> extract_table_parameters_from_table(
+    const assignment_proxy<ArithmetizationType> &table_proxy,
+    print_table_kind print_kind
+) {
 
-    std::ofstream otable_header;
-    std::ofstream otable_witness;
-    std::ofstream otable_pub_inp;
-    std::ofstream otable_constants;
-    std::ofstream otable_selectors;
-
-    otable_header.open(add_filename_prefix("header_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
-    if (!otable_header)
-        throw std::runtime_error("Something wrong with output " + add_filename_prefix("header_", assignment_table_file_name));
-    otable_witness.open(add_filename_prefix("witness_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
-    if (!otable_witness)
-        throw std::runtime_error("Something wrong with output " + add_filename_prefix("witness_", assignment_table_file_name));
-    otable_pub_inp.open(add_filename_prefix("pub_inp_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
-    if (!otable_pub_inp)
-        throw std::runtime_error("Something wrong with output " + add_filename_prefix("pub_inp_", assignment_table_file_name));
-    otable_constants.open(add_filename_prefix("constants_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
-    if (!otable_constants)
-        throw std::runtime_error("Something wrong with output " + add_filename_prefix("constants_", assignment_table_file_name));
-    otable_selectors.open(add_filename_prefix("selectors_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
-    if (!otable_selectors)
-        throw std::runtime_error("Something wrong with output " + add_filename_prefix("selectors_", assignment_table_file_name));
-
-
-    using AssignmentTableType = assignment_proxy<ArithmetizationType>;
     std::uint32_t usable_rows_amount;
     std::uint32_t total_columns;
     std::uint32_t total_size;
@@ -541,6 +528,59 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
         padded_rows_amount = 8;
     }
 
+    std::array<std::uint32_t, 7> result = {
+        witness_size,
+        public_input_size,
+        shared_size,
+        constant_size,
+        selector_size,
+        usable_rows_amount,
+        padded_rows_amount
+    };
+
+    return result;
+}
+
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_assignment_table_static(
+    std::array<std::uint32_t, 7> asdf,
+    const assignment_proxy<ArithmetizationType> &table_proxy,
+    print_table_kind print_kind,
+    std::uint32_t ComponentConstantColumns, std::uint32_t ComponentSelectorColumns,
+    std::string assignment_table_file_name,
+    std::uint32_t idx
+ ) {
+
+    if (print_kind == print_table_kind::MULTI_PROVER) {
+        assignment_table_file_name = assignment_table_file_name  + std::to_string(idx);
+    }
+
+    std::ofstream otable_header;
+    std::ofstream otable_constants;
+    std::ofstream otable_selectors;
+
+    otable_header.open(add_filename_prefix("header_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
+    if (!otable_header)
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("header_", assignment_table_file_name));
+    otable_constants.open(add_filename_prefix("constants_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
+    if (!otable_constants)
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("constants_", assignment_table_file_name));
+    otable_selectors.open(add_filename_prefix("selectors_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
+    if (!otable_selectors)
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("selectors_", assignment_table_file_name));
+
+
+    using AssignmentTableType = assignment_proxy<ArithmetizationType>;
+
+    std::uint32_t witness_size = asdf[0];
+    std::uint32_t public_input_size = asdf[1];
+    std::uint32_t shared_size = asdf[2];
+    std::uint32_t constant_size = asdf[3];
+    std::uint32_t selector_size = asdf[4];
+    std::uint32_t usable_rows_amount = asdf[5];
+    std::uint32_t padded_rows_amount = asdf[6];
+
     print_size_t<Endianness>(witness_size,                    otable_header);
     print_size_t<Endianness>(public_input_size + shared_size, otable_header);
     print_size_t<Endianness>(constant_size,                   otable_header);
@@ -548,16 +588,10 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     print_size_t<Endianness>(usable_rows_amount,              otable_header);
     print_size_t<Endianness>(padded_rows_amount,              otable_header);
 
-    print_witness<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_witness);
-    print_pub_inp<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_pub_inp);
     print_constants<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, ComponentConstantColumns, otable_constants);
     print_selectors<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, ComponentSelectorColumns, otable_selectors);
+ }
 
-    /*
-    TODO: maybe save this check in some form
-        ASSERT_MSG(witness_idx + pub_inp_idx + constant_idx + selector_idx == total_size, "Printed index not equal required assignment size" );
-    */
-}
 
 bool read_json(
     std::string input_file_name,
@@ -611,11 +645,15 @@ void assignment_table_printer(
     const std::size_t &ComponentConstantColumns,
     const std::size_t &ComponentSelectorColumns
 ) {
-    print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+    std::array<std::uint32_t, 7> asdf = extract_table_parameters_from_table(
+        assigner_instance.assignments[idx],
+        print_table_kind::MULTI_PROVER
+    );
+
+    print_assignment_table_dynamic<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+        asdf[6],
         assigner_instance.assignments[idx],
         print_table_kind::MULTI_PROVER,
-        ComponentConstantColumns,
-        ComponentSelectorColumns,
         assignment_table_file_name,
         idx
     );
@@ -640,6 +678,8 @@ int curve_dependent_main(std::string bytecode_file_name,
                           nil::blueprint::print_format circuit_output_print_format,
                           std::array<std::size_t, 6> column_sizes
                           ) {
+
+    ASSERT_MSG(!(check_validity && gen_mode.has_fast_tbl()), "validity check does not work in fast table generation mode!");
 
     const std::size_t ComponentConstantColumns = column_sizes[2];
     const std::size_t LookupConstantColumns = column_sizes[3];
@@ -893,36 +933,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         file.close();
     }
 
-    if (gen_mode.has_fast_tbl()) {
-        if (assigner_instance.assignments.size() == 1) {
-            auto fast_tbl_print_start = std::chrono::high_resolution_clock::now();
-            print_assignment_table_fast<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-                assigner_instance.assignments[0],
-                print_table_kind::SINGLE_PROVER,
-                assignment_table_file_name,
-                0
-            );
-            auto fast_tbl_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fast_tbl_print_start);
-            BOOST_LOG_TRIVIAL(debug) << "fast_tbl_print_duration: " << fast_tbl_print_duration.count() << "ms";
-            return 0;
-        }
-        else {
-            auto fast_tbl_print_start = std::chrono::high_resolution_clock::now();
-            // print assignment table
-            for (std::size_t i = 0; i < assigner_instance.assignments.size(); i++) {
-                print_assignment_table_fast<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-                    assigner_instance.assignments[i],
-                    print_table_kind::MULTI_PROVER,
-                    assignment_table_file_name,
-                    i
-                );
-            }
-            auto fast_tbl_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fast_tbl_print_start);
-            BOOST_LOG_TRIVIAL(debug) << "fast_tbl_print_duration: " << fast_tbl_print_duration.count() << "ms";
-            return 0;
-        }
-    }
-
+    if (gen_mode.has_circuit()) {
     auto pack_lookup_start = std::chrono::high_resolution_clock::now();
     // pack lookup tables
     if (assigner_instance.circuits[0].get_reserved_tables().size() > 0) {
@@ -954,26 +965,50 @@ int curve_dependent_main(std::string bytecode_file_name,
     }
     auto pack_lookup_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - pack_lookup_start);
     BOOST_LOG_TRIVIAL(debug) << "pack_lookup_duration: " << pack_lookup_duration.count() << "ms";
+    }
 
     auto overall_table_printing_start = std::chrono::high_resolution_clock::now();
     constexpr std::uint32_t invalid_target_prover = std::numeric_limits<std::uint32_t>::max();
     // print assignment tables and circuits
-    ASSERT_MSG(assigner_instance.assignments.size() == assigner_instance.circuits.size(), "Missmatch assignments circuits size");
+    ASSERT_MSG(gen_mode.has_fast_tbl() || (assigner_instance.assignments.size() == assigner_instance.circuits.size()), "Missmatch assignments circuits size");
     if (assigner_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
             auto single_table_print_start = std::chrono::high_resolution_clock::now();
         // print assignment table
-        if (gen_mode.has_assignments()) {
+        if (gen_mode.has_slow_tbl()) {
 
-            print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+            std::array<std::uint32_t, 7> asdf = extract_table_parameters_from_table(
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER
+            );
+
+            print_assignment_table_dynamic<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                asdf[6],
                 assigner_instance.assignments[0],
                 print_table_kind::SINGLE_PROVER,
-                ComponentConstantColumns,
-                ComponentSelectorColumns,
                 assignment_table_file_name,
                 0
             );
             auto single_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - single_table_print_start);
             BOOST_LOG_TRIVIAL(debug) << "single_table_print_duration: " << single_table_print_duration.count() << "ms";
+        }
+        if (gen_mode.has_fast_tbl()) {
+            auto fast_tbl_print_start = std::chrono::high_resolution_clock::now();
+
+            std::uint32_t padded_rows_amount = padded_rows_from_table_header<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER,
+                assignment_table_file_name,
+                0);
+
+            print_assignment_table_dynamic<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                padded_rows_amount,
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER,
+                assignment_table_file_name,
+                0);
+
+            auto fast_tbl_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fast_tbl_print_start);
+            BOOST_LOG_TRIVIAL(debug) << "fast_tbl_print_duration: " << fast_tbl_print_duration.count() << "ms";
         }
 
         // print circuit
@@ -988,6 +1023,24 @@ int curve_dependent_main(std::string bytecode_file_name,
             print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
                 assigner_instance.circuits[0], assigner_instance.assignments[0], false, 0, ocircuit);
             ocircuit.close();
+
+            std::array<std::uint32_t, 7> asdf = extract_table_parameters_from_table(
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER
+            );
+
+            print_assignment_table_static<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                asdf,
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER,
+                ComponentConstantColumns,
+                ComponentSelectorColumns,
+                assignment_table_file_name,
+                0
+            );
+
+
+
         }
     } else if (assigner_instance.assignments.size() > 1 &&
               (target_prover < assigner_instance.assignments.size() || target_prover == invalid_target_prover)) {
@@ -998,13 +1051,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
-            if (gen_mode.has_assignments()) {
-
-                // print_table_human_readable<ArithmetizationType>(
-                //     assigner_instance.assignments[idx],
-                //     ComponentConstantColumns,
-                //     ComponentSelectorColumns
-                //     );
+            if (gen_mode.has_slow_tbl()) {
 
                 auto future = std::async(
                     std::launch::async,
@@ -1018,7 +1065,24 @@ int curve_dependent_main(std::string bytecode_file_name,
 
                 futures.push_back(std::move(future));
             }
+            if (gen_mode.has_fast_tbl()) {
+                std::uint32_t padded_rows_amount = padded_rows_from_table_header<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                    assigner_instance.assignments[idx],
+                    print_table_kind::MULTI_PROVER,
+                    assignment_table_file_name,
+                    idx);
 
+                print_assignment_table_dynamic<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                    padded_rows_amount,
+                    assigner_instance.assignments[idx],
+                    print_table_kind::MULTI_PROVER,
+                    assignment_table_file_name,
+                    idx);
+            }
+
+        }
+
+        for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print circuit
             if (gen_mode.has_circuit()) {
                 std::ofstream ocircuit;
@@ -1033,6 +1097,21 @@ int curve_dependent_main(std::string bytecode_file_name,
                     assigner_instance.circuits[idx], assigner_instance.assignments[idx], true, idx, ocircuit);
 
                 ocircuit.close();
+
+                std::array<std::uint32_t, 7> asdf = extract_table_parameters_from_table(
+                    assigner_instance.assignments[idx],
+                    print_table_kind::MULTI_PROVER
+                );
+
+                print_assignment_table_static<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                    asdf,
+                    assigner_instance.assignments[idx],
+                    print_table_kind::MULTI_PROVER,
+                    ComponentConstantColumns,
+                    ComponentSelectorColumns,
+                    assignment_table_file_name,
+                    idx
+                );
             }
         }
 
@@ -1161,13 +1240,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    nil::blueprint::generation_mode gen_mode = nil::blueprint::generation_mode::assignments() | nil::blueprint::generation_mode::circuit();
+    nil::blueprint::generation_mode gen_mode = nil::blueprint::generation_mode::slow_tbl() | nil::blueprint::generation_mode::circuit();
     if (vm.count("generate-type")) {
         const auto generate_type = vm["generate-type"].as<std::string>();
         if (generate_type == "circuit") {
             gen_mode = nil::blueprint::generation_mode::circuit();
         } else if (generate_type == "assignment") {
-            gen_mode = nil::blueprint::generation_mode::assignments();
+            gen_mode = nil::blueprint::generation_mode::slow_tbl();
         } else if (generate_type == "assignment-fast") {
             gen_mode = nil::blueprint::generation_mode::fast_tbl();
         } else if (generate_type == "size_estimation") {
@@ -1180,6 +1259,7 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+    gen_mode = gen_mode | nil::blueprint::generation_mode::assignments(); // for now in any case we generate assignment table to determine used_rows
 
     if (!vm.count("public-input") && !vm.count("private-input") && gen_mode.has_assignments()) {
         std::cerr << "Both public and private input file names are not specified" << std::endl;
@@ -1204,7 +1284,7 @@ int main(int argc, char *argv[]) {
         public_input_file_name = vm["public-input"].as<std::string>();
     }
 
-    if (gen_mode.has_assignments() || gen_mode.has_fast_tbl()) {
+    if (gen_mode.has_circuit() || gen_mode.has_fast_tbl() || gen_mode.has_slow_tbl()) {
         if (vm.count("assignment-table")) {
             assignment_table_file_name = vm["assignment-table"].as<std::string>();
         } else {
