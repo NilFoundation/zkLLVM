@@ -933,7 +933,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         file.close();
     }
 
-    if (gen_mode.has_circuit()) {
+    if (!gen_mode.has_fast_tbl()) {
     auto pack_lookup_start = std::chrono::high_resolution_clock::now();
     // pack lookup tables
     if (assigner_instance.circuits[0].get_reserved_tables().size() > 0) {
