@@ -183,9 +183,9 @@ jobs:
         run: |
           bash ./tests/compare_folders_content.sh build/separate_generatuon build/simultaneous_generation
 
-      - name: Run size estimation for C++ examples
-        run: |
-          cmake --build build -t cpp_examples_estimate_size
+      # - name: Run size estimation for C++ examples
+      #   run: |
+      #     cmake --build build -t cpp_examples_estimate_size
 
       - name: Copy examples' circuits and assignments for uploading
         run: |
