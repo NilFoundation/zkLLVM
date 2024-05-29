@@ -33,8 +33,11 @@ function(assign_ir)
     add_custom_target(${target}_generate_crct
             COMMAND $<TARGET_FILE:assigner>
             -b ${binary_name}
+            -i ${INPUTS_DIR}/${input}
+            ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
             -j table_pieces_${target}.json
+            -t assignment_${target}.tbl
             -e ${curve_type}
             --generate-type circuit
             ${max_num_provers_flag} ${max_num_provers_amount}
@@ -92,7 +95,7 @@ function(assign_ir)
             -i ${INPUTS_DIR}/${input}
             ${minus_p} ${private_input_string}
             -j table_pieces_${target}.json
-            -t assignment_${target}.tbl -e ${curve_type} --check
+            -t assignment_${target}.tbl -e ${curve_type}
             --generate-type assignment-fast
             ${max_num_provers_flag} ${max_num_provers_amount}
             ${arithmetization_flag} ${arithmetization_amount}
@@ -100,7 +103,21 @@ function(assign_ir)
         COMMAND_EXPAND_LISTS
         VERBATIM)
 
-    add_custom_target(${target}_generate_tbl_no_check
+    add_custom_target(${target}_generate_tbl_fast_depends_on_crct
+        COMMAND $<TARGET_FILE:assigner>
+            -b ${binary_name}
+            -i ${INPUTS_DIR}/${input}
+            ${minus_p} ${private_input_string}
+            -j table_pieces_${target}.json
+            -t assignment_${target}.tbl -e ${curve_type}
+            --generate-type assignment-fast
+            ${max_num_provers_flag} ${max_num_provers_amount}
+            ${arithmetization_flag} ${arithmetization_amount}
+        DEPENDS ${target} ${INPUTS_DIR}/${input} ${target}_generate_crct $<TARGET_FILE:assigner>
+        COMMAND_EXPAND_LISTS
+        VERBATIM)
+
+        add_custom_target(${target}_generate_tbl_no_check
         COMMAND $<TARGET_FILE:assigner>
             -b ${binary_name}
             -i ${INPUTS_DIR}/${input}
@@ -168,9 +185,9 @@ function(gen_single_proof target curve_type provers_amount tbl_gen_speed)
         set(prover_num "")
     endif()
 
-    set (depends_tbl ${target}_generate_tbl)
+    set (depends_tbl ${target}_generate_both)
     if (tbl_gen_speed STREQUAL "fast")
-        set (depends_tbl ${target}_generate_tbl_fast)
+        set (depends_tbl ${target}_generate_tbl_fast_depends_on_crct)
     endif()
 
     add_custom_target(${target}_prove${prover_num}
@@ -180,7 +197,7 @@ function(gen_single_proof target curve_type provers_amount tbl_gen_speed)
             -o transpiler_output_${target}${prover_num}
             -e ${curve_type}
             ${multi_prover_flag}
-            DEPENDS ${target}_generate_crct ${depends_tbl} $<TARGET_FILE:transpiler>
+            DEPENDS ${depends_tbl} $<TARGET_FILE:transpiler>
         COMMAND_EXPAND_LISTS
         VERBATIM)
 endfunction()
