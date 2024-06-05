@@ -3,22 +3,22 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
-    nil_crypto3 = {
+    nil_blueprint = {
       url =
-        "git+https://github.com/NilFoundation/crypto3?submodules=1&rev=66096ae733cabc99a763e00e803d710493318563";
+        "git+https://github.com/NilFoundation/zkllvm-blueprint?submodules=1&rev=8e2bd7c45c50ed0499d445f848941470494a310a";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, nil_crypto3, flake-utils }:
+  outputs = { self, nixpkgs, nil_blueprint, flake-utils }:
     (flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
         stdenv = pkgs.llvmPackages_16.stdenv;
       in rec {
         packages = rec {
-          crypto3 = nil_crypto3.packages.${pkgs.system}.default;
+          blueprint = nil_blueprint.packages.${pkgs.system}.default;
           zkllvm = stdenv.mkDerivation {
             name = "zkllvm";
 
@@ -38,9 +38,9 @@
               })
             ];
 
-            # Because crypto3 is header-only, we must propagate it so users
-            # of this flake must not specify crypto3 in their derivations manually
-            propagatedBuildInputs = [ crypto3 ];
+            # Because blueprint is header-only, we must propagate it so users
+            # of this flake must not specify blueprint in their derivations manually
+            propagatedBuildInputs = [ blueprint ];
 
             cmakeFlags =
               [ "-DCMAKE_BUILD_TYPE=Release"
@@ -82,7 +82,7 @@
               pkg-config
               clang_16
               boost183
-              packages.crypto3
+              packages.blueprint
             ];
 
             cmakeBuildType = "Debug";
@@ -120,7 +120,7 @@
               boost183
               clang_16
               clang-tools_16
-              packages.crypto3
+              packages.blueprint
             ];
 
             shellHook = ''
