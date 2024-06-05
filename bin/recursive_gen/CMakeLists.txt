@@ -36,35 +36,20 @@ set_target_properties(${CURRENT_PROJECT_NAME} PROPERTIES
                       CXX_STANDARD_REQUIRED TRUE)
 
 target_link_libraries(${CURRENT_PROJECT_NAME}
-                      crypto3::algebra
-                      crypto3::block
-                      crypto3::blueprint
-                      crypto3::codec
-                      crypto3::math
-                      crypto3::multiprecision
-                      crypto3::pkpad
-                      crypto3::pubkey
-                      crypto3::random
-                      crypto3::zk
-
-                      crypto3::assigner
-                      crypto3::transpiler
-
-                      marshalling::core
-                      marshalling::crypto3_algebra
-                      marshalling::crypto3_multiprecision
-                      marshalling::crypto3_zk
-
+                      crypto3::all
                       ${Boost_LIBRARIES})
 
 target_include_directories(${CURRENT_PROJECT_NAME} PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                           ${CMAKE_CURRENT_SOURCE_DIR}/../../libs/circifier/llvm/include
-                           ${CMAKE_CURRENT_SOURCE_DIR}/../../libs/circifier/utils/bazel/llvm-project-overlay/llvm/include
+                           ${CMAKE_SOURCE_DIR}/libs/circifier/llvm/include
+                           ${CMAKE_SOURCE_DIR}/libs/circifier/utils/bazel/llvm-project-overlay/llvm/include
+                           ${CMAKE_SOURCE_DIR}/libs/assigner/include
+                           ${CMAKE_SOURCE_DIR}/libs/blueprint/include
+                           ${CMAKE_SOURCE_DIR}/libs/transpiler/include
                            ${CMAKE_BINARY_DIR}/libs/circifier/llvm/include
 
-                           $<$<BOOL:${Boost_FOUND}>:${Boost_INCLUDE_DIRS}>)
+                           ${Boost_INCLUDE_DIRS})
 
 if(APPLE OR NOT ${CMAKE_TARGET_ARCHITECTURE} STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
     set_target_properties(${CURRENT_PROJECT_NAME} PROPERTIES

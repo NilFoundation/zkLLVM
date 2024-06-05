@@ -1,0 +1,318 @@
+name: Run tests
+
+on:
+  # Triggers the workflow on pull request events but only for the master branch
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  handle-syncwith:
+    if: github.event_name == 'pull_request'
+    name: Call Reusable SyncWith Handler
+    uses: NilFoundation/ci-cd/.github/workflows/reusable-handle-syncwith.yml@v1
+    with:
+      ci-cd-ref: 'v1'
+    secrets: inherit
+
+  build-and-test-with-nix:
+    needs: [ handle-syncwith ]
+    runs-on: ["self-hosted", "aws_autoscaling"]
+    outputs:
+      transpiler-artifact-name: ${{ steps.artifact-names.outputs.transpiler }}
+      examples-artifact-name: ${{ steps.artifact-names.outputs.examples }}
+      evm-targets: ${{ steps.get-targets.outputs.evm-targets }}
+      prover-targets: ${{ steps.get-targets.outputs.prover-targets }}
+    env:
+      INTEGRATION_TESTING_TARGETS: |
+        arithmetics_cpp_example
+        polynomial_cpp_example
+        poseidon_cpp_example
+        merkle_tree_poseidon_cpp_example
+        uint_remainder_cpp
+        compare_eq_cpp
+        private_input_cpp
+    # uint_shift_left # TODO fix and re-enable tests
+    # uint_bit_decomposition # TODO fix and re-enable tests
+    # uint_bit_composition # TODO fix and re-enable tests
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Checkout submodules to specified refs
+        if: inputs.submodules-refs != ''
+        uses: NilFoundation/ci-cd/actions/recursive-checkout@master
+        with:
+          refs: ${{ inputs.submodules-refs }}
+          paths: |
+            ${{ github.workspace }}/**
+            !${{ github.workspace }}/
+            !${{ github.workspace }}/**/.git/**
+
+      # nix is taken from the cloud-init template, no need to install it.
+      - name: Setup build
+        run: |
+          nix develop .?submodules=1# -c cmake -G Ninja -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_ENABLE_TESTS=TRUE -DGENERATE_EVM_VERIFIER=TRUE -DZKLLVM_VERSION=0.1.18
+
+      - name: Build zkllvm
+        run: |
+          nix develop -c ninja -C build assigner clang transpiler
+
+      - name: Build circuits(.crct) of the C++ examples
+        run: |
+          nix develop -c ninja -C build -k 0 cpp_examples_generate_crct
+          ls -al ./examples/cpp
+
+      - name: Build assignment tables(.tbl) of the C++ examples
+        run: |
+          nix develop -c ninja -C build -k 0 cpp_examples_generate_tbl_no_check
+          ls -al ./examples/cpp
+
+      - name: Copy assigner output from separate generation mode
+        run: |
+          bash ./tests/copy_assigner_outputs.sh ./build/examples/cpp/ build/separate_generatuon
+
+      - name: Run simultaneous .tbl and .crct generation of the C++ examples
+        run: |
+          nix develop -c ninja -C build -k 0 cpp_examples_generate_both
+          ls -al ./examples/cpp
+
+      - name: Copy assigner output from simultaneous generation mode
+        run: |
+          bash ./tests/copy_assigner_outputs.sh ./build/examples/cpp/ build/simultaneous_generation
+
+      - name: Compare different assigner modes output
+        run: |
+          bash ./tests/compare_folders_content.sh build/separate_generatuon build/simultaneous_generation
+
+      - name: Run size estimation for C++ examples
+        run: |
+          nix develop -c ninja -C build -k 0 cpp_examples_estimate_size
+
+      - name: Copy examples' circuits and assignments for uploading
+        run: |
+          chmod +x ./examples/copy_artifacts.sh
+          ./examples/copy_artifacts.sh build/examples/cpp examples_output
+          ls -al examples_output/
+
+      - name: Set aritfacts' names
+        id: artifact-names
+        run: |
+          echo "transpiler=transpiler-output" >> $GITHUB_OUTPUT
+          echo "examples=circuits-and-assignments" >> $GITHUB_OUTPUT
+
+      - name: Upload examples' circuits and assignments artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.artifact-names.outputs.examples }}
+          path: |
+            examples_output
+
+      - name: Compile tests as cpp code
+        run: |
+          nix develop -c ninja -C build -k 0 all_tests_compile_as_cpp_code
+
+      - name: Compile tests as circuits
+        run: |
+          nix develop -c ninja -C build -k 0 all_tests_compile_as_circuits
+
+      - name: Run tests as cpp code (expected res calculation)
+        run: |
+          nix develop -c ninja -C build -k 0 all_tests_run_expected_res_calculation
+
+      - name: Get transpiler output for integration testing
+        run: |
+          targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {printf " %s_evm_verifier ", $0}' | sed 's/[[:space:]]*$//')
+          echo "targets: ${targets_str}"
+          nix develop -c ninja -C build -k 0  ${targets_str}
+          ls -al build/examples/cpp/
+
+      - name: Upload examples' circuits and assignments artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.artifact-names.outputs.transpiler }}
+          path: |
+            build/examples/cpp/transpiler_output_*
+
+      - name: Run tests as circuits (real res calculation)
+        run: |
+          nix develop -c ninja -C build -k 0 all_tests_assign_circuits
+
+      - name: Compare expected and real test results
+        run: |
+          chmod +x ./tests/run_test_results_comparison.sh
+          bash ./tests/run_test_results_comparison.sh
+
+      - name: Run tests on faulty inputs
+        run: |
+          chmod +x ./tests/run_tests_faulty_input.sh
+          bash ./tests/run_tests_faulty_input.sh pallas
+
+      - name: Run assigner unit tests
+        run: |
+          nix develop -c ninja -C build -k 0 check-crypto3-assigner
+
+      - name: Build proof for the circuit of the C++ examples
+        run: |
+          nix develop -c ninja -C build -k 0 prove_cpp_examples
+
+      - name: Build recursive gen
+        run: |
+          nix develop -c ninja -C build -k 0 recursive_gen
+
+      - name: Build and run transpiler test
+        run: |
+          nix develop -c ninja -C build -k 0 compile_and_run_transpiler_tests
+
+      - name: Run recursive verifier tests
+        run: |
+          nix develop -c ninja -C build -k 0 recursion
+
+      - name: Build IR of the C++ examples
+        run: |
+          nix develop -c ninja -C build -k 0 compile_cpp_examples
+          ls -al ./examples/cpp
+
+      - name: Set targets for integration testing
+        id: get-targets
+        run: |
+          targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {print "transpiler_output_" $1}')
+          echo "evm-targets<<EOF" >> $GITHUB_OUTPUT
+          echo "${targets_str}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "prover-targets<<EOF" >> $GITHUB_OUTPUT
+          echo "${{ env.INTEGRATION_TESTING_TARGETS }}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  verify-zkllvm-proofs:
+    name: Verify built-it proofs with EVM-placeholder
+    needs:
+      - build-and-test-with-nix
+      - handle-syncwith
+    if: |
+      always() && !cancelled() &&
+      (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
+      needs.build-and-test-with-nix.result == 'success'
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
+    with:
+      artifact-name: ${{ needs.build-and-test-with-nix.outputs.transpiler-artifact-name }}
+      evm-placeholder-verification-ref: 2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
+      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+      test-names: ${{ needs.build-and-test-with-nix.outputs.evm-targets }}
+
+  generate-proofs:
+    name: Generate proofs for cpp examples
+    needs:
+      - build-and-test-with-nix
+      - handle-syncwith
+    if: |
+      always() && !cancelled() &&
+      (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
+      needs.build-and-test-with-nix.result == 'success'
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@ef8cd9152b4bec871e7efdc1d6b606e445bad274
+    with:
+      artifact-name: ${{ needs.build-and-test-with-nix.outputs.examples-artifact-name }}
+      # Update next line if you need new version of proof producer
+      proof-producer-ref: ef8cd9152b4bec871e7efdc1d6b606e445bad274
+      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+      targets: ${{ needs.build-and-test-with-nix.outputs.prover-targets }}
+
+  merge-proofs-to-transpiler-output:
+    runs-on: ubuntu-22.04
+    needs:
+      - generate-proofs
+      - build-and-test-with-nix
+    if: |
+      always() && !cancelled() &&
+      needs.generate-proofs.result == 'success' &&
+      needs.build-and-test-with-nix.result == 'success'
+    outputs:
+      merged-artifact-name: ${{ steps.artifact-name.outputs.merged }}
+    steps:
+      - name: Download artifact with proofs
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.generate-proofs.outputs.artifact-name }}
+
+      - name: Download artifact with transpiler output
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.build-and-test-with-nix.outputs.transpiler-artifact-name }}
+
+      - name: Merge proofs into transpiler output
+        run: |
+          copy_failed=0
+          while read dir; do
+            base_name=${dir#./transpiler_output_}
+
+            if [[ -d "$base_name" ]]; then
+              if ! cp "${base_name}/proof.bin" "${dir}/"; then
+                echo "Failed to copy proof.bin to ${dir}" >&2
+                copy_failed=1
+              else
+                echo "proof.bin added to ${dir}"
+              fi
+            else
+              echo "Error: No matching directory found for ${dir}" >&2
+            fi
+          done < <(find . -type d -name "transpiler_output_*")
+
+          if [ $copy_failed -eq 1 ]; then
+            echo "One or more copy operations failed."
+            exit 1
+          fi
+
+      - name: Set aritfact name
+        id: artifact-name
+        run: |
+          echo "merged=transpiler-output-merged-proofs" >> $GITHUB_OUTPUT
+
+      - name: Upload merged artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.artifact-name.outputs.merged }}
+          path: |
+            transpiler_output_*
+
+  verify-proof-producer-proofs:
+    name: Verify proof-producer proofs with EVM-placeholder
+    needs:
+      - handle-syncwith
+      - merge-proofs-to-transpiler-output
+      - build-and-test-with-nix
+    if: |
+      always() && !cancelled() &&
+      (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
+      needs.build-and-test-with-nix.result == 'success' &&
+      needs.merge-proofs-to-transpiler-output.result == 'success'
+    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
+    with:
+      artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
+      evm-placeholder-verification-ref: 2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
+      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
+      test-names: ${{ needs.build-and-test-with-nix.outputs.evm-targets }}
+
+  cleanup-integration-testing:
+    # For now each artifact is 12 GB. Better clean it up to keep the space
+    name: Clean up after integration testing
+    needs:
+      - verify-proof-producer-proofs
+      - verify-zkllvm-proofs
+      - merge-proofs-to-transpiler-output
+      - build-and-test-with-nix
+      - generate-proofs
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: geekyeggo/delete-artifact@v2
+        with:
+          name: |
+            ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
+            ${{ needs.generate-proofs.outputs.artifact-name }}

@@ -7,12 +7,12 @@
 
 using namespace nil::crypto3::algebra::curves;
 
-constexpr typename pallas::base_field_type::value_type omega = 0x1ff2863fd35bfc59e51f3693bf37e2d841d1b5fbed4138f755a638bec8750abd_cppui255;
+constexpr typename pallas::base_field_type::value_type omega = 0x1ff2863fd35bfc59e51f3693bf37e2d841d1b5fbed4138f755a638bec8750abd_cppui_modular255;
 constexpr size_t n = 4;
 
 #ifndef __ZKLLVM__
 void calculate_expected_res (std::array<std::array<typename pallas::base_field_type::value_type,3>, n> &res){
-    typename pallas::base_field_type::integral_type pi_num = 0xa53a16c34fb833b5_cppui255;
+    typename pallas::base_field_type::integral_type pi_num = 0xa53a16c34fb833b5_cppui_modular255;
     typename pallas::base_field_type::value_type w_powers = omega;
     typename pallas::base_field_type::value_type w_pow_x = 1;
 

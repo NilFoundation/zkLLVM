@@ -14,6 +14,6 @@ typename pallas::base_field_type::value_type pow_2(typename pallas::base_field_t
                              typename pallas::base_field_type::value_type b) {
 
     typename pallas::base_field_type::value_type c = (a + b) * a + b * (a + b) * (a + b);
-    const typename pallas::base_field_type::value_type constant = 0x12345678901234567890_cppui255;
+    const typename pallas::base_field_type::value_type constant = 0x12345678901234567890_cppui_modular255;
     return c * c * c / (b - a) + pow_2(a) + constant;
 }

@@ -22,21 +22,11 @@ include(CMConfig)
 include(CMSetupVersion)
 
 cm_workspace(zkllvm)
-
-macro(cm_find_package NAME)
-    if(NOT "${NAME}" MATCHES "^${CMAKE_WORKSPACE_NAME}_.*$" AND NOT "${NAME}" STREQUAL CM)
-        find_package(${ARGV})
-    else()
-        set(${ARGV0}_FOUND ON CACHE BOOL "")
-    endif()
-endmacro()
-
 cm_setup_version(VERSION 0.3.0 PREFIX ${CMAKE_WORKSPACE_NAME})
 
 option(BUILD_SHARED_LIBS "Build shared library" TRUE)
-option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
 option(BUILD_WITH_BOOST_STATIC_LIBS "Build using Boost static libraries" TRUE)
-option(BUILD_TESTS "Build unit tests" FALSE)
+option(CMAKE_ENABLE_TESTS "Build unit tests" FALSE)
 option(BUILD_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
 option(CIRCUIT_BINARY_OUTPUT "Emit circuit IR as binary file" FALSE)
 option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
@@ -51,18 +41,15 @@ set(RSLANG_BUILD_TOOLS "<none>" CACHE STRING "Rust tools to build (see build.too
 include(TargetArchitecture)
 include(CircuitCompile)
 
+find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter)
+
+find_package(crypto3 REQUIRED)
+find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system random unit_test_framework timer)
+
 if(BUILD_WITH_BOOST_STATIC_LIBS)
     set(Boost_USE_STATIC_LIBS TRUE)
 else()
     set(Boost_USE_STATIC_LIBS FALSE)
-endif()
-
-if(UNIX AND BUILD_WITH_CCACHE)
-    find_program(CCACHE_FOUND ccache)
-    if(CCACHE_FOUND)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-    endif(CCACHE_FOUND)
 endif()
 
 if(BUILD_WITH_TARGET_ARCHITECTURE)
@@ -71,31 +58,21 @@ else()
     target_architecture(CMAKE_TARGET_ARCHITECTURE)
 endif()
 
-if(BUILD_TESTS)
-    cm_find_package(Boost COMPONENTS REQUIRED unit_test_framework)
-endif()
-
-add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3")
-
-add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/blueprint")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/assigner")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/transpiler")
 
 set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
+include(CMTest)
+cm_add_test_subdirectory(tests)
 add_subdirectory(examples)
-if(BUILD_TESTS)
-  add_subdirectory(tests)
-endif()
-
 add_subdirectory(libs/stdlib)
 
 install(FILES cmake/CircuitCompile.cmake DESTINATION share/zkllvm)
 
-find_package(Git REQUIRED)
-
 if(NOT ZKLLVM_VERSION)
+    find_package(Git REQUIRED)
     execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags HEAD
                     OUTPUT_VARIABLE DESCRIBE_OUTBUT
                     OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -153,8 +130,6 @@ install(SCRIPT cmake/create-symlinks.cmake)
 include(CPack)
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/bin")
-
-find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 message(STATUS "Configuring rslang")
 
