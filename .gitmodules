@@ -19,6 +19,3 @@
 [submodule "libs/rslang"]
 	path = libs/rslang
 	url = ../../NilFoundation/zkllvm-rslang.git
-[submodule "libs/crypto3"]
-	path = libs/crypto3
-	url = ../../NilFoundation/crypto3.git
