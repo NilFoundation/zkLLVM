@@ -22,19 +22,9 @@ include(CMConfig)
 include(CMSetupVersion)
 
 cm_workspace(zkllvm)
-
-macro(cm_find_package NAME)
-    if(NOT "${NAME}" MATCHES "^${CMAKE_WORKSPACE_NAME}_.*$" AND NOT "${NAME}" STREQUAL CM)
-        find_package(${ARGV})
-    else()
-        set(${ARGV0}_FOUND ON CACHE BOOL "")
-    endif()
-endmacro()
-
 cm_setup_version(VERSION 0.3.0 PREFIX ${CMAKE_WORKSPACE_NAME})
 
 option(BUILD_SHARED_LIBS "Build shared library" TRUE)
-option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
 option(BUILD_WITH_BOOST_STATIC_LIBS "Build using Boost static libraries" TRUE)
 option(BUILD_TESTS "Build unit tests" FALSE)
 option(BUILD_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
@@ -57,14 +47,6 @@ else()
     set(Boost_USE_STATIC_LIBS FALSE)
 endif()
 
-if(UNIX AND BUILD_WITH_CCACHE)
-    find_program(CCACHE_FOUND ccache)
-    if(CCACHE_FOUND)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-    endif(CCACHE_FOUND)
-endif()
-
 if(BUILD_WITH_TARGET_ARCHITECTURE)
     set(CMAKE_TARGET_ARCHITECTURE ${BUILD_WITH_TARGET_ARCHITECTURE})
 else()
@@ -72,7 +54,7 @@ else()
 endif()
 
 if(BUILD_TESTS)
-    cm_find_package(Boost COMPONENTS REQUIRED unit_test_framework)
+    find_package(Boost COMPONENTS REQUIRED unit_test_framework)
 endif()
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3")
@@ -85,9 +67,7 @@ set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
 add_subdirectory(examples)
-if(BUILD_TESTS)
-  add_subdirectory(tests)
-endif()
+cm_add_test_subdirectory(test)
 
 add_subdirectory(libs/stdlib)
 
