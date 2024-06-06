@@ -29,7 +29,12 @@
             env.NIX_CFLAGS_COMPILE =
               toString ([ "-Wno-unused-but-set-variable" ]);
 
-            buildInputs = with pkgs; [ cmake pkg-config clang_16
+            buildInputs = with pkgs; [ 
+            python3
+            git
+            cmake
+            pkg-config
+            clang_16
               (boost183.override {
                 enableShared = true;
                 enableStatic = true;
@@ -77,6 +82,8 @@
               toString ([ "-Wno-unused-but-set-variable" ]);
 
             buildInputs = with pkgs; [
+              python3
+              git
               cmake
               ninja
               pkg-config
@@ -93,6 +100,7 @@
               "-DCMAKE_ENABLE_TESTS=TRUE"
               "-DCMAKE_C_COMPILER=clang"
               "-DCMAKE_CXX_COMPILER=clang++"
+              "-DZKLLVM_VERSION=1.2.3"
             ];
 
             ninjaFlags = pkgs.lib.strings.concatStringsSep " " testList;
@@ -115,6 +123,8 @@
         devShells = {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
+              python3
+              git
               cmake
               pkg-config
               boost183

@@ -41,25 +41,7 @@ target_link_libraries(${CURRENT_PROJECT_NAME}
                       LLVMIRReader
                       LLVMCore
                       LLVMSupport
-                      crypto3::algebra
-                      crypto3::block
-                      crypto3::blueprint
-                      crypto3::codec
-                      crypto3::math
-                      crypto3::multiprecision
-                      crypto3::pkpad
-                      crypto3::pubkey
-                      crypto3::random
-                      crypto3::zk
-
-                      crypto3::assigner
-                      crypto3::transpiler
-
-                      marshalling::core
-                      marshalling::crypto3_algebra
-                      marshalling::crypto3_multiprecision
-                      marshalling::crypto3_zk
-
+                      crypto3::all
                       ${Boost_LIBRARIES})
 
 target_include_directories(${CURRENT_PROJECT_NAME} PUBLIC

@@ -41,6 +41,14 @@ set(RSLANG_BUILD_TOOLS "<none>" CACHE STRING "Rust tools to build (see build.too
 include(TargetArchitecture)
 include(CircuitCompile)
 
+find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter)
+find_package(crypto3 REQUIRED)
+
+find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system)
+if(BUILD_TESTS)
+    find_package(Boost COMPONENTS REQUIRED unit_test_framework)
+endif()
+
 if(BUILD_WITH_BOOST_STATIC_LIBS)
     set(Boost_USE_STATIC_LIBS TRUE)
 else()
@@ -53,12 +61,6 @@ else()
     target_architecture(CMAKE_TARGET_ARCHITECTURE)
 endif()
 
-if(BUILD_TESTS)
-    find_package(Boost COMPONENTS REQUIRED unit_test_framework)
-endif()
-
-add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/crypto3")
-
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/blueprint")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/assigner")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/transpiler")
@@ -66,9 +68,9 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/transpiler")
 set(LLVM_ENABLE_PROJECTS "clang" CACHE STRING "Additional llvm projects")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/libs/circifier/llvm")
 
+include(CMTest)
+cm_add_test_subdirectory(tests)
 add_subdirectory(examples)
-cm_add_test_subdirectory(test)
-
 add_subdirectory(libs/stdlib)
 
 install(FILES cmake/CircuitCompile.cmake DESTINATION share/zkllvm)
@@ -133,8 +135,6 @@ install(SCRIPT cmake/create-symlinks.cmake)
 include(CPack)
 
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/bin")
-
-find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 message(STATUS "Configuring rslang")
 
