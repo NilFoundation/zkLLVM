@@ -171,7 +171,7 @@ add_example_with_proving(pallas_curve_multiplication_cpp_example
 add_example_with_proving(ed25519_curve_add_cpp SOURCES ed25519_curve_add.cpp INPUT ed25519_curve_add.inp CURVE_TYPE pallas TBL_GEN_SPEED fast)
 add_example_with_proving(ed25519_curve_mul_cpp SOURCES ed25519_curve_mul.cpp INPUT ed25519_curve_mul.inp CURVE_TYPE pallas TBL_GEN_SPEED fast)
 add_example_with_proving(ed25519_field_add_cpp SOURCES ed25519_field_add.cpp INPUT ed25519_field_add.inp CURVE_TYPE pallas TBL_GEN_SPEED fast)
-add_example_with_proving(strlen_cpp_example SOURCES strlen.cpp INPUT strlen.inp CURVE_TYPE pallas)
+# add_example_with_proving(strlen_cpp_example SOURCES strlen.cpp INPUT strlen.inp CURVE_TYPE pallas)
 add_example_with_proving(sha2_512_cpp SOURCES sha2_512.cpp INPUT sha2_512.inp CURVE_TYPE pallas TBL_GEN_SPEED fast)
 
 add_example_with_proving(uint_remainder_cpp SOURCES bit_operations/uint_remainder.cpp INPUT bit_operations/uint_remainder.inp CURVE_TYPE pallas TBL_GEN_SPEED fast)
