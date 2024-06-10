@@ -101,6 +101,14 @@
       releaseBuild = stdenv.mkDerivation {
         name = "zkEVM";
 
+        cmakeFlags = [
+          "-DENABLE_TESTS=FALSE"
+          "-DCMAKE_CXX_STANDARD=17"
+          "-DBUILD_SHARED_LIBS=TRUE"
+          "-DCMAKE_ENABLE_TESTS=FALSE"
+          "-DZKLLVM_VERSION=1.2.3" # TODO change this
+        ];
+
         nativeBuildInputs = defaultNativeBuildInputs;
 
         buildInputs = defaultBuildInputs;
