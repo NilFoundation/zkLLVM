@@ -1,150 +1,189 @@
 {
-  description = "Nix flake for zkllvm";
+  description = "Nix flake for zkEVM";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
-    nil_blueprint = {
-      url =
-        "git+https://github.com/NilFoundation/zkllvm-blueprint?submodules=1&rev=8e2bd7c45c50ed0499d445f848941470494a310a";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nixpkgs.url = "github:NixOS/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
+    nix-3rdparty = {
+      url = "github:NilFoundation/nix-3rdparty";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
+    };
+    nil-evm-assigner = {
+      type = "github";
+      owner = "NilFoundation";
+      repo = "evm-assigner";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nil_crypto3.follows = "nil-crypto3";
+        nil_zkllvm_blueprint.follows = "nil-zkllvm-blueprint";
+      };
+    };
+    nil-crypto3 = {
+      url = "https://github.com/NilFoundation/crypto3";
+      type = "git";
+      submodules = true;
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+    nil-zkllvm-blueprint = {
+      url = "https://github.com/NilFoundation/zkllvm-blueprint";
+      type = "git";
+      submodules = true;
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nil_crypto3.follows = "nil-crypto3";
+      };
+    };
   };
 
-  outputs = { self, nixpkgs, nil_blueprint, flake-utils }:
-    (flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        stdenv = pkgs.llvmPackages_16.stdenv;
-      in rec {
-        packages = rec {
-          blueprint = nil_blueprint.packages.${pkgs.system}.default;
-          zkllvm = stdenv.mkDerivation {
-            name = "zkllvm";
+  outputs =
+    { self
+    , nixpkgs
+    , flake-utils
+    , nix-3rdparty
+    , nil-evm-assigner
+    , nil-crypto3
+    , nil-zkllvm-blueprint
+    }:
+    flake-utils.lib.eachDefaultSystem (system:
+    let
+      pkgs = import nixpkgs {
+        overlays = [ nix-3rdparty.overlays.${system}.default ];
+        inherit system;
+      };
+      evm_assigner = nil-evm-assigner.packages.${system}.default;
+      crypto3 = nil-crypto3.packages.${system}.default;
+      blueprint = nil-zkllvm-blueprint.packages.${system}.default;
 
-            src = self;
+      # Default env will bring us GCC 13 as default compiler
+      stdenv = pkgs.stdenv;
 
-            env.CXXFLAGS = toString ([ "-fPIC" ]);
+      defaultNativeBuildInputs = [
+        pkgs.cmake
+        pkgs.ninja
+        pkgs.python3
+        pkgs.git
+      ];
 
-            env.NIX_CFLAGS_COMPILE =
-              toString ([ "-Wno-unused-but-set-variable" ]);
+      defaultBuildInputs = [
+        # Default nixpkgs packages
+        pkgs.boost
+        pkgs.valijson
+        # Packages from nix-3rdparty
+        #pkgs.sszpp
+        #pkgs.evmc
+        # Repo dependencies
+        #evm_assigner
+        crypto3
+        blueprint
+      ];
 
-            buildInputs = with pkgs; [ 
-            python3
-            git
-            cmake
-            pkg-config
-            clang_16
-              (boost183.override {
-                enableShared = true;
-                enableStatic = true;
-                enableRelease = true;
-                enableDebug = true;
-              })
-            ];
+      defaultCheckInputs = [
+        pkgs.gtest
+      ];
 
-            # Because blueprint is header-only, we must propagate it so users
-            # of this flake must not specify blueprint in their derivations manually
-            propagatedBuildInputs = [ blueprint ];
+      defaultDevTools = [
+        pkgs.doxygen
+        pkgs.clang_17 # clang-format and clang-tidy
+        pkgs.go_1_22
+        pkgs.gotools
+        pkgs.go-tools
+        pkgs.gopls
+        pkgs.golangci-lint
+        pkgs.gofumpt
+        pkgs.gci
+      ];
 
-            cmakeFlags =
-              [ "-DCMAKE_BUILD_TYPE=Release"
-                "-DCMAKE_CXX_STANDARD=17" ];
+      releaseBuild = stdenv.mkDerivation {
+        name = "zkEVM";
 
-            doCheck = false;
-          };
-          default = zkllvm;
-        };
+        nativeBuildInputs = defaultNativeBuildInputs;
 
-        testList = [
-            "arithmetics_cpp_example"
-            "polynomial_cpp_example"
-            "poseidon_cpp_example"
-            "merkle_tree_poseidon_cpp_example"
-            "uint_remainder_cpp"
-            "uint_shift_left"
-            "uint_bit_decomposition"
-            "uint_bit_composition"
-            "compare_eq_cpp"
-            "private_input_cpp"
+        buildInputs = defaultBuildInputs;
+
+        buildPhase = ''
+          cmake --build . -t assigner clang transpiler compile_cpp_examples cpp_examples_generate_tbl_no_check
+        '';
+
+        src = self;
+
+        cmakeBuildType = "Release";
+
+        doCheck = false;
+      };
+
+      # TODO: we need to propagate debug mode to dependencies here:
+      debugBuild = releaseBuild.overrideAttrs (finalAttrs: previousAttrs: {
+        name = previousAttrs.name + "-debug";
+
+        cmakeBuildType = "Debug";
+      });
+
+      testBuild = releaseBuild.overrideAttrs (finalAttrs: previousAttrs: {
+        name = previousAttrs.name + "-tests";
+
+        cmakeFlags = [ 
+          "-DENABLE_TESTS=TRUE"
+          "-DCMAKE_CXX_STANDARD=17"
+          "-DBUILD_SHARED_LIBS=TRUE"
+          "-DCMAKE_ENABLE_TESTS=TRUE"
+          "-DZKLLVM_VERSION=1.2.3" # TODO change this
         ];
 
-        checks = {
-          default = stdenv.mkDerivation {
-            # TODO: rewrite this using overrideAttrs on makePackage
-            name = "zkllvm-tests";
+        doCheck = true;
 
-            src = self;
+        checkPhase = ''
+          # JUNIT file without explicit file name is generated after the name of the master test suite inside `CMAKE_CURRENT_SOURCE_DIR` (/build/source)
+          export BOOST_TEST_LOGGER=JUNIT:HRF
+          ctest --verbose -j $NIX_BUILD_CORES --output-on-failure -R compile_cpp_examples cpp_examples_generate_tbl_no_check }"
 
-            env.CXXFLAGS = toString ([ "-fPIC" ]);
+          mkdir -p ${placeholder "out"}/test-logs
+          find .. -type f -name '*_test.xml' -exec cp {} ${placeholder "out"}/test-logs \;
+        '';
 
-            env.NIX_CFLAGS_COMPILE =
-              toString ([ "-Wno-unused-but-set-variable" ]);
+        checkInputs = defaultCheckInputs;
 
-            buildInputs = with pkgs; [
-              python3
-              git
-              cmake
-              ninja
-              pkg-config
-              clang_16
-              boost183
-              packages.blueprint
-            ];
+        GTEST_OUTPUT = "xml:${placeholder "out"}/test-reports/";
 
-            cmakeBuildType = "Debug";
+        dontInstall = true;
+      });
 
-            cmakeFlags = [
-              "-DCMAKE_CXX_STANDARD=17"
-              "-DBUILD_SHARED_LIBS=TRUE"
-              "-DCMAKE_ENABLE_TESTS=TRUE"
-              "-DCMAKE_C_COMPILER=clang"
-              "-DCMAKE_CXX_COMPILER=clang++"
-              "-DZKLLVM_VERSION=1.2.3"
-            ];
+      makeDevShell = pkgs.mkShell {
+        nativeBuildInputs = defaultNativeBuildInputs
+          ++ defaultBuildInputs
+          ++ defaultCheckInputs
+          ++ defaultDevTools;
 
-            ninjaFlags = pkgs.lib.strings.concatStringsSep " " testList;
-
-            doCheck = true;
-
-            checkPhase = ''
-              # JUNIT file without explicit file name is generated after the name of the master test suite inside `CMAKE_CURRENT_SOURCE_DIR` (/build/source)
-              export BOOST_TEST_LOGGER=JUNIT:HRF
-              ctest --verbose -j $NIX_BUILD_CORES --output-on-failure -R "${nixpkgs.lib.concatStringsSep "|" testList}"
-
-              mkdir -p ${placeholder "out"}/test-logs
-              find .. -type f -name '*_test.xml' -exec cp {} ${placeholder "out"}/test-logs \;
-            '';
-
-            dontInstall = true;
-          };
+        shellHook = ''
+          echo "zkEVM dev environment activated"
+        '';
+      };
+    in
+    {
+      packages = {
+        default = releaseBuild;
+        debug = debugBuild;
+      };
+      checks.default = testBuild;
+      apps = {
+        assigner = {
+          type = "app";
+          program = "${self.packages.${system}.default}/bin/assigner";
         };
-
-        devShells = {
-          default = pkgs.mkShell {
-            buildInputs = with pkgs; [
-              python3
-              git
-              cmake
-              pkg-config
-              boost183
-              clang_16
-              clang-tools_16
-              packages.blueprint
-            ];
-
-            shellHook = ''
-              echo "zkllvm dev environment activated"
-            '';
-          };
+        clang = {
+          type = "app";
+          program = "${self.packages.${system}.default}/bin/clang";
         };
-      }));
+        transpiler = {
+          type = "app";
+          program = "${self.packages.${system}.default}/bin/transpiler";
+        };
+      };
+      devShells.default = makeDevShell;
+    }
+    );
 }
-
-# 1 build zkllvm locally with the command 'nix build -L .?submodules=1#'
-# 2 redirect to the local build of crypto3: 'nix develop --redirect .#crypto3 /your/path/to/crypto3/result/'
-# 3a to build all in zkllvm: 'nix flake -L check .?submodules=1#'
-# 3b to build individual targets:
-# nix develop . -c cmake -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=FALSE -DCMAKE_ENABLE_TESTS=TRUE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-# cd build
-# nix develop ../ -c cmake --build . -t arithmetics_cpp_example
