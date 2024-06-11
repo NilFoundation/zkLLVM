@@ -1260,7 +1260,7 @@ int main(int argc, char *argv[]) {
     }
     gen_mode = gen_mode | nil::blueprint::generation_mode::assignments(); // for now in any case we generate assignment table to determine used_rows
 
-    if (!vm.count("public-input") && !vm.count("private-input") && gen_mode.has_assignments()) {
+    if (!vm.count("public-input") && !vm.count("private-input") && !gen_mode.has_size_estimation()) {
         std::cerr << "Both public and private input file names are not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
