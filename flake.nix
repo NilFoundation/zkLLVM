@@ -40,6 +40,11 @@
     };
   };
 
+  #src = repos.dbms;
+  #revCount = repos.dbms.revCount or 1;
+  #shortRev = repos.dbms.shortRev or "deadbeef";
+  #version = "0.1.0-${toString revCount}";
+
   outputs =
     { self
     , nixpkgs
@@ -102,7 +107,9 @@
         name = "zkEVM";
 
         cmakeFlags = [
+          "-DCMAKE_BUILD_TYPE=Release"
           "-DENABLE_TESTS=FALSE"
+          "-DBUILD_TEST=FALSE"
           "-DCMAKE_CXX_STANDARD=17"
           "-DBUILD_SHARED_LIBS=TRUE"
           "-DCMAKE_ENABLE_TESTS=FALSE"
@@ -114,7 +121,7 @@
         buildInputs = defaultBuildInputs;
 
         buildPhase = ''
-          cmake --build . -t assigner clang transpiler compile_cpp_examples cpp_examples_generate_tbl_no_check
+          cmake --build . -t assigner clang transpiler
         '';
 
         src = self;
