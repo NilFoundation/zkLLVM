@@ -263,8 +263,8 @@ add_zkllvm_unit_test("algebra/recursive_prover/lookup_arg_verifier/test1/test")
 add_zkllvm_unit_test("algebra/recursive_prover/lookup_arg_verifier/test2/test")
 
 # bls tests
-# add_zkllvm_unit_test_bls12381("algebra/fields/bls12381_fp12_arithmetics/mul")
-# add_zkllvm_unit_test_bls12381("bls_signature/pairing/pairing")
+add_zkllvm_unit_test_bls12381("algebra/fields/bls12381_fp12_arithmetics/mul")
+add_zkllvm_unit_test_bls12381("bls_signature/pairing/pairing")
 
 add_zkllvm_unit_test("nested_if/first")
 add_zkllvm_unit_test("nested_if/second")

@@ -1477,25 +1477,25 @@ int main(int argc, char *argv[]) {
             break;
         }
         case 3: {
-            UNREACHABLE("bls12381 curve based circuits are not supported yet");
-            // return curve_dependent_main<typename algebra::fields::bls12_base_field<381>>(
-            //                                                               bytecode_file_name,
-            //                                                               public_input_file_name,
-            //                                                               private_input_file_name,
-            //                                                               assignment_table_file_name,
-            //                                                               circuit_file_name,
-            //                                                               processed_public_input_file_name,
-            //                                                               stack_size,
-            //                                                               vm.count("check"),
-            //                                                               log_options[log_level],
-            //                                                               policy,
-            //                                                               gen_mode,
-            //                                                               max_num_provers,
-            //                                                               max_lookup_rows,
-            //                                                               target_prover,
-            //                                                               circuit_output_print_format,
-            //                                                               column_sizes
-            //                                                               );
+            return curve_dependent_main<typename algebra::fields::bls12_base_field<381>>(
+                                                                          bytecode_file_name,
+                                                                          public_input_file_name,
+                                                                          private_input_file_name,
+                                                                          assignment_table_file_name,
+                                                                          circuit_file_name,
+                                                                          table_pieces_file_name,
+                                                                          processed_public_input_file_name,
+                                                                          stack_size,
+                                                                          vm.count("check"),
+                                                                          log_options[log_level],
+                                                                          policy,
+                                                                          gen_mode,
+                                                                          max_num_provers,
+                                                                          max_lookup_rows,
+                                                                          target_prover,
+                                                                          circuit_output_print_format,
+                                                                          column_sizes
+                                                                          );
             break;
         }
     };
