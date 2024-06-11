@@ -894,14 +894,13 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 0;
     }
 
-    if (gen_mode.has_circuit()) { // if we are generation circuit then we are generation table pieces in the same time. Need to write itno file
+    if (gen_mode.has_circuit()) {
 
         boost::json::object top_level_json;
         top_level_json["provers_amount"] = assigner_instance.assignments.size();
 
         boost::json::array pieces_json;
-        // for (const auto& piece : nil::blueprint::table_pieces) {
-        for (const auto& piece : nil::blueprint::table_pieces) {
+        for (const auto& piece : assigner_instance.get_table_pieces()) {
             pieces_json.push_back(piece.to_json());
         }
         top_level_json["table_pieces"] = pieces_json;
@@ -918,7 +917,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
         boost::json::array to_be_shared_json;
 
-        for (const auto& pair : nil::blueprint::to_be_shared) {
+        for (const auto& pair : assigner_instance.get_to_be_shared()) {
             boost::json::object pair_json;
             pair_json["first"] = pair.first;
             pair_json["second"] = pair.second.to_json();
