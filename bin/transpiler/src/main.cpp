@@ -256,6 +256,29 @@ std::string add_filename_prefix(
     return new_path.string();
 }
 
+bool read_file_to_vector (
+    std::vector<std::uint8_t>& result_vector,
+    const std::string& prefix,
+    const std::string& assignment_table_file_name
+
+) {
+    std::cout << "assignment_table_file_name: " << assignment_table_file_name << "\n";
+    std::ifstream icolumn;
+    icolumn.open(add_filename_prefix(prefix, assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
+    if (!icolumn) {
+        std::cout << "Cannot open " << add_filename_prefix("header_", assignment_table_file_name) << std::endl;
+        return false;
+    }
+    icolumn.seekg(0, std::ios_base::end);
+    const auto input_size = icolumn.tellg();
+    std::size_t old_size = result_vector.size();
+    result_vector.resize(old_size + input_size);
+    icolumn.seekg(0, std::ios_base::beg);
+    icolumn.read(reinterpret_cast<char*>(result_vector.data() + old_size), input_size);
+    icolumn.close();
+    return true;
+}
+
 template<typename BlueprintFieldType, bool is_multi_prover>
 int curve_dependent_main(
     boost::program_options::options_description options_desc,
@@ -375,69 +398,14 @@ int curve_dependent_main(
 
     AssignmentTableType assignment_table;
     {
-        std::ifstream iassignment_header;
-        std::ifstream iassignment_witness;
-        std::ifstream iassignment_pub_inp;
-        std::ifstream iassignment_constants;
-        std::ifstream iassignment_selectors;
 
-        iassignment_header.open(add_filename_prefix("header_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
-        if (!iassignment_header) {
-            std::cout << "Cannot open " << add_filename_prefix("header_", assignment_table_file_name) << std::endl;
-            return 1;
-        }
-        iassignment_witness.open(add_filename_prefix("witness_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
-        if (!iassignment_witness) {
-            std::cout << "Cannot open " << add_filename_prefix("witness_", assignment_table_file_name) << std::endl;
-            return 1;
-        }
-        iassignment_pub_inp.open(add_filename_prefix("pub_inp_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
-        if (!iassignment_pub_inp) {
-            std::cout << "Cannot open " << add_filename_prefix("pub_inp_", assignment_table_file_name) << std::endl;
-            return 1;
-        }
-        iassignment_constants.open(add_filename_prefix("constants_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
-        if (!iassignment_constants) {
-            std::cout << "Cannot open " << add_filename_prefix("constants_", assignment_table_file_name) << std::endl;
-            return 1;
-        }
-        iassignment_selectors.open(add_filename_prefix("selectors_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
-        if (!iassignment_selectors) {
-            std::cout << "Cannot open " << add_filename_prefix("selectors_", assignment_table_file_name) << std::endl;
-            return 1;
-        }
         std::vector<std::uint8_t> v;
-        iassignment_header.seekg(0, std::ios_base::end);
-        iassignment_witness.seekg(0, std::ios_base::end);
-        iassignment_pub_inp.seekg(0, std::ios_base::end);
-        iassignment_constants.seekg(0, std::ios_base::end);
-        iassignment_selectors.seekg(0, std::ios_base::end);
 
-        const auto header_size = iassignment_header.tellg();
-        const auto w_size = iassignment_witness.tellg();
-        const auto pi_size = iassignment_pub_inp.tellg();
-        const auto c_size = iassignment_constants.tellg();
-        const auto s_size = iassignment_selectors.tellg();
-
-        v.resize(header_size + w_size + pi_size + c_size + s_size);
-
-        iassignment_header.seekg(0, std::ios_base::beg);
-        iassignment_witness.seekg(0, std::ios_base::beg);
-        iassignment_pub_inp.seekg(0, std::ios_base::beg);
-        iassignment_constants.seekg(0, std::ios_base::beg);
-        iassignment_selectors.seekg(0, std::ios_base::beg);
-
-        iassignment_header.read(reinterpret_cast<char*>(v.data()),      header_size);
-        iassignment_witness.read(reinterpret_cast<char*>(v.data())    + header_size,  w_size);
-        iassignment_pub_inp.read(reinterpret_cast<char*>(v.data())    + header_size + w_size,  pi_size);
-        iassignment_constants.read(reinterpret_cast<char*>(v.data())  + header_size + w_size + pi_size,  c_size);
-        iassignment_selectors.read(reinterpret_cast<char*>(v.data())  + header_size + w_size + pi_size + c_size, s_size);
-
-        iassignment_header.close();
-        iassignment_witness.close();
-        iassignment_pub_inp.close();
-        iassignment_constants.close();
-        iassignment_selectors.close();
+        ASSERT(read_file_to_vector(v, "header_", assignment_table_file_name));
+        ASSERT(read_file_to_vector(v, "witness_", assignment_table_file_name));
+        ASSERT(read_file_to_vector(v, "pub_inp_", assignment_table_file_name));
+        ASSERT(read_file_to_vector(v, "constants_", assignment_table_file_name));
+        ASSERT(read_file_to_vector(v, "selectors_", assignment_table_file_name));
 
         table_value_marshalling_type marshalled_table_data;
         auto read_iter = v.begin();
