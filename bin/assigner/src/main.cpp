@@ -1249,7 +1249,7 @@ int main(int argc, char *argv[]) {
         } else if (generate_type == "assignment-fast") {
             gen_mode = nil::blueprint::generation_mode::fast_tbl();
         } else if (generate_type == "size_estimation") {
-            gen_mode = nil::blueprint::generation_mode::size_estimation();
+            gen_mode = nil::blueprint::generation_mode::size_estimation() | nil::blueprint::generation_mode::circuit();
         } else if (generate_type == "public-input-column") {
             gen_mode = nil::blueprint::generation_mode::public_input_column();
         } else if (generate_type != "circuit-assignment") {
@@ -1287,9 +1287,11 @@ int main(int argc, char *argv[]) {
         if (vm.count("assignment-table")) {
             assignment_table_file_name = vm["assignment-table"].as<std::string>();
         } else {
-            std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
-            std::cout << options_desc << std::endl;
-            return 1;
+            if (!gen_mode.has_size_estimation()) {
+                std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
+                std::cout << options_desc << std::endl;
+                return 1;
+            }
         }
     }
 
@@ -1297,9 +1299,11 @@ int main(int argc, char *argv[]) {
         if (vm.count("circuit")) {
             circuit_file_name = vm["circuit"].as<std::string>();
         } else {
-            std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
-            std::cout << options_desc << std::endl;
-            return 1;
+            if (!gen_mode.has_size_estimation()) {
+                std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
+                std::cout << options_desc << std::endl;
+                return 1;
+            }
         }
     }
 
