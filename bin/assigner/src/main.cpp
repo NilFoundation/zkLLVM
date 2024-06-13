@@ -65,6 +65,7 @@
 #include <future>
 #include <thread>
 #include <chrono>
+#include <filesystem>
 
 using namespace nil;
 using namespace nil::crypto3;
@@ -228,13 +229,249 @@ void print_vector_value(
     }
 }
 
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_selectors(const assignment_proxy<ArithmetizationType> &table_proxy,
+                            print_table_kind print_kind,
+                            std::size_t padded_rows_amount,
+                            std::uint32_t ComponentSelectorColumns,
+                            std::ostream &out = std::cout) {
+    std::uint32_t selector_size = table_proxy.selectors_amount();
+
+    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+
+    print_size_t<Endianness>(selector_size * padded_rows_amount, out);
+    if (print_kind == print_table_kind::SINGLE_PROVER) {
+        for (std::uint32_t i = 0; i < selector_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.selector(i), out);
+        }
+    } else {
+        const auto& rows = table_proxy.get_used_rows();
+        const auto& selector_rows = table_proxy.get_used_selector_rows();
+
+        std::uint32_t selector_idx = 0;
+        for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
+            const auto column_size = table_proxy.selector_column_size(i);
+            std::uint32_t offset = 0;
+            for(const auto& j : rows){
+                if (j < column_size) {
+                    if (selector_rows.find(j) != selector_rows.end()) {
+                        print_field<Endianness, ArithmetizationType>(table_proxy.selector(i, j), out);
+                    } else {
+                        print_zero_field<Endianness, ArithmetizationType>(out);
+                    }
+                    offset++;
+                }
+            }
+            ASSERT(offset < padded_rows_amount);
+            while(offset < padded_rows_amount) {
+                print_zero_field<Endianness, ArithmetizationType>(out);
+                offset++;
+            }
+
+            selector_idx += padded_rows_amount;
+        }
+
+        for (std::uint32_t i = ComponentSelectorColumns; i < selector_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.selector(i), out);
+            selector_idx += padded_rows_amount;
+        }
+    }
+}
 
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
-void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_proxy,
+void print_constants(const assignment_proxy<ArithmetizationType> &table_proxy,
                             print_table_kind print_kind,
-                            std::uint32_t ComponentConstantColumns, std::uint32_t ComponentSelectorColumns,
+                            std::size_t padded_rows_amount,
+                            std::uint32_t ComponentConstantColumns,
                             std::ostream &out = std::cout) {
-    using AssignmentTableType = assignment_proxy<ArithmetizationType>;
+    std::uint32_t constant_size = table_proxy.constants_amount();
+
+    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+
+    print_size_t<Endianness>(constant_size * padded_rows_amount, out);
+    if (print_kind == print_table_kind::SINGLE_PROVER) {
+        for (std::uint32_t i = 0; i < constant_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.constant(i), out);
+        }
+    } else {
+        const auto& rows = table_proxy.get_used_rows();
+        std::uint32_t constant_idx = 0;
+        for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
+            const auto column_size = table_proxy.constant_column_size(i);
+            std::uint32_t offset = 0;
+            for(const auto& j : rows){
+                if (j < column_size) {
+                    print_field<Endianness, ArithmetizationType>(table_proxy.constant(i, j), out);
+                    offset++;
+                }
+            }
+            ASSERT(offset < padded_rows_amount);
+            while(offset < padded_rows_amount) {
+                print_zero_field<Endianness, ArithmetizationType>(out);
+                offset++;
+            }
+
+            constant_idx += padded_rows_amount;
+        }
+
+        for (std::uint32_t i = ComponentConstantColumns; i < constant_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.constant(i), out);
+            constant_idx += padded_rows_amount;
+        }
+    }
+}
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_pub_inp(const assignment_proxy<ArithmetizationType> &table_proxy,
+                            print_table_kind print_kind,
+                            std::size_t padded_rows_amount,
+                            std::ostream &out = std::cout) {
+    std::uint32_t shared_size = (print_kind == print_table_kind::MULTI_PROVER) ? 1 : 0;
+    std::uint32_t public_input_size = table_proxy.public_inputs_amount();
+
+    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+
+    print_size_t<Endianness>((public_input_size + shared_size) * padded_rows_amount, out);
+    if (print_kind == print_table_kind::SINGLE_PROVER) {
+        for (std::uint32_t i = 0; i < public_input_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.public_input(i), out);
+        }
+    } else {
+
+        std::uint32_t pub_inp_idx = 0;
+        for (std::uint32_t i = 0; i < public_input_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.public_input(i), out);
+            pub_inp_idx += padded_rows_amount;
+        }
+        for (std::uint32_t i = 0; i < shared_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.shared(i), out);
+            pub_inp_idx += padded_rows_amount;
+        }
+    }
+}
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_witness(const assignment_proxy<ArithmetizationType> &table_proxy,
+                            print_table_kind print_kind,
+                            std::size_t padded_rows_amount,
+                            std::ostream &out = std::cout) {
+    std::uint32_t witness_size = table_proxy.witnesses_amount();
+
+    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
+
+    print_size_t<Endianness>(witness_size * padded_rows_amount, out);
+    if (print_kind == print_table_kind::SINGLE_PROVER) {
+        for (std::uint32_t i = 0; i < witness_size; i++) {
+            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.witness(i), out);
+        }
+    } else {
+        const auto& rows = table_proxy.get_used_rows();
+        std::uint32_t witness_idx = 0;
+        for( std::size_t i = 0; i < witness_size; i++ ){
+            const auto column_size = table_proxy.witness_column_size(i);
+            std::uint32_t offset = 0;
+            for(const auto& j : rows){
+                if (j < column_size) {
+                    print_field<Endianness, ArithmetizationType>(table_proxy.witness(i, j), out);
+                    offset++;
+                }
+            }
+            ASSERT(offset < padded_rows_amount);
+            while(offset < padded_rows_amount) {
+                print_zero_field<Endianness, ArithmetizationType>(out);
+                offset++;
+            }
+            witness_idx += padded_rows_amount;
+        }
+    }
+}
+
+std::string add_filename_prefix(
+    const std::string& prefix,
+    const std::string& file_name
+) {
+    std::filesystem::path path(file_name);
+    std::filesystem::path parent_path = path.parent_path();
+    std::filesystem::path filename = path.filename();
+
+    std::string new_filename = prefix + filename.string();
+    std::filesystem::path new_path = parent_path / new_filename;
+
+    return new_path.string();
+}
+
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+std::uint32_t padded_rows_from_table_header(
+    const assignment_proxy<ArithmetizationType> &table_proxy,
+    print_table_kind print_kind,
+    std::string assignment_table_file_name,
+    std::uint32_t idx
+) {
+    if (print_kind == print_table_kind::MULTI_PROVER) {
+        assignment_table_file_name = assignment_table_file_name  + std::to_string(idx);
+    }
+    std::ifstream itable_header;
+    itable_header.open(add_filename_prefix("header_", assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
+    if (!itable_header) {
+        throw std::runtime_error("Something wrong with input file header_" + assignment_table_file_name); // TODO: add catch
+    }
+    using TTypeBase = nil::marshalling::field_type<Endianness>;
+    using table_header_marshalling_type = nil::crypto3::marshalling::types::table_header_type<TTypeBase>;
+
+    table_header_marshalling_type marshalled_table_header;
+    std::vector<std::uint8_t> header_binary;
+    itable_header.seekg(0, std::ios_base::end);
+    const auto header_size = itable_header.tellg();
+    header_binary.resize(header_size);
+    itable_header.seekg(0, std::ios_base::beg);
+    itable_header.read(reinterpret_cast<char*>(header_binary.data()), header_size);
+    itable_header.close();
+    auto hiter = header_binary.begin();
+    auto status = marshalled_table_header.read(hiter, header_binary.size());
+    ASSERT(status == nil::marshalling::status_type::success);
+
+    std::uint32_t padded_rows_amount = std::get<5>(marshalled_table_header.value()).value();
+    return padded_rows_amount;
+
+}
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_assignment_table_dynamic(
+    std::uint32_t padded_rows_amount,
+    const assignment_proxy<ArithmetizationType> &table_proxy,
+    print_table_kind print_kind,
+    std::string assignment_table_file_name,
+    std::uint32_t idx
+) {
+
+    if (print_kind == print_table_kind::MULTI_PROVER) {
+        assignment_table_file_name = assignment_table_file_name  + std::to_string(idx);
+    }
+
+    std::ofstream otable_witness;
+    std::ofstream otable_pub_inp;
+
+    otable_witness.open(add_filename_prefix("witness_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
+    if (!otable_witness) {
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("witness_", assignment_table_file_name));
+    }
+    otable_pub_inp.open(add_filename_prefix("pub_inp_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
+    if (!otable_pub_inp) {
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("pub_inp_", assignment_table_file_name));
+    }
+
+    print_witness<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_witness);
+    print_pub_inp<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, otable_pub_inp);
+}
+
+
+template<typename ArithmetizationType>
+std::array<std::uint32_t, 7> extract_table_parameters_from_table(
+    const assignment_proxy<ArithmetizationType> &table_proxy,
+    print_table_kind print_kind
+) {
+
     std::uint32_t usable_rows_amount;
     std::uint32_t total_columns;
     std::uint32_t total_size;
@@ -290,130 +527,71 @@ void print_assignment_table(const assignment_proxy<ArithmetizationType> &table_p
     if (padded_rows_amount < 8) {
         padded_rows_amount = 8;
     }
-    total_size = padded_rows_amount * total_columns;
 
-    using TTypeBase = nil::marshalling::field_type<Endianness>;
-    using table_value_marshalling_type =
-        nil::crypto3::marshalling::types::plonk_assignment_table<TTypeBase, AssignmentTableType>;
+    std::array<std::uint32_t, 7> result = {
+        witness_size,
+        public_input_size,
+        shared_size,
+        constant_size,
+        selector_size,
+        usable_rows_amount,
+        padded_rows_amount
+    };
 
-    using column_type = typename crypto3::zk::snark::plonk_column<BlueprintFieldType>;
-
-    print_size_t<Endianness>(witness_size, out);
-    print_size_t<Endianness>(public_input_size + shared_size, out);
-    print_size_t<Endianness>(constant_size, out);
-    print_size_t<Endianness>(selector_size, out);
-    print_size_t<Endianness>(usable_rows_amount, out);
-    print_size_t<Endianness>(padded_rows_amount, out);
-
-    if (print_kind == print_table_kind::SINGLE_PROVER) {
-    print_size_t<Endianness>(witness_size * padded_rows_amount, out);
-        for (std::uint32_t i = 0; i < witness_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.witness(i), out);
-        }
-    print_size_t<Endianness>((public_input_size + shared_size) * padded_rows_amount, out);
-        for (std::uint32_t i = 0; i < public_input_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.public_input(i), out);
-        }
-    print_size_t<Endianness>(constant_size * padded_rows_amount, out);
-        for (std::uint32_t i = 0; i < constant_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.constant(i), out);
-        }
-    print_size_t<Endianness>(selector_size * padded_rows_amount, out);
-        for (std::uint32_t i = 0; i < selector_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.selector(i), out);
-        }
-    } else {
-        const auto& rows = table_proxy.get_used_rows();
-        const auto& selector_rows = table_proxy.get_used_selector_rows();
-        std::uint32_t witness_idx = 0;
-
-        // witness
-        print_size_t<Endianness>(witness_size * padded_rows_amount, out);
-        for( std::size_t i = 0; i < witness_size; i++ ){
-            const auto column_size = table_proxy.witness_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    print_field<Endianness, ArithmetizationType>(table_proxy.witness(i, j), out);
-                    offset++;
-                }
-            }
-            ASSERT(offset < padded_rows_amount);
-            while(offset < padded_rows_amount) {
-                print_zero_field<Endianness, ArithmetizationType>(out);
-                offset++;
-            }
-            witness_idx += padded_rows_amount;
-        }
-        // public input
-        std::uint32_t pub_inp_idx = 0;
-        print_size_t<Endianness>((public_input_size + shared_size) * padded_rows_amount, out);
-        for (std::uint32_t i = 0; i < public_input_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.public_input(i), out);
-            pub_inp_idx += padded_rows_amount;
-        }
-        for (std::uint32_t i = 0; i < shared_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.shared(i), out);
-            pub_inp_idx += padded_rows_amount;
-        }
-        // constant
-        print_size_t<Endianness>(constant_size * padded_rows_amount, out);
-        std::uint32_t constant_idx = 0;
-        for (std::uint32_t i = 0; i < ComponentConstantColumns; i++) {
-            const auto column_size = table_proxy.constant_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    print_field<Endianness, ArithmetizationType>(table_proxy.constant(i, j), out);
-                    offset++;
-                }
-            }
-            ASSERT(offset < padded_rows_amount);
-            while(offset < padded_rows_amount) {
-                print_zero_field<Endianness, ArithmetizationType>(out);
-                offset++;
-            }
-
-            constant_idx += padded_rows_amount;
-        }
-
-        for (std::uint32_t i = ComponentConstantColumns; i < constant_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.constant(i), out);
-            constant_idx += padded_rows_amount;
-        }
-
-        // selector
-        print_size_t<Endianness>(selector_size * padded_rows_amount, out);
-        std::uint32_t selector_idx = 0;
-        for (std::uint32_t i = 0; i < ComponentSelectorColumns; i++) {
-            const auto column_size = table_proxy.selector_column_size(i);
-            std::uint32_t offset = 0;
-            for(const auto& j : rows){
-                if (j < column_size) {
-                    if (selector_rows.find(j) != selector_rows.end()) {
-                        print_field<Endianness, ArithmetizationType>(table_proxy.selector(i, j), out);
-                    } else {
-                        print_zero_field<Endianness, ArithmetizationType>(out);
-                    }
-                    offset++;
-                }
-            }
-            ASSERT(offset < padded_rows_amount);
-            while(offset < padded_rows_amount) {
-                print_zero_field<Endianness, ArithmetizationType>(out);
-                offset++;
-            }
-
-            selector_idx += padded_rows_amount;
-        }
-
-        for (std::uint32_t i = ComponentSelectorColumns; i < selector_size; i++) {
-            print_vector_value<Endianness, ArithmetizationType, column_type>(padded_rows_amount, table_proxy.selector(i), out);
-            selector_idx += padded_rows_amount;
-        }
-        ASSERT_MSG(witness_idx + pub_inp_idx + constant_idx + selector_idx == total_size, "Printed index not equal required assignment size" );
-    }
+    return result;
 }
+
+
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+void print_assignment_table_static(
+    std::array<std::uint32_t, 7> asdf,
+    const assignment_proxy<ArithmetizationType> &table_proxy,
+    print_table_kind print_kind,
+    std::uint32_t ComponentConstantColumns, std::uint32_t ComponentSelectorColumns,
+    std::string assignment_table_file_name,
+    std::uint32_t idx
+ ) {
+
+    if (print_kind == print_table_kind::MULTI_PROVER) {
+        assignment_table_file_name = assignment_table_file_name  + std::to_string(idx);
+    }
+
+    std::ofstream otable_header;
+    std::ofstream otable_constants;
+    std::ofstream otable_selectors;
+
+    otable_header.open(add_filename_prefix("header_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
+    if (!otable_header)
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("header_", assignment_table_file_name));
+    otable_constants.open(add_filename_prefix("constants_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
+    if (!otable_constants)
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("constants_", assignment_table_file_name));
+    otable_selectors.open(add_filename_prefix("selectors_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
+    if (!otable_selectors)
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("selectors_", assignment_table_file_name));
+
+
+    using AssignmentTableType = assignment_proxy<ArithmetizationType>;
+
+    std::uint32_t witness_size = asdf[0];
+    std::uint32_t public_input_size = asdf[1];
+    std::uint32_t shared_size = asdf[2];
+    std::uint32_t constant_size = asdf[3];
+    std::uint32_t selector_size = asdf[4];
+    std::uint32_t usable_rows_amount = asdf[5];
+    std::uint32_t padded_rows_amount = asdf[6];
+
+    print_size_t<Endianness>(witness_size,                    otable_header);
+    print_size_t<Endianness>(public_input_size + shared_size, otable_header);
+    print_size_t<Endianness>(constant_size,                   otable_header);
+    print_size_t<Endianness>(selector_size,                   otable_header);
+    print_size_t<Endianness>(usable_rows_amount,              otable_header);
+    print_size_t<Endianness>(padded_rows_amount,              otable_header);
+
+    print_constants<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, ComponentConstantColumns, otable_constants);
+    print_selectors<Endianness, ArithmetizationType,BlueprintFieldType>(table_proxy, print_kind, padded_rows_amount, ComponentSelectorColumns, otable_selectors);
+ }
+
 
 bool read_json(
     std::string input_file_name,
@@ -467,18 +645,18 @@ void assignment_table_printer(
     const std::size_t &ComponentConstantColumns,
     const std::size_t &ComponentSelectorColumns
 ) {
-    std::ofstream otable;
-    otable.open(assignment_table_file_name + std::to_string(idx),
-                std::ios_base::binary | std::ios_base::out);
-    if (!otable) {
-        throw std::runtime_error("Failed to open file: " + assignment_table_file_name + std::to_string(idx));
-    }
+    std::array<std::uint32_t, 7> asdf = extract_table_parameters_from_table(
+        assigner_instance.assignments[idx],
+        print_table_kind::MULTI_PROVER
+    );
 
-    print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-        assigner_instance.assignments[idx], print_table_kind::MULTI_PROVER, ComponentConstantColumns,
-            ComponentSelectorColumns, otable);
-
-    otable.close();
+    print_assignment_table_dynamic<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+        asdf[6],
+        assigner_instance.assignments[idx],
+        print_table_kind::MULTI_PROVER,
+        assignment_table_file_name,
+        idx
+    );
 }
 
 template<typename BlueprintFieldType>
@@ -487,6 +665,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::string private_input_file_name,
                           std::string assignment_table_file_name,
                           std::string circuit_file_name,
+                          std::string table_pieces_file_name,
                           std::string processed_public_input_file_name,
                           long stack_size,
                           bool check_validity,
@@ -499,6 +678,8 @@ int curve_dependent_main(std::string bytecode_file_name,
                           nil::blueprint::print_format circuit_output_print_format,
                           std::array<std::size_t, 6> column_sizes
                           ) {
+
+    ASSERT_MSG(!(check_validity && gen_mode.has_fast_tbl()), "validity check does not work in fast table generation mode!");
 
     const std::size_t ComponentConstantColumns = column_sizes[2];
     const std::size_t LookupConstantColumns = column_sizes[3];
@@ -520,6 +701,19 @@ int curve_dependent_main(std::string bytecode_file_name,
             crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
     using AssignmentTableType = zk::snark::plonk_table<BlueprintFieldType, zk::snark::plonk_column<BlueprintFieldType>>;
 
+    using Endianness = nil::marshalling::option::big_endian;
+    using TTypeBase = nil::marshalling::field_type<Endianness>;
+    using constant_column_marshalling_type =
+        nil::marshalling::types::array_list<
+            TTypeBase,
+            nil::crypto3::marshalling::types::field_element<
+                TTypeBase,
+                typename BlueprintFieldType::value_type>,
+                nil::marshalling::option::sequence_size_field_prefix<
+                    nil::marshalling::types::integral<TTypeBase, std::size_t>
+                >
+            >;
+
     boost::json::value public_input_json_value;
     if(public_input_file_name.empty()) {
         public_input_json_value = boost::json::array();
@@ -532,6 +726,52 @@ int curve_dependent_main(std::string bytecode_file_name,
         private_input_json_value = boost::json::array();
     } else if (!read_json(private_input_file_name, private_input_json_value)) {
         return 1;
+    }
+
+    using var = crypto3::zk::snark::plonk_variable<typename AssignmentTableType::field_type::value_type>;
+
+    std::vector<table_piece<var>> table_pieces = {}; // we create table pieces in any case and pass into assigner by reference
+    std::vector<std::vector<std::uint32_t>> all_used_rows;
+    int provers_amount;
+    std::vector<std::pair<std::uint32_t, var>> to_be_shared;
+
+    if (gen_mode.has_fast_tbl()) { // if we are generating tables in a fast way then need to parse table_pieces from file
+
+        std::ifstream inp_json(table_pieces_file_name);
+
+        if (!inp_json.is_open()) {
+            std::cerr << "unable to open table_pieces file" << std::endl;
+            return 1;
+        }
+
+        std::string str((std::istreambuf_iterator<char>(inp_json)),
+                        std::istreambuf_iterator<char>());
+        auto parsed = boost::json::parse(str);
+        boost::json::object obj = parsed.as_object();
+
+        boost::json::array arr = obj["table_pieces"].as_array();
+        for (const auto& item : arr) {
+            table_pieces.emplace_back(item.as_object());
+        }
+
+        provers_amount = obj["provers_amount"].as_int64();
+
+        boost::json::array used_rows_json = obj["used_rows"].as_array();
+        for (const auto& row : used_rows_json) {
+            std::vector<std::uint32_t> current_used_rows = {};
+            for (const auto& elem : row.as_array()) {
+                current_used_rows.push_back(elem.as_int64());
+            }
+            all_used_rows.push_back(current_used_rows);
+        }
+
+        boost::json::array to_be_shared_json = obj["to_be_shared"].as_array();
+        for (const auto& pair_json : to_be_shared_json) {
+            boost::json::object pair_obj = pair_json.as_object();
+            std::uint32_t first = pair_obj["first"].as_int64();
+            var second = var(pair_obj["second"].as_object());
+            to_be_shared.emplace_back(first, second);
+        }
     }
 
     auto assigner_instance_creation_start = std::chrono::high_resolution_clock::now();
@@ -562,8 +802,87 @@ int curve_dependent_main(std::string bytecode_file_name,
     auto parse_ir_file_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - parse_ir_file_start);
     BOOST_LOG_TRIVIAL(debug) << "parse_ir_file_duration: " << parse_ir_file_duration.count() << "ms";
 
+
+    std::vector<std::vector<std::vector<typename BlueprintFieldType::value_type>>> all_constant_columns;
+
+    if (gen_mode.has_fast_tbl()) {
+        // parse constant columns
+
+        for (std::size_t i = 0; i < provers_amount; i++) {
+            std::ifstream iconstants;
+            std::string table_file_name = provers_amount == 1 ? assignment_table_file_name : assignment_table_file_name + std::to_string(i);
+
+            iconstants.open("constants_" + table_file_name, std::ios_base::binary | std::ios_base::in);
+            if (!iconstants) {
+                std::cout << "Cannot open " << "constants_" + table_file_name << std::endl;
+                return 1;
+            }
+            std::vector<std::uint8_t> v;
+            std::vector<std::uint8_t> consant_cols_vector;
+            iconstants.seekg(0, std::ios_base::end);
+            const auto fsize = iconstants.tellg();
+            consant_cols_vector.resize(fsize);
+            iconstants.seekg(0, std::ios_base::beg);
+            iconstants.read(reinterpret_cast<char*>(consant_cols_vector.data()), fsize);
+            if (!iconstants) {
+                std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
+                return 1;
+            }
+            iconstants.close();
+            constant_column_marshalling_type marshalled_constant_column_data;
+            auto citer = consant_cols_vector.begin();
+            auto const_column_marshalling_status =   marshalled_constant_column_data.read(citer, consant_cols_vector.size());
+///
+    std::ifstream itable_header;
+    std::ofstream otable_witness;
+    std::ofstream otable_pub_inp;
+    itable_header.open(add_filename_prefix("header_", table_file_name),  std::ios_base::in);
+    if (!itable_header) {
+        throw std::runtime_error("Something wrong with input file header_" + table_file_name); // TODO: add catch
+    }
+
+    using TTypeBase = nil::marshalling::field_type<Endianness>;
+    using table_header_marshalling_type = nil::crypto3::marshalling::types::table_header_type<TTypeBase>;
+
+    table_header_marshalling_type marshalled_table_header;
+    std::vector<std::uint8_t> header_binary;
+    itable_header.seekg(0, std::ios_base::end);
+    const auto header_size = itable_header.tellg();
+    header_binary.resize(header_size);
+    itable_header.seekg(0, std::ios_base::beg);
+    itable_header.read(reinterpret_cast<char*>(header_binary.data()),      header_size);
+    itable_header.close();
+    auto hiter = header_binary.begin();
+    auto status = marshalled_table_header.read(hiter, header_binary.size());
+    ASSERT(status == nil::marshalling::status_type::success);
+
+    std::uint32_t columns_rows_amount = std::get<5>(marshalled_table_header.value()).value();
+
+///
+            std::vector<std::vector<typename BlueprintFieldType::value_type>> constant_columns =
+                nil::crypto3::marshalling::types::make_field_element_columns_vector<typename BlueprintFieldType::value_type, Endianness>
+                (
+                    marshalled_constant_column_data,
+                    // we must extract desc from table_header, but for now its ok to use default values
+                    desc.constant_columns, // TODO we should take it from header file, but it will almost always work okay without it
+                    columns_rows_amount
+                );
+            all_constant_columns.emplace_back(constant_columns);
+        }
+    }
+
+
     auto parser_evaluation_start = std::chrono::high_resolution_clock::now();
-    if (!assigner_instance.evaluate(public_input_json_value.as_array(), private_input_json_value.as_array())) {
+    if (
+        !assigner_instance.evaluate(
+            public_input_json_value.as_array(),
+            private_input_json_value.as_array(),
+            all_constant_columns,
+            all_used_rows,
+            to_be_shared,
+            table_pieces
+        )
+    ) {
         return 1;
     }
     auto parser_evaluation_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - parser_evaluation_start);
@@ -575,6 +894,45 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 0;
     }
 
+    if (gen_mode.has_circuit()) {
+
+        boost::json::object top_level_json;
+        top_level_json["provers_amount"] = assigner_instance.assignments.size();
+
+        boost::json::array pieces_json;
+        for (const auto& piece : assigner_instance.get_table_pieces()) {
+            pieces_json.push_back(piece.to_json());
+        }
+        top_level_json["table_pieces"] = pieces_json;
+
+        boost::json::array used_rows_json;
+        for (std::size_t i = 0; i < assigner_instance.assignments.size(); i++) {
+            boost::json::array current_row;
+            for (const auto& r : assigner_instance.assignments[i].get_used_rows()) {
+                current_row.push_back(r);
+            }
+            used_rows_json.push_back(current_row);
+        }
+        top_level_json["used_rows"] = used_rows_json;
+
+        boost::json::array to_be_shared_json;
+
+        for (const auto& pair : assigner_instance.get_to_be_shared()) {
+            boost::json::object pair_json;
+            pair_json["first"] = pair.first;
+            pair_json["second"] = pair.second.to_json();
+            to_be_shared_json.push_back(pair_json);
+        }
+        top_level_json["to_be_shared"] = to_be_shared_json;
+
+        std::string serialized = boost::json::serialize(top_level_json);
+
+        std::ofstream file(table_pieces_file_name);
+        file << serialized;
+        file.close();
+    }
+
+    if (!gen_mode.has_fast_tbl()) {
     auto pack_lookup_start = std::chrono::high_resolution_clock::now();
     // pack lookup tables
     if (assigner_instance.circuits[0].get_reserved_tables().size() > 0) {
@@ -606,29 +964,50 @@ int curve_dependent_main(std::string bytecode_file_name,
     }
     auto pack_lookup_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - pack_lookup_start);
     BOOST_LOG_TRIVIAL(debug) << "pack_lookup_duration: " << pack_lookup_duration.count() << "ms";
+    }
 
     auto overall_table_printing_start = std::chrono::high_resolution_clock::now();
     constexpr std::uint32_t invalid_target_prover = std::numeric_limits<std::uint32_t>::max();
     // print assignment tables and circuits
-    ASSERT_MSG(assigner_instance.assignments.size() == assigner_instance.circuits.size(), "Missmatch assignments circuits size");
+    ASSERT_MSG(gen_mode.has_fast_tbl() || (assigner_instance.assignments.size() == assigner_instance.circuits.size()), "Missmatch assignments circuits size");
     if (assigner_instance.assignments.size() == 1 && (target_prover == 0 || target_prover == invalid_target_prover)) {
             auto single_table_print_start = std::chrono::high_resolution_clock::now();
         // print assignment table
-        if (gen_mode.has_assignments()) {
-            std::ofstream otable;
-            otable.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::out);
-            if (!otable) {
-                std::cout << "Something wrong with output " << assignment_table_file_name << std::endl;
-                return 1;
-            }
+        if (gen_mode.has_slow_tbl()) {
 
-            print_assignment_table<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
-                assigner_instance.assignments[0], print_table_kind::SINGLE_PROVER, ComponentConstantColumns,
-                ComponentSelectorColumns, otable);
+            std::array<std::uint32_t, 7> asdf = extract_table_parameters_from_table(
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER
+            );
 
-            otable.close();
+            print_assignment_table_dynamic<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                asdf[6],
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER,
+                assignment_table_file_name,
+                0
+            );
             auto single_table_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - single_table_print_start);
             BOOST_LOG_TRIVIAL(debug) << "single_table_print_duration: " << single_table_print_duration.count() << "ms";
+        }
+        if (gen_mode.has_fast_tbl()) {
+            auto fast_tbl_print_start = std::chrono::high_resolution_clock::now();
+
+            std::uint32_t padded_rows_amount = padded_rows_from_table_header<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER,
+                assignment_table_file_name,
+                0);
+
+            print_assignment_table_dynamic<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                padded_rows_amount,
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER,
+                assignment_table_file_name,
+                0);
+
+            auto fast_tbl_print_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fast_tbl_print_start);
+            BOOST_LOG_TRIVIAL(debug) << "fast_tbl_print_duration: " << fast_tbl_print_duration.count() << "ms";
         }
 
         // print circuit
@@ -643,6 +1022,24 @@ int curve_dependent_main(std::string bytecode_file_name,
             print_circuit<nil::marshalling::option::big_endian, ArithmetizationType, ConstraintSystemType>(
                 assigner_instance.circuits[0], assigner_instance.assignments[0], false, 0, ocircuit);
             ocircuit.close();
+
+            std::array<std::uint32_t, 7> asdf = extract_table_parameters_from_table(
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER
+            );
+
+            print_assignment_table_static<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                asdf,
+                assigner_instance.assignments[0],
+                print_table_kind::SINGLE_PROVER,
+                ComponentConstantColumns,
+                ComponentSelectorColumns,
+                assignment_table_file_name,
+                0
+            );
+
+
+
         }
     } else if (assigner_instance.assignments.size() > 1 &&
               (target_prover < assigner_instance.assignments.size() || target_prover == invalid_target_prover)) {
@@ -653,7 +1050,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
         for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print assignment table
-            if (gen_mode.has_assignments()) {
+            if (gen_mode.has_slow_tbl()) {
 
                 auto future = std::async(
                     std::launch::async,
@@ -667,7 +1064,24 @@ int curve_dependent_main(std::string bytecode_file_name,
 
                 futures.push_back(std::move(future));
             }
+            if (gen_mode.has_fast_tbl()) {
+                std::uint32_t padded_rows_amount = padded_rows_from_table_header<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                    assigner_instance.assignments[idx],
+                    print_table_kind::MULTI_PROVER,
+                    assignment_table_file_name,
+                    idx);
 
+                print_assignment_table_dynamic<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                    padded_rows_amount,
+                    assigner_instance.assignments[idx],
+                    print_table_kind::MULTI_PROVER,
+                    assignment_table_file_name,
+                    idx);
+            }
+
+        }
+
+        for (std::uint32_t idx = start_idx; idx < end_idx; idx++) {
             // print circuit
             if (gen_mode.has_circuit()) {
                 std::ofstream ocircuit;
@@ -682,6 +1096,21 @@ int curve_dependent_main(std::string bytecode_file_name,
                     assigner_instance.circuits[idx], assigner_instance.assignments[idx], true, idx, ocircuit);
 
                 ocircuit.close();
+
+                std::array<std::uint32_t, 7> asdf = extract_table_parameters_from_table(
+                    assigner_instance.assignments[idx],
+                    print_table_kind::MULTI_PROVER
+                );
+
+                print_assignment_table_static<nil::marshalling::option::big_endian, ArithmetizationType, BlueprintFieldType>(
+                    asdf,
+                    assigner_instance.assignments[idx],
+                    print_table_kind::MULTI_PROVER,
+                    ComponentConstantColumns,
+                    ComponentSelectorColumns,
+                    assignment_table_file_name,
+                    idx
+                );
             }
         }
 
@@ -744,6 +1173,7 @@ int main(int argc, char *argv[]) {
             ("private-input,p", boost::program_options::value<std::string>(), "Private input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
+            ("table-pieces,j", boost::program_options::value<std::string>(), "Table pieces json file")
             ("input-column", boost::program_options::value<std::string>(), "Output file for public input column")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ("stack-size,s", boost::program_options::value<long>(), "Stack size in bytes")
@@ -752,7 +1182,7 @@ int main(int argc, char *argv[]) {
             ("print_circuit_output", "deprecated, use \"-f\" instead")
             ("print-circuit-output-format,f", boost::program_options::value<std::string>(), "print output of the circuit (dec, hex)")
             ("policy", boost::program_options::value<std::string>(), "Policy for creating circuits. Possible values: default")
-            ("generate-type", boost::program_options::value<std::string>(), "Define generated output. Possible values: circuit, assignment, circuit-assignment, public-input-column, size_estimation(does not generate anything, just evaluates circuit size). Default value is circuit-assignment")
+            ("generate-type", boost::program_options::value<std::string>(), "Define generated output. Possible values: circuit, assignment, assignment-fast, circuit-assignment, public-input-column, size_estimation(does not generate anything, just evaluates circuit size). Default value is circuit-assignment")
             ("max-num-provers", boost::program_options::value<int>(), "Maximum number of provers. Possible values >= 1")
             ("max-lookup-rows", boost::program_options::value<int>(), "Maximum number of lookup rows")
             ("target-prover", boost::program_options::value<int>(), "Assignment table and circuit will be generated only for defined prover. Possible values [0, max-num-provers)")
@@ -794,6 +1224,7 @@ int main(int argc, char *argv[]) {
     std::string private_input_file_name;
     std::string assignment_table_file_name;
     std::string circuit_file_name;
+    std::string table_pieces_file_name;
     std::string processed_public_input_file_name;
     std::string elliptic_curve;
     nil::blueprint::print_format circuit_output_print_format;
@@ -808,15 +1239,17 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    nil::blueprint::generation_mode gen_mode = nil::blueprint::generation_mode::assignments() | nil::blueprint::generation_mode::circuit();
+    nil::blueprint::generation_mode gen_mode = nil::blueprint::generation_mode::slow_tbl() | nil::blueprint::generation_mode::circuit();
     if (vm.count("generate-type")) {
         const auto generate_type = vm["generate-type"].as<std::string>();
         if (generate_type == "circuit") {
             gen_mode = nil::blueprint::generation_mode::circuit();
         } else if (generate_type == "assignment") {
-            gen_mode = nil::blueprint::generation_mode::assignments();
+            gen_mode = nil::blueprint::generation_mode::slow_tbl();
+        } else if (generate_type == "assignment-fast") {
+            gen_mode = nil::blueprint::generation_mode::fast_tbl();
         } else if (generate_type == "size_estimation") {
-            gen_mode = nil::blueprint::generation_mode::size_estimation();
+            gen_mode = nil::blueprint::generation_mode::size_estimation() | nil::blueprint::generation_mode::circuit();
         } else if (generate_type == "public-input-column") {
             gen_mode = nil::blueprint::generation_mode::public_input_column();
         } else if (generate_type != "circuit-assignment") {
@@ -825,8 +1258,9 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+    gen_mode = gen_mode | nil::blueprint::generation_mode::assignments(); // for now in any case we generate assignment table to determine used_rows
 
-    if (!vm.count("public-input") && !vm.count("private-input") && gen_mode.has_assignments()) {
+    if (!vm.count("public-input") && !vm.count("private-input") && !gen_mode.has_size_estimation()) {
         std::cerr << "Both public and private input file names are not specified" << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
@@ -849,13 +1283,15 @@ int main(int argc, char *argv[]) {
         public_input_file_name = vm["public-input"].as<std::string>();
     }
 
-    if (gen_mode.has_assignments()) {
+    if (gen_mode.has_circuit() || gen_mode.has_fast_tbl() || gen_mode.has_slow_tbl()) {
         if (vm.count("assignment-table")) {
             assignment_table_file_name = vm["assignment-table"].as<std::string>();
         } else {
-            std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
-            std::cout << options_desc << std::endl;
-            return 1;
+            if (!gen_mode.has_size_estimation()) {
+                std::cerr << "Invalid command line argument - assignment table file name is not specified" << std::endl;
+                std::cout << options_desc << std::endl;
+                return 1;
+            }
         }
     }
 
@@ -863,11 +1299,22 @@ int main(int argc, char *argv[]) {
         if (vm.count("circuit")) {
             circuit_file_name = vm["circuit"].as<std::string>();
         } else {
-            std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
-            std::cout << options_desc << std::endl;
-            return 1;
+            if (!gen_mode.has_size_estimation()) {
+                std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
+                std::cout << options_desc << std::endl;
+                return 1;
+            }
         }
     }
+
+    if (vm.count("table-pieces")) {
+        table_pieces_file_name = vm["table-pieces"].as<std::string>();
+    }
+    // else {
+    //     std::cerr << "Invalid command line argument - table-pieces file name is not specified" << std::endl;
+    //     std::cout << options_desc << std::endl;
+    //     return 1;
+    // }
 
     if (vm.count("elliptic-curve-type")) {
         elliptic_curve = vm["elliptic-curve-type"].as<std::string>();
@@ -1010,6 +1457,7 @@ int main(int argc, char *argv[]) {
                                                                           private_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
+                                                                          table_pieces_file_name,
                                                                           processed_public_input_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),
@@ -1039,6 +1487,7 @@ int main(int argc, char *argv[]) {
                                                                           private_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
+                                                                          table_pieces_file_name,
                                                                           processed_public_input_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),

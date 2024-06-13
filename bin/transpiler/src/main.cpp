@@ -242,6 +242,43 @@ int main(int argc, char *argv[]) {
 
 }
 
+std::string add_filename_prefix(
+    const std::string& prefix,
+    const std::string& file_name
+) {
+    std::filesystem::path path(file_name);
+    std::filesystem::path parent_path = path.parent_path();
+    std::filesystem::path filename = path.filename();
+
+    std::string new_filename = prefix + filename.string();
+    std::filesystem::path new_path = parent_path / new_filename;
+
+    return new_path.string();
+}
+
+bool read_file_to_vector (
+    std::vector<std::uint8_t>& result_vector,
+    const std::string& prefix,
+    const std::string& assignment_table_file_name
+
+) {
+    std::cout << "assignment_table_file_name: " << assignment_table_file_name << "\n";
+    std::ifstream icolumn;
+    icolumn.open(add_filename_prefix(prefix, assignment_table_file_name), std::ios_base::binary | std::ios_base::in);
+    if (!icolumn) {
+        std::cout << "Cannot open " << add_filename_prefix("header_", assignment_table_file_name) << std::endl;
+        return false;
+    }
+    icolumn.seekg(0, std::ios_base::end);
+    const auto input_size = icolumn.tellg();
+    std::size_t old_size = result_vector.size();
+    result_vector.resize(old_size + input_size);
+    icolumn.seekg(0, std::ios_base::beg);
+    icolumn.read(reinterpret_cast<char*>(result_vector.data() + old_size), input_size);
+    icolumn.close();
+    return true;
+}
+
 template<typename BlueprintFieldType, bool is_multi_prover>
 int curve_dependent_main(
     boost::program_options::options_description options_desc,
@@ -361,23 +398,15 @@ int curve_dependent_main(
 
     AssignmentTableType assignment_table;
     {
-        std::ifstream iassignment;
-        iassignment.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
-        if (!iassignment) {
-            std::cout << "Cannot open " << assignment_table_file_name << std::endl;
-            return 1;
-        }
+
         std::vector<std::uint8_t> v;
-        iassignment.seekg(0, std::ios_base::end);
-        const auto fsize = iassignment.tellg();
-        v.resize(fsize);
-        iassignment.seekg(0, std::ios_base::beg);
-        iassignment.read(reinterpret_cast<char*>(v.data()), fsize);
-        if (!iassignment) {
-            std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        iassignment.close();
+
+        ASSERT(read_file_to_vector(v, "header_", assignment_table_file_name));
+        ASSERT(read_file_to_vector(v, "witness_", assignment_table_file_name));
+        ASSERT(read_file_to_vector(v, "pub_inp_", assignment_table_file_name));
+        ASSERT(read_file_to_vector(v, "constants_", assignment_table_file_name));
+        ASSERT(read_file_to_vector(v, "selectors_", assignment_table_file_name));
+
         table_value_marshalling_type marshalled_table_data;
         auto read_iter = v.begin();
         auto status = marshalled_table_data.read(read_iter, v.size());
