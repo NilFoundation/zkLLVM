@@ -103,18 +103,20 @@
         pkgs.gci
       ];
 
+      defaultCmakeFlags = [
+        "-DENABLE_TESTS=FALSE"
+        "-DBUILD_TEST=FALSE"
+        "-DCMAKE_CXX_STANDARD=17"
+        "-DBUILD_SHARED_LIBS=TRUE"
+        "-DCMAKE_ENABLE_TESTS=FALSE"
+        "-DZKLLVM_VERSION=1.2.3" # TODO change this
+      ];
+
       releaseBuild = stdenv.mkDerivation {
         name = "zkEVM";
 
-        cmakeFlags = [
-          "-DCMAKE_BUILD_TYPE=Release"
-          "-DENABLE_TESTS=FALSE"
-          "-DBUILD_TEST=FALSE"
-          "-DCMAKE_CXX_STANDARD=17"
-          "-DBUILD_SHARED_LIBS=TRUE"
-          "-DCMAKE_ENABLE_TESTS=FALSE"
-          "-DZKLLVM_VERSION=1.2.3" # TODO change this
-        ];
+        cmakeFlags = defaultCmakeFlags;
+        cmakeBuildType = "Release";
 
         nativeBuildInputs = defaultNativeBuildInputs;
 
@@ -125,8 +127,6 @@
         '';
 
         src = self;
-
-        cmakeBuildType = "Release";
 
         doCheck = false;
       };
@@ -141,13 +141,8 @@
       testBuild = releaseBuild.overrideAttrs (finalAttrs: previousAttrs: {
         name = previousAttrs.name + "-tests";
 
-        cmakeFlags = [ 
-          "-DENABLE_TESTS=TRUE"
-          "-DCMAKE_CXX_STANDARD=17"
-          "-DBUILD_SHARED_LIBS=TRUE"
-          "-DCMAKE_ENABLE_TESTS=TRUE"
-          "-DZKLLVM_VERSION=1.2.3" # TODO change this
-        ];
+        cmakeFlags = defaultCmakeFlags;
+        cmakeBuildType = "Debug";
 
         doCheck = true;
 

@@ -44,13 +44,17 @@ target_link_libraries(${CURRENT_PROJECT_NAME}
                       crypto3::all
                       ${Boost_LIBRARIES})
 
+message("CMAKE_CURRENT_SOURCE_DIR = ${CMAKE_CURRENT_SOURCE_DIR}")
+message("path = ${CMAKE_CURRENT_SOURCE_DIR}/libs/assigner/include")
+message("name = ${CURRENT_PROJECT_NAME}")
+
 target_include_directories(${CURRENT_PROJECT_NAME} PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                           ${CMAKE_CURRENT_SOURCE_DIR}/../../libs/circifier/llvm/include
-                           ${CMAKE_CURRENT_SOURCE_DIR}/../../libs/circifier/utils/bazel/llvm-project-overlay/llvm/include
+                           ${CMAKE_SOURCE_DIR}/libs/circifier/llvm/include
+                           ${CMAKE_SOURCE_DIR}/libs/circifier/utils/bazel/llvm-project-overlay/llvm/include
                            ${CMAKE_BINARY_DIR}/libs/circifier/llvm/include
-
+                           ${CMAKE_SOURCE_DIR}/libs/assigner/include
                            $<$<BOOL:${Boost_FOUND}>:${Boost_INCLUDE_DIRS}>)
 
 if(APPLE OR NOT ${CMAKE_TARGET_ARCHITECTURE} STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
