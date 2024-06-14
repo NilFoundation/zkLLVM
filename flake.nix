@@ -113,7 +113,7 @@
       ];
 
       releaseBuild = stdenv.mkDerivation {
-        name = "zkEVM";
+        name = "zkLLVM";
 
         cmakeFlags = defaultCmakeFlags;
         cmakeBuildType = "Release";
@@ -169,7 +169,7 @@
           ++ defaultDevTools;
 
         shellHook = ''
-          echo "zkEVM dev environment activated"
+          echo "zkLLVM dev environment activated"
         '';
       };
     in
