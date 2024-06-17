@@ -37,7 +37,7 @@ bool append_binary_file_content_to_vector (
 
 template<typename marshalling_type>
 void unmarshall_from_vector (
-    std::vector<std::uint8_t>& v,
+    const std::vector<std::uint8_t>& v,
     marshalling_type& marhsalling_data
 ) {
     auto vect_iterator = v.begin();

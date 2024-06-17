@@ -441,13 +441,21 @@ int curve_dependent_main(
     public_input_sizes = (*constraint_system).public_input_sizes();
 
     if( vm.count("assignment-table") ){
-        auto marshalled_value = decode_marshalling_from_different_column_types_files<assignment_table_marshalling_type>(assignment_table_file_name);
-        if (!marshalled_value) {
-            return false;
-        }
-        auto [description, table] = nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
-            *marshalled_value
-        );
+
+        AssignmentTableType table;
+        zk::snark::plonk_table_description<BlueprintFieldType> description (
+            WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns);
+
+        assignment_table_marshalling_type marshalled_table_data =
+            extract_table_from_binary_file<assignment_table_marshalling_type>
+                (assignment_table_file_name);
+
+        std::tie(description, table) =
+            nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
+                marshalled_table_data
+            );
+
+
         assignment_table.emplace(table);
         desc.emplace(description);
     }
