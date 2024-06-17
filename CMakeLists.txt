@@ -26,7 +26,7 @@ cm_setup_version(VERSION 0.3.0 PREFIX ${CMAKE_WORKSPACE_NAME})
 
 option(BUILD_SHARED_LIBS "Build shared library" TRUE)
 option(BUILD_WITH_BOOST_STATIC_LIBS "Build using Boost static libraries" TRUE)
-option(BUILD_TESTS "Build unit tests" FALSE)
+option(CMAKE_ENABLE_TESTS "Build unit tests" FALSE)
 option(BUILD_DOCS "Build with configuring Doxygen documentation compiler" TRUE)
 option(CIRCUIT_BINARY_OUTPUT "Emit circuit IR as binary file" FALSE)
 option(RSLANG_BUILD_EXTENDED "Build Rust tools (see build.extended)" FALSE)
@@ -42,11 +42,12 @@ include(TargetArchitecture)
 include(CircuitCompile)
 
 find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter)
+
 find_package(crypto3 REQUIRED)
 
-find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system)
-if(BUILD_TESTS)
-    find_package(Boost COMPONENTS REQUIRED unit_test_framework)
+find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system random)
+if(CMAKE_ENABLE_TESTS)
+    find_package(Boost REQUIRED COMPONENTS unit_test_framework timer)
 endif()
 
 if(BUILD_WITH_BOOST_STATIC_LIBS)

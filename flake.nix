@@ -104,23 +104,15 @@
       ];
 
       defaultCmakeFlags = [
-        "-DENABLE_TESTS=FALSE"
-        "-DBUILD_TEST=FALSE"
         "-DCMAKE_CXX_STANDARD=17"
         "-DBUILD_SHARED_LIBS=TRUE"
-        "-DCMAKE_ENABLE_TESTS=FALSE"
         "-DZKLLVM_VERSION=1.2.3" # TODO change this
       ];
 
       releaseBuild = stdenv.mkDerivation {
         name = "zkLLVM";
-
-        cmakeFlags = defaultCmakeFlags;
         cmakeBuildType = "Release";
-
-        nativeBuildInputs = defaultNativeBuildInputs;
-
-        buildInputs = defaultBuildInputs;
+        buildInputs = defaultBuildInputs ++ defaultNativeBuildInputs;
 
         buildPhase = ''
           cmake --build . -t assigner clang transpiler
@@ -134,15 +126,19 @@
       # TODO: we need to propagate debug mode to dependencies here:
       debugBuild = releaseBuild.overrideAttrs (finalAttrs: previousAttrs: {
         name = previousAttrs.name + "-debug";
-
         cmakeBuildType = "Debug";
+        buildInputs = defaultBuildInputs ++ defaultNativeBuildInputs;
       });
 
       testBuild = buildType: buildType.overrideAttrs (finalAttrs: previousAttrs: {
         name = previousAttrs.name + "-tests";
+        buildInputs = defaultBuildInputs ++ defaultNativeBuildInputs;
 
-        cmakeFlags = defaultCmakeFlags;
-        cmakeBuildType = "Debug";
+        cmakeFlags = defaultCmakeFlags ++ [
+          "-DENABLE_TESTS=TRUE"
+          "-DBUILD_TEST=TRUE"
+          "-DCMAKE_ENABLE_TESTS=TRUE"
+        ];
 
         doCheck = true;
 
@@ -179,8 +175,8 @@
         debug = debugBuild;
       };
       checks = {
-        default = testBuild releaseBuild;
-        debug = testBuild debugBuild;
+        release-tests = testBuild releaseBuild;
+        debug-tests = testBuild debugBuild;
       };
       apps = {
         assigner = {
