@@ -138,7 +138,7 @@
         cmakeBuildType = "Debug";
       });
 
-      testBuild = releaseBuild.overrideAttrs (finalAttrs: previousAttrs: {
+      testBuild = buildType: buildType.overrideAttrs (finalAttrs: previousAttrs: {
         name = previousAttrs.name + "-tests";
 
         cmakeFlags = defaultCmakeFlags;
@@ -178,7 +178,10 @@
         default = releaseBuild;
         debug = debugBuild;
       };
-      checks.default = testBuild;
+      checks = {
+        default = testBuild releaseBuild;
+        debug = testBuild debugBuild;
+      };
       apps = {
         assigner = {
           type = "app";
