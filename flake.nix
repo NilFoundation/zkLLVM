@@ -191,3 +191,11 @@
     }
     );
 }
+
+# To override some inputs:
+# nix build --override-input nil-crypto3 /your/local/path/crypto3/
+# to configure build:
+# nix develop . -c cmake -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=FALSE -DCMAKE_ENABLE_TESTS=TRUE
+# to build:
+# cd build
+# nix develop ../ -c cmake --build . -t compile_cpp_examples
