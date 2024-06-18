@@ -40,11 +40,6 @@
     };
   };
 
-  #src = repos.dbms;
-  #revCount = repos.dbms.revCount or 1;
-  #shortRev = repos.dbms.shortRev or "deadbeef";
-  #version = "0.1.0-${toString revCount}";
-
   outputs =
     { self
     , nixpkgs
