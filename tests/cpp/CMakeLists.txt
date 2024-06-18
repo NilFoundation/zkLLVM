@@ -22,8 +22,7 @@ if(NOT Boost_UNIT_TEST_FRAMEWORK_FOUND)
 endif()
 
 cm_test_link_libraries(
-                       crypto3::zk
-                       crypto3::assigner
+                       crypto3::all
                        ${Boost_LIBRARIES})
 
 
@@ -100,31 +99,11 @@ function(add_test_circuit_assign example_target)
                 SOURCES ${ARG_SOURCES}
 
                 LINK_LIBRARIES
-                crypto3::algebra
-                crypto3::block
-                crypto3::blueprint
-                crypto3::codec
-                crypto3::containers
-                crypto3::hash
-                crypto3::kdf
-                crypto3::mac
+                crypto3::all
                 marshalling::core
                 marshalling::crypto3_algebra
                 marshalling::crypto3_multiprecision
                 marshalling::crypto3_zk
-                crypto3::math
-                crypto3::modes
-                crypto3::multiprecision
-                crypto3::passhash
-                crypto3::pbkdf
-                crypto3::threshold
-                crypto3::pkpad
-                crypto3::pubkey
-                crypto3::random
-                crypto3::stream
-                crypto3::vdf
-                crypto3::zk
-
                 ${Boost_LIBRARIES})
 
     set(binary_name ${example_target}.ll)
