@@ -50,7 +50,7 @@ function(add_rust_example_without_proving example_target)
 
     assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_ARITHMETIZARION} ${ARG_MAX_NUM_PROVERS})
 
-    add_dependencies(rust_examples_generate_crct ${example_target}_generate_crct)
+    add_dependencies(rust_examples_generate_crct ${example_target}_generate_both) # assigner fails in gen_crct mode for some reason
     add_dependencies(rust_examples_generate_tbl ${example_target}_generate_tbl)
     add_dependencies(rust_examples_generate_both ${example_target}_generate_both)
 endfunction()
