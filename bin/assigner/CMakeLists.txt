@@ -54,6 +54,7 @@ target_include_directories(${CURRENT_PROJECT_NAME} PUBLIC
                            ${CMAKE_SOURCE_DIR}/libs/circifier/llvm/include
                            ${CMAKE_SOURCE_DIR}/libs/circifier/utils/bazel/llvm-project-overlay/llvm/include
                            ${CMAKE_SOURCE_DIR}/libs/assigner/include
+                           ${CMAKE_BINARY_DIR}/libs/circifier/llvm/include
                            ${Boost_INCLUDE_DIRS})
 
 if(APPLE OR NOT ${CMAKE_TARGET_ARCHITECTURE} STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
