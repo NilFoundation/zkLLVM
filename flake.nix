@@ -11,16 +11,6 @@
         flake-utils.follows = "flake-utils";
       };
     };
-    nil-evm-assigner = {
-      type = "github";
-      owner = "NilFoundation";
-      repo = "evm-assigner";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        nil_crypto3.follows = "nil-crypto3";
-        nil_zkllvm_blueprint.follows = "nil-zkllvm-blueprint";
-      };
-    };
     nil-crypto3 = {
       url = "https://github.com/NilFoundation/crypto3";
       type = "git";
@@ -45,7 +35,6 @@
     , nixpkgs
     , flake-utils
     , nix-3rdparty
-    , nil-evm-assigner
     , nil-crypto3
     , nil-zkllvm-blueprint
     }:
@@ -55,7 +44,6 @@
         overlays = [ nix-3rdparty.overlays.${system}.default ];
         inherit system;
       };
-      evm_assigner = nil-evm-assigner.packages.${system}.default;
       crypto3 = nil-crypto3.packages.${system}.default;
       blueprint = nil-zkllvm-blueprint.packages.${system}.default;
 
@@ -98,6 +86,23 @@
         pkgs.gci
       ];
 
+      testList = [
+        "compile_cpp_examples"
+        "cpp_examples_generate_crct"
+        "cpp_examples_generate_tbl_no_check"
+        "cpp_examples_generate_both"
+        "cpp_examples_estimate_size"
+        "all_tests_compile_as_cpp_code"
+        "all_tests_compile_as_circuits"
+        "all_tests_run_expected_res_calculation"
+        "all_tests_assign_circuits"
+        "check-crypto3-assigner"
+        "prove_cpp_examples"
+        "recursive_gen"
+        "compile_and_run_transpiler_tests"
+        "recursion"
+      ];
+
       defaultCmakeFlags = [
         "-DCMAKE_CXX_STANDARD=17"
         "-DBUILD_SHARED_LIBS=TRUE"
@@ -135,12 +140,14 @@
           "-DCMAKE_ENABLE_TESTS=TRUE"
         ];
 
+        ninjaFlags = pkgs.lib.strings.concatStringsSep " " (["-k 0"] ++ testList);
+
         doCheck = true;
 
         checkPhase = ''
           # JUNIT file without explicit file name is generated after the name of the master test suite inside `CMAKE_CURRENT_SOURCE_DIR` (/build/source)
           export BOOST_TEST_LOGGER=JUNIT:HRF
-          ctest --verbose -j $NIX_BUILD_CORES --output-on-failure -R compile_cpp_examples cpp_examples_generate_tbl_no_check }"
+          ctest --verbose -j $NIX_BUILD_CORES --output-on-failure -R "${nixpkgs.lib.concatStringsSep "|" testList}" || true
 
           mkdir -p ${placeholder "out"}/test-logs
           find .. -type f -name '*_test.xml' -exec cp {} ${placeholder "out"}/test-logs \;
@@ -199,3 +206,4 @@
 # to build:
 # cd build
 # nix develop ../ -c cmake --build . -t compile_cpp_examples
+
