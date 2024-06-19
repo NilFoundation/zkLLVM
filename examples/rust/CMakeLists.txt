@@ -50,7 +50,7 @@ function(add_rust_example_without_proving example_target)
 
     assign_ir(${example_target} ${binary_name} ${ARG_INPUT} ${ARG_PRIVATE_INPUT} ${ARG_CURVE_TYPE} ${ARG_ARITHMETIZARION} ${ARG_MAX_NUM_PROVERS})
 
-    add_dependencies(rust_examples_generate_crct ${example_target}_generate_crct)
+    add_dependencies(rust_examples_generate_crct ${example_target}_generate_both) # assigner fails in gen_crct mode for some reason
     add_dependencies(rust_examples_generate_tbl ${example_target}_generate_tbl)
     add_dependencies(rust_examples_generate_both ${example_target}_generate_both)
 endfunction()
@@ -58,7 +58,7 @@ endfunction()
 function(add_rust_example_with_proving example_target)
     set(prefix ARG)
     set(noValues "")
-    set(singleValues EXAMPLE_NAME INPUT CURVE_TYPE)
+    set(singleValues EXAMPLE_NAME INPUT CURVE_TYPE TBL_GEN_SPEED)
     set(multiValues)
     cmake_parse_arguments(${prefix}
                         "${noValues}"
@@ -72,7 +72,11 @@ function(add_rust_example_with_proving example_target)
         set(ARG_MAX_NUM_PROVERS 0)
     endif()
 
-    gen_proof(${example_target} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS})
+    if(NOT DEFINED ARG_TBL_GEN_SPEED)
+        set(ARG_TBL_GEN_SPEED "slow")
+    endif()
+
+    gen_proof(${example_target} ${ARG_CURVE_TYPE} ${ARG_MAX_NUM_PROVERS} ${ARG_TBL_GEN_SPEED})
     add_dependencies(prove_rust_examples ${example_target}_prove)
 
     if(GENERATE_EVM_VERIFIER)
