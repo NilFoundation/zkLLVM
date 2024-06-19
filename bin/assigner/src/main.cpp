@@ -404,8 +404,8 @@ std::uint32_t padded_rows_from_table_header(
     using TTypeBase = nil::marshalling::field_type<Endianness>;
     using table_header_marshalling_type = nil::crypto3::marshalling::types::table_header_type<TTypeBase>;
 
-    table_header_marshalling_type marshalled_table_header =
-        extract_from_binary_file<table_header_marshalling_type>("header_", assignment_table_file_name);
+    table_header_marshalling_type marshalled_table_header;
+    extract_from_binary_file<table_header_marshalling_type>(marshalled_table_header, "header_", assignment_table_file_name);
 
     std::uint32_t padded_rows_amount = std::get<5>(marshalled_table_header.value()).value();
     return padded_rows_amount;
@@ -673,17 +673,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
     using Endianness = nil::marshalling::option::big_endian;
     using TTypeBase = nil::marshalling::field_type<Endianness>;
-    using constant_column_marshalling_type =
-        nil::marshalling::types::array_list<
-            TTypeBase,
-            nil::crypto3::marshalling::types::field_element<
-                TTypeBase,
-                typename BlueprintFieldType::value_type>,
-                nil::marshalling::option::sequence_size_field_prefix<
-                    nil::marshalling::types::integral<TTypeBase, std::size_t>
-                >
-            >;
-    using TTypeBase = nil::marshalling::field_type<Endianness>;
+    using constants_marshalling_type = nil::crypto3::marshalling::types::one_column_type_marshalling_type<TTypeBase, BlueprintFieldType>;
     using table_header_marshalling_type = nil::crypto3::marshalling::types::table_header_type<TTypeBase>;
 
     boost::json::value public_input_json_value;
@@ -785,11 +775,11 @@ int curve_dependent_main(std::string bytecode_file_name,
             std::string table_file_name = provers_amount == 1 ? assignment_table_file_name : assignment_table_file_name + std::to_string(i);
 
 
-            constant_column_marshalling_type marshalled_constant_column_data =
-                extract_from_binary_file<constant_column_marshalling_type>("constants_", table_file_name);
+            constants_marshalling_type marshalled_constant_column_data;
+            extract_from_binary_file<constants_marshalling_type>(marshalled_constant_column_data, "constants_", table_file_name);
 
-            table_header_marshalling_type marshalled_table_header =
-                extract_from_binary_file<table_header_marshalling_type>("header_", table_file_name);
+            table_header_marshalling_type marshalled_table_header;
+            extract_from_binary_file<table_header_marshalling_type>(marshalled_table_header, "header_", table_file_name);
 
 
             std::uint32_t constant_columns_amount = std::get<2>(marshalled_table_header.value()).value();

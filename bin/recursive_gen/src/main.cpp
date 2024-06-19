@@ -108,30 +108,6 @@ std::optional<MarshallingType> decode_marshalling_from_file(
     return marshalled_data;
 }
 
-template<typename MarshallingType>
-std::optional<MarshallingType> decode_marshalling_from_different_column_types_files(
-    const std::string& assignment_table_file_name
-) {
-
-        std::vector<std::uint8_t> v = {};
-
-        ASSERT(append_binary_file_content_to_vector(v, "header_", assignment_table_file_name));
-        ASSERT(append_binary_file_content_to_vector(v, "witness_", assignment_table_file_name));
-        ASSERT(append_binary_file_content_to_vector(v, "pub_inp_", assignment_table_file_name));
-        ASSERT(append_binary_file_content_to_vector(v, "constants_", assignment_table_file_name));
-        ASSERT(append_binary_file_content_to_vector(v, "selectors_", assignment_table_file_name));
-
-        MarshallingType marshalled_data;
-        auto read_iter = v.begin();
-        auto status = marshalled_data.read(read_iter, v.size());
-
-        if (status != nil::marshalling::status_type::success) {
-            std::cerr << "Marshalled structure decoding failed" << std::endl;
-            return std::nullopt;
-        }
-        return marshalled_data;
-}
-
 
 template<typename BlueprintFieldType>
 struct ParametersPolicy {

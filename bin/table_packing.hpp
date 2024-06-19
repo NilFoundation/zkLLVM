@@ -46,15 +46,14 @@ void unmarshall_from_vector (
 }
 
 template<typename marshalling_type>
-marshalling_type extract_from_binary_file(
+void extract_from_binary_file(
+    marshalling_type& marshalling_file,
     const std::string& prefix,
     const std::string& file_name
 ) {
     std::vector<std::uint8_t> file_vector = {};
     ASSERT(append_binary_file_content_to_vector(file_vector, prefix, file_name));
-    marshalling_type marshalling_file;
     unmarshall_from_vector<marshalling_type> (file_vector, marshalling_file);
-    return marshalling_file;
 }
 
 template<typename marshalling_type>
