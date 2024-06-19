@@ -33,8 +33,6 @@ function(assign_ir)
     add_custom_target(${target}_generate_crct
             COMMAND $<TARGET_FILE:assigner>
             -b ${binary_name}
-            -i ${INPUTS_DIR}/${input}
-            ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
             -j table_pieces_${target}.json
             -t assignment_${target}.tbl
@@ -133,9 +131,7 @@ function(assign_ir)
     add_custom_target(${target}_estimate_size
         COMMAND $<TARGET_FILE:assigner>
             -b ${binary_name}
-            -i ${INPUTS_DIR}/${input}
             -j table_pieces_${target}.json
-            ${minus_p} ${private_input_string}
             -e ${curve_type}
             --generate-type size_estimation
             ${max_num_provers_flag} ${max_num_provers_amount}
