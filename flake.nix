@@ -86,22 +86,6 @@
         pkgs.gci
       ];
 
-      testList = [
-        "compile_cpp_examples"
-        "cpp_examples_generate_crct"
-        "cpp_examples_generate_tbl_no_check"
-        "cpp_examples_generate_both"
-        "cpp_examples_estimate_size"
-        "all_tests_compile_as_cpp_code"
-        "all_tests_compile_as_circuits"
-        "all_tests_run_expected_res_calculation"
-        "all_tests_assign_circuits"
-        "check-crypto3-assigner"
-        "prove_cpp_examples"
-        "recursive_gen"
-        "compile_and_run_transpiler_tests"
-        "recursion"
-      ];
 
       defaultCmakeFlags = [
         "-DCMAKE_CXX_STANDARD=17"
@@ -130,7 +114,7 @@
         buildInputs = defaultBuildInputs ++ defaultNativeBuildInputs;
       });
 
-      testBuild = buildType: buildType.overrideAttrs (finalAttrs: previousAttrs: {
+      testBuild = buildType: buildType.overrideAttrs (finalAttrs: previousAttrs: rec {
         name = previousAttrs.name + "-tests";
         buildInputs = defaultBuildInputs ++ defaultNativeBuildInputs;
 
@@ -138,6 +122,23 @@
           "-DENABLE_TESTS=TRUE"
           "-DBUILD_TEST=TRUE"
           "-DCMAKE_ENABLE_TESTS=TRUE"
+        ];
+
+        testList = [
+            "compile_cpp_examples"
+            "cpp_examples_generate_crct"
+            "cpp_examples_generate_tbl_no_check"
+            "cpp_examples_generate_both"
+            "cpp_examples_estimate_size"
+            "all_tests_compile_as_cpp_code"
+            "all_tests_compile_as_circuits"
+            "all_tests_run_expected_res_calculation"
+            "all_tests_assign_circuits"
+            "check-crypto3-assigner"
+            "prove_cpp_examples"
+            "recursive_gen"
+            "compile_and_run_transpiler_tests"
+            "recursion"
         ];
 
         ninjaFlags = pkgs.lib.strings.concatStringsSep " " (["-k 0"] ++ testList);
@@ -206,4 +207,3 @@
 # to build:
 # cd build
 # nix develop ../ -c cmake --build . -t compile_cpp_examples
-
