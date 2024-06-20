@@ -100,10 +100,6 @@ function(add_test_circuit_assign example_target)
 
                 LINK_LIBRARIES
                 crypto3::all
-                marshalling::core
-                marshalling::crypto3_algebra
-                marshalling::crypto3_multiprecision
-                marshalling::crypto3_zk
                 ${Boost_LIBRARIES})
 
     set(binary_name ${example_target}.ll)
