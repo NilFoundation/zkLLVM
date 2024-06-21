@@ -17,10 +17,6 @@ add_custom_target(all_tests_run_expected_res_calculation)
 add_custom_target(all_tests_assign_circuits)
 add_custom_target(all_tests_run)
 
-if(NOT Boost_UNIT_TEST_FRAMEWORK_FOUND)
-    cm_find_package(Boost REQUIRED COMPONENTS unit_test_framework filesystem)
-endif()
-
 cm_test_link_libraries(
                        crypto3::all
                        ${Boost_LIBRARIES})
