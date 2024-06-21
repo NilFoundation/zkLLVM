@@ -44,11 +44,7 @@ include(CircuitCompile)
 find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter)
 
 find_package(crypto3 REQUIRED)
-
-find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system random)
-if(CMAKE_ENABLE_TESTS)
-    find_package(Boost REQUIRED COMPONENTS unit_test_framework timer)
-endif()
+find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system random unit_test_framework timer)
 
 if(BUILD_WITH_BOOST_STATIC_LIBS)
     set(Boost_USE_STATIC_LIBS TRUE)
