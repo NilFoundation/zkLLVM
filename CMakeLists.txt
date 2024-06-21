@@ -76,9 +76,9 @@ add_subdirectory(libs/stdlib)
 
 install(FILES cmake/CircuitCompile.cmake DESTINATION share/zkllvm)
 
-find_package(Git REQUIRED)
-
+set(ZKLLVM_VERSION "1.2.3")
 if(NOT ZKLLVM_VERSION)
+    find_package(Git REQUIRED)
     execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags HEAD
                     OUTPUT_VARIABLE DESCRIBE_OUTBUT
                     OUTPUT_STRIP_TRAILING_WHITESPACE
