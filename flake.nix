@@ -52,7 +52,6 @@
 
       defaultNativeBuildInputs = [
         pkgs.cmake
-        pkgs.ninja
         pkgs.python3
         pkgs.git
       ];
@@ -99,7 +98,7 @@
         buildInputs = defaultBuildInputs ++ defaultNativeBuildInputs;
 
         buildPhase = ''
-          cmake --build . -t assigner clang transpiler
+          cmake --build . --parallel $NIX_BUILD_CORES -t assigner clang transpiler
         '';
 
         src = self;
@@ -141,7 +140,9 @@
             "recursion"
         ];
 
-        ninjaFlags = pkgs.lib.strings.concatStringsSep " " (["-k 0"] ++ testList);
+        buildPhase = ''
+          cmake --build . --parallel $NIX_BUILD_CORES -t pkgs.lib.strings.concatStringsSep " " (["-k 0"] ++ testList);
+        '';
 
         doCheck = true;
 
@@ -207,3 +208,5 @@
 # to build:
 # cd build
 # nix develop ../ -c cmake --build . -t compile_cpp_examples
+
+# to build all in one run: nix build -L .?submodules=1#checks.x86_64-linux.debug-tests
