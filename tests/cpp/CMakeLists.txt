@@ -42,9 +42,9 @@ macro(define_zkllvm_test test curve_type provers_max_num)
     endforeach()
 
     target_include_directories(${full_test_name} PRIVATE
-                               "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                               "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>"
-
+                               ${CMAKE_CURRENT_SOURCE_DIR}/include>
+                               ${CMAKE_BINARY_DIR}/include
+                               ${CMAKE_SOURCE_DIR}/libs/assigner/include
                                ${Boost_INCLUDE_DIRS})
 
     set_target_properties(${full_test_name} PROPERTIES CXX_STANDARD 17)
