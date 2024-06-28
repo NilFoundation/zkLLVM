@@ -78,7 +78,7 @@ function(add_circuit_no_stdlib name)
     foreach(source ${CIRCUIT_SOURCES})
         get_filename_component(source_base_name ${source} NAME)
         add_custom_target(${name}_${source_base_name}_ll
-                        COMMAND ${CLANG} -target assigner -Xclang -fpreserve-vec3-type -Werror=unknown-attributes -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -ffreestanding
+                        COMMAND ${CLANG} -target assigner -Xclang -fpreserve-vec3-type -Werror=unknown-attributes -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION
                         -D__ZKLLVM__ ${INCLUDE_DIRS_LIST} -emit-llvm -O1 -S ${ARG_COMPILER_OPTIONS}  -o ${name}_${source_base_name}.ll ${source}
 
                         VERBATIM COMMAND_EXPAND_LISTS
