@@ -1,5 +1,7 @@
 #include <nil/crypto3/algebra/curves/pallas.hpp>
+#include <cstdint>
 
+static_assert(SIZE_MAX > 0, "");
 using namespace nil::crypto3::algebra::curves;
 typename pallas::base_field_type::value_type pow_2(typename pallas::base_field_type::value_type a) {
     typename pallas::base_field_type::value_type res = 1;
