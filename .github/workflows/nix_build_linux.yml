@@ -16,7 +16,7 @@ jobs:
       ci-cd-ref: 'v1'
     secrets: inherit
 
-  build-and-test:
+  build-and-test-with-nix:
     needs: [ handle-syncwith ]
     runs-on: ["self-hosted", "aws_autoscaling"]
     strategy:
