@@ -92,7 +92,7 @@ jobs:
       # Workaround: https://github.com/actions/checkout/issues/1169
       - name: Mark directory as safe
         run: |
-          git config --system --add safe.directory $PWD
+          git config --global --add safe.directory '*'
 
       - name: Checkout submodules
         run: |
@@ -100,7 +100,7 @@ jobs:
 
       - name: Checkout modules to specified refs
         if: needs.handle-syncwith.outputs.prs-refs != ''
-        uses: NilFoundation/ci-cd/actions/recursive-checkout@v1.2.1
+        uses: NilFoundation/ci-cd/actions/recursive-checkout@master
         # TODO: figure out the mapping of volumes and use variable here, not hardcoded path
         with:
           paths: |
