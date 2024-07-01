@@ -1,0 +1,71 @@
+name: Run tests
+
+on:
+  # Triggers the workflow on pull request events but only for the master branch
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  handle-syncwith:
+    if: github.event_name == 'pull_request'
+    name: Call Reusable SyncWith Handler
+    uses: NilFoundation/ci-cd/.github/workflows/reusable-handle-syncwith.yml@v1
+    with:
+      ci-cd-ref: 'v1'
+    secrets: inherit
+
+  build-and-test:
+    needs: [ handle-syncwith ]
+    runs-on: ["self-hosted", "aws_autoscaling"]
+    strategy:
+      fail-fast: false
+    steps:
+      # https://github.com/actions/checkout/issues/1552
+      - name: Clean up after previous checkout
+        run: chmod +w -R ${GITHUB_WORKSPACE}; rm -rf ${GITHUB_WORKSPACE}/*;
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Checkout submodules to specified refs
+        if: inputs.submodules-refs != ''
+        uses: NilFoundation/ci-cd/actions/recursive-checkout@v1.2.1
+        with:
+          refs: ${{ inputs.submodules-refs }}
+          paths: |
+            ${{ github.workspace }}/**
+            !${{ github.workspace }}/
+            !${{ github.workspace }}/**/.git/**
+
+      # nix is taken from the cloud-init template, no need to install it.
+      - name: Build and run tests
+        env:
+          NIX_CONFIG: |
+            cores = 8
+        run: |
+          nix build -L .?submodules=1#checks.x86_64-linux.release-tests
+          results_dir="./results"
+          mkdir -p "$results_dir"
+          cp -r ./result/* "$results_dir/all-checks"
+          rm -rf result
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/linux@v2
+        with:
+          check_name: "Linux Test Results"
+          files: "results/**/*.xml"
+          comment_mode: ${{ github.event.pull_request.head.repo.fork && 'off' || 'always' }} # Don't create PR comment from fork runs
+          action_fail_on_inconclusive: true # fail, if no reports
+          action_fail: true
+      - name: 'Upload Artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-test-results
+          path: "results/**/*.xml"
+          retention-days: 5
+          if-no-files-found: error
+          overwrite: true
