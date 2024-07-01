@@ -62,11 +62,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1718635271,
-        "narHash": "sha256-P4rGheg9yau6kTUBlWWmXMQHTAhERMy6aHP1o7b/hBg=",
+        "lastModified": 1718821034,
+        "narHash": "sha256-j3fsPiltYzctIgAWakAHdPLAxq+UiXXnKNmAu+oN7Us=",
         "ref": "refs/heads/master",
-        "rev": "5035ca6fc5fcb1b17fd3d8aac203f63fa900f8ac",
-        "revCount": 9144,
+        "rev": "caf78b83692b39f504c4ee74a3834a4c38662a77",
+        "revCount": 9146,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/NilFoundation/crypto3"
@@ -88,11 +88,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1718647441,
-        "narHash": "sha256-DK/+aPMelDkiTCjJ+UvNeZEuY9p7n9FFU/rt2HrfLc4=",
+        "lastModified": 1719590043,
+        "narHash": "sha256-C2O0EAmWOR+Fq+lNqumwd7YS9+TBDkWGNpS1CjCAwvY=",
         "ref": "refs/heads/master",
-        "rev": "e9b22dad50c908ddf7090658a6d61c479a07b969",
-        "revCount": 1232,
+        "rev": "84ebc6dbdd94256424904c8270cb16d764236a31",
+        "revCount": 1243,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/NilFoundation/zkllvm-blueprint"
@@ -150,11 +150,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1718697518,
-        "narHash": "sha256-ujgjtMi07PmSbyRaxZcFysN9nuIsMl0rcin/UXZEfBY=",
+        "lastModified": 1719824438,
+        "narHash": "sha256-pY0wosAgcr9W4vmGML0T3BVhQiGuKoozCbs2t+Je1zc=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "2e1ed6a2305c3c092265c758c1964ad0cc526ad8",
+        "rev": "7f993cdf26ccef564eabf31fdb40d140821e12bc",
         "type": "github"
       },
       "original": {
