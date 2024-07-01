@@ -22,10 +22,6 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      # https://github.com/actions/checkout/issues/1552
-      - name: Clean up after previous checkout
-        run: chmod +w -R ${GITHUB_WORKSPACE}; rm -rf ${GITHUB_WORKSPACE}/*;
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -34,7 +30,7 @@ jobs:
 
       - name: Checkout submodules to specified refs
         if: inputs.submodules-refs != ''
-        uses: NilFoundation/ci-cd/actions/recursive-checkout@v1.2.1
+        uses: NilFoundation/ci-cd/actions/recursive-checkout@master
         with:
           refs: ${{ inputs.submodules-refs }}
           paths: |
