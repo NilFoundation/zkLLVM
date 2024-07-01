@@ -98,9 +98,7 @@
         cmakeBuildType = "Release";
         buildInputs = defaultBuildInputs ++ defaultNativeBuildInputs;
 
-        buildPhase = ''
-          cmake --build . -t assigner clang transpiler
-        '';
+        ninjaFlags = "assigner clang transpiler";
 
         src = self;
 
