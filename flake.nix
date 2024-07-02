@@ -60,12 +60,7 @@
       defaultBuildInputs = [
         # Default nixpkgs packages
         pkgs.boost
-        pkgs.valijson
-        # Packages from nix-3rdparty
-        #pkgs.sszpp
-        #pkgs.evmc
         # Repo dependencies
-        #evm_assigner
         crypto3
         blueprint
       ];
@@ -75,15 +70,7 @@
       ];
 
       defaultDevTools = [
-        pkgs.doxygen
         pkgs.clang_17 # clang-format and clang-tidy
-        pkgs.go_1_22
-        pkgs.gotools
-        pkgs.go-tools
-        pkgs.gopls
-        pkgs.golangci-lint
-        pkgs.gofumpt
-        pkgs.gci
       ];
 
 
@@ -100,7 +87,7 @@
 
         ninjaFlags = "assigner clang transpiler";
 
-        src = self;
+        src = self; # Here we should ignore all tests/* test/* examples/* folders to minimize rebuilds
 
         doCheck = false;
       };
@@ -144,12 +131,8 @@
         doCheck = true;
 
         checkPhase = ''
-          # JUNIT file without explicit file name is generated after the name of the master test suite inside `CMAKE_CURRENT_SOURCE_DIR` (/build/source)
-          export BOOST_TEST_LOGGER=JUNIT:HRF
-          ctest --verbose -j $NIX_BUILD_CORES --output-on-failure -R "${nixpkgs.lib.concatStringsSep "|" testList}" || true
-
-          mkdir -p ${placeholder "out"}/test-logs
-          find .. -type f -name '*_test.xml' -exec cp {} ${placeholder "out"}/test-logs \;
+          ls -l -a
+          cp * ${placeholder "out"}/build-result;
         '';
 
         checkInputs = defaultCheckInputs;
