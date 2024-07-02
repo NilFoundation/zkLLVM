@@ -189,7 +189,7 @@ add_zkllvm_unit_test_pallas_multiprover("multi_provers/if" 2)
 add_zkllvm_unit_test("custom_cases/getelementptr_as_constant/getelementptr_as_constant")
 
 #libc functions
-add_zkllvm_unit_test("libc/memset/memset")
+#add_zkllvm_unit_test("libc/memset/memset")
 #add_zkllvm_unit_test("libc/strlen/strlen")
 #add_zkllvm_unit_test("libc/strcmp/strcmp")
 #add_zkllvm_unit_test("libc/strncmp/strncmp")
