@@ -65,10 +65,6 @@
         blueprint
       ];
 
-      defaultCheckInputs = [
-        pkgs.gtest
-      ];
-
       defaultDevTools = [
         pkgs.clang_17 # clang-format and clang-tidy
       ];
@@ -109,6 +105,19 @@
           "-DCMAKE_ENABLE_TESTS=TRUE"
         ];
 
+        integrationTestingTargets = [
+            "arithmetics_cpp_example"
+            "polynomial_cpp_example"
+            "poseidon_cpp_example"
+            "merkle_tree_poseidon_cpp_example"
+            "uint_remainder_cpp"
+            "uint_shift_left"
+            "uint_bit_decomposition"
+            "uint_bit_composition"
+            "compare_eq_cpp"
+            "private_input_cpp"
+        ];
+
         testList = [
             "compile_cpp_examples"
             "cpp_examples_generate_crct"
@@ -126,7 +135,7 @@
             "recursion"
         ];
 
-        ninjaFlags = pkgs.lib.strings.concatStringsSep " " (["-k 0"] ++ testList);
+        ninjaFlags = pkgs.lib.strings.concatStringsSep " " (["-k 0"] ++ testList ++ integrationTestingTargets);
 
         doCheck = true;
 
@@ -135,17 +144,12 @@
           cp * ${placeholder "out"}/build-result;
         '';
 
-        checkInputs = defaultCheckInputs;
-
-        GTEST_OUTPUT = "xml:${placeholder "out"}/test-reports/";
-
         dontInstall = true;
       });
 
       makeDevShell = pkgs.mkShell {
         nativeBuildInputs = defaultNativeBuildInputs
           ++ defaultBuildInputs
-          ++ defaultCheckInputs
           ++ defaultDevTools;
 
         shellHook = ''
