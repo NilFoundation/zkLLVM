@@ -17,13 +17,8 @@ add_custom_target(all_tests_run_expected_res_calculation)
 add_custom_target(all_tests_assign_circuits)
 add_custom_target(all_tests_run)
 
-if(NOT Boost_UNIT_TEST_FRAMEWORK_FOUND)
-    cm_find_package(Boost REQUIRED COMPONENTS unit_test_framework filesystem)
-endif()
-
 cm_test_link_libraries(
-                       crypto3::zk
-                       crypto3::assigner
+                       crypto3::all
                        ${Boost_LIBRARIES})
 
 
@@ -47,9 +42,9 @@ macro(define_zkllvm_test test curve_type provers_max_num)
     endforeach()
 
     target_include_directories(${full_test_name} PRIVATE
-                               "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                               "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>"
-
+                               ${CMAKE_CURRENT_SOURCE_DIR}/include>
+                               ${CMAKE_BINARY_DIR}/include
+                               ${CMAKE_SOURCE_DIR}/libs/assigner/include
                                ${Boost_INCLUDE_DIRS})
 
     set_target_properties(${full_test_name} PROPERTIES CXX_STANDARD 17)
@@ -81,31 +76,7 @@ function(add_test_circuit test)
                 SOURCES ${test}.cpp
 
                 LINK_LIBRARIES
-                crypto3::algebra
-                crypto3::block
-                crypto3::blueprint
-                crypto3::codec
-                crypto3::containers
-                crypto3::hash
-                crypto3::kdf
-                crypto3::mac
-                marshalling::core
-                marshalling::crypto3_algebra
-                marshalling::crypto3_multiprecision
-                marshalling::crypto3_zk
-                crypto3::math
-                crypto3::modes
-                crypto3::multiprecision
-                crypto3::passhash
-                crypto3::pbkdf
-                crypto3::threshold
-                crypto3::pkpad
-                crypto3::pubkey
-                crypto3::random
-                crypto3::stream
-                crypto3::vdf
-                crypto3::zk
-
+                crypto3::all
                 ${Boost_LIBRARIES})
 
 endfunction()
@@ -124,31 +95,7 @@ function(add_test_circuit_assign example_target)
                 SOURCES ${ARG_SOURCES}
 
                 LINK_LIBRARIES
-                crypto3::algebra
-                crypto3::block
-                crypto3::blueprint
-                crypto3::codec
-                crypto3::containers
-                crypto3::hash
-                crypto3::kdf
-                crypto3::mac
-                marshalling::core
-                marshalling::crypto3_algebra
-                marshalling::crypto3_multiprecision
-                marshalling::crypto3_zk
-                crypto3::math
-                crypto3::modes
-                crypto3::multiprecision
-                crypto3::passhash
-                crypto3::pbkdf
-                crypto3::threshold
-                crypto3::pkpad
-                crypto3::pubkey
-                crypto3::random
-                crypto3::stream
-                crypto3::vdf
-                crypto3::zk
-
+                crypto3::all
                 ${Boost_LIBRARIES})
 
     set(binary_name ${example_target}.ll)
