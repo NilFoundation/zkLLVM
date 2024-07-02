@@ -40,9 +40,6 @@ jobs:
 
       # nix is taken from the cloud-init template, no need to install it.
       - name: Build and run tests
-        env:
-          NIX_CONFIG: |
-            cores = 8
         run: |
           nix build -L .?submodules=1#checks.x86_64-linux.release-tests
           results_dir="./results"
