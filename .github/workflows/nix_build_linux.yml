@@ -58,26 +58,25 @@ jobs:
       # nix is taken from the cloud-init template, no need to install it.
       - name: Setup build
         run: |
-          nix develop .?submodules=1# -c cmake -G Ninja -B build-ninja -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_ENABLE_TESTS=TRUE && \
-          cd build-ninja
+          nix develop .?submodules=1# -c cmake -G Ninja -B build-ninja -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_ENABLE_TESTS=TRUE
 
       - name: Build zkllvm
         run: |
-          nix develop -c ninja assigner clang transpiler
+          nix develop -c ninja -C build-ninja assigner clang transpiler
 
       - name: Build IR of the C++ examples
         run: |
-          nix develop -c ninja -k 0 compile_cpp_examples
+          nix develop -c ninja -C build-ninja -k 0 compile_cpp_examples
           ls -al ./examples/cpp
 
       - name: Build circuits(.crct) of the C++ examples
         run: |
-          nix develop ../ -c ninja -k 0 cpp_examples_generate_crct
+          nix develop ../ -c ninja -C build-ninja -k 0 cpp_examples_generate_crct
           ls -al ./examples/cpp
 
       - name: Build assignment tables(.tbl) of the C++ examples
         run: |
-          nix develop -c ninja -k 0 cpp_examples_generate_tbl_no_check
+          nix develop -c ninja -C build-ninja -k 0 cpp_examples_generate_tbl_no_check
           ls -al ./examples/cpp
 
       - name: Copy assigner output from separate generation mode
@@ -86,7 +85,7 @@ jobs:
 
       - name: Run simultaneous .tbl and .crct generation of the C++ examples
         run: |
-          nix develop -c ninja -k 0 cpp_examples_generate_both
+          nix develop -c ninja -C build-ninja -k 0 cpp_examples_generate_both
           ls -al ./examples/cpp
 
       - name: Copy assigner output from simultaneous generation mode
@@ -99,7 +98,7 @@ jobs:
 
       - name: Run size estimation for C++ examples
         run: |
-          nix develop -c ninja -k 0 cpp_examples_estimate_size
+          nix develop -c ninja -C build-ninja -k 0 cpp_examples_estimate_size
 
       - name: Copy examples' circuits and assignments for uploading
         run: |
@@ -121,20 +120,20 @@ jobs:
 
       - name: Compile tests as cpp code
         run: |
-          nix develop -c ninja -k 0 all_tests_compile_as_cpp_code
+          nix develop -c ninja -C build-ninja -k 0 all_tests_compile_as_cpp_code
 
       - name: Compile tests as circuits
         run: |
-          nix develop -c ninja -k 0 all_tests_compile_as_circuits
+          nix develop -c ninja -C build-ninja -k 0 all_tests_compile_as_circuits
 
       - name: Run tests as cpp code (expected res calculation)
         run: |
-          nix develop -c ninja -k 0 all_tests_run_expected_res_calculation -j$(nproc)
+          nix develop -c ninja -C build-ninja -k 0 all_tests_run_expected_res_calculation -j$(nproc)
 
       - name: Get transpiler output for integration testing
         run: |
           targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {printf " %s_evm_verifier ", $0}' | sed 's/[[:space:]]*$//')
-          nix develop -c ninja -k 0  ${targets_str}
+          nix develop -c ninja -C build-ninja -k 0  ${targets_str}
 
       - name: Upload examples' circuits and assignments artifact
         uses: actions/upload-artifact@v3
@@ -145,7 +144,7 @@ jobs:
 
       - name: Run tests as circuits (real res calculation)
         run: |
-          nix develop -c ninja -k 0 all_tests_assign_circuits -j$(nproc)
+          nix develop -c ninja -C build-ninja -k 0 all_tests_assign_circuits -j$(nproc)
 
       - name: Compare expected and real test results
         run: |
@@ -159,23 +158,23 @@ jobs:
 
       - name: Run assigner unit tests
         run: |
-          nix develop -c ninja -k 0 check-crypto3-assigner
+          nix develop -c ninja -C build-ninja -k 0 check-crypto3-assigner
 
       - name: Build proof for the circuit of the C++ examples
         run: |
-          nix develop -c ninja -k 0 prove_cpp_examples
+          nix develop -c ninja -C build-ninja -k 0 prove_cpp_examples
 
       - name: Build recursive gen
         run: |
-          nix develop -c ninja -k 0 recursive_gen
+          nix develop -c ninja -C build-ninja -k 0 recursive_gen
 
       - name: Build and run transpiler test
         run: |
-          nix develop -c ninja -k 0 compile_and_run_transpiler_tests
+          nix develop -c ninja -C build-ninja -k 0 compile_and_run_transpiler_tests
 
       - name: Run recursive verifier tests
         run: |
-          nix develop -c ninja -k 0 recursion
+          nix develop -c ninja -C build-ninja -k 0 recursion
 
       - name: Set targets for integration testing
         id: get-targets
