@@ -71,7 +71,7 @@ jobs:
 
       - name: Build circuits(.crct) of the C++ examples
         run: |
-          nix develop ../ -c ninja -C build-ninja -k 0 cpp_examples_generate_crct
+          nix develop -c ninja -C build-ninja -k 0 cpp_examples_generate_crct
           ls -al ./examples/cpp
 
       - name: Build assignment tables(.tbl) of the C++ examples
