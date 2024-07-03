@@ -128,7 +128,7 @@ jobs:
 
       - name: Run tests as cpp code (expected res calculation)
         run: |
-          nix develop -c ninja -C build -k 0 all_tests_run_expected_res_calculation -j$(nproc)
+          nix develop -c ninja -C build -k 0 all_tests_run_expected_res_calculation
 
       - name: Get transpiler output for integration testing
         run: |
@@ -144,7 +144,7 @@ jobs:
 
       - name: Run tests as circuits (real res calculation)
         run: |
-          nix develop -c ninja -C build -k 0 all_tests_assign_circuits -j$(nproc)
+          nix develop -c ninja -C build -k 0 all_tests_assign_circuits
 
       - name: Compare expected and real test results
         run: |
