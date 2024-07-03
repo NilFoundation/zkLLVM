@@ -94,7 +94,7 @@ jobs:
 
       - name: Compare different assigner modes output
         run: |
-          bash ./tests/compare_folders_content.sh build/separate_generatuon build-ninja/simultaneous_generation
+          bash ./tests/compare_folders_content.sh build-ninja/separate_generatuon build-ninja/simultaneous_generation
 
       - name: Run size estimation for C++ examples
         run: |
@@ -140,7 +140,7 @@ jobs:
         with:
           name: ${{ steps.artifact-names.outputs.transpiler }}
           path: |
-            build/examples/cpp/transpiler_output_*
+            build-ninja/examples/cpp/transpiler_output_*
 
       - name: Run tests as circuits (real res calculation)
         run: |
