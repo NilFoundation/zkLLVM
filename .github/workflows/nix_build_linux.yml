@@ -81,7 +81,7 @@ jobs:
 
       - name: Copy assigner output from separate generation mode
         run: |
-          bash ../tests/copy_assigner_outputs.sh ./examples/cpp separate_generatuon
+          bash ./tests/copy_assigner_outputs.sh build-ninja/separate_generatuon
 
       - name: Run simultaneous .tbl and .crct generation of the C++ examples
         run: |
@@ -90,11 +90,11 @@ jobs:
 
       - name: Copy assigner output from simultaneous generation mode
         run: |
-          bash ../tests/copy_assigner_outputs.sh simultaneous_generation
+          bash ./tests/copy_assigner_outputs.sh build-ninja/simultaneous_generation
 
       - name: Compare different assigner modes output
         run: |
-          bash ../tests/compare_folders_content.sh separate_generatuon simultaneous_generation
+          bash ./tests/compare_folders_content.sh build/separate_generatuon build-ninja/simultaneous_generation
 
       - name: Run size estimation for C++ examples
         run: |
