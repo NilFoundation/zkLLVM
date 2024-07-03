@@ -41,11 +41,41 @@ jobs:
       # nix is taken from the cloud-init template, no need to install it.
       - name: Build and run tests
         run: |
-          nix build -L .?submodules=1#checks.x86_64-linux.release-tests
-          results_dir="./results"
-          mkdir -p "$results_dir"
-          cp -r ./result/* "$results_dir/all-checks"
-          rm -rf result
+          nix develop .?submodules=1# -c cmake -G Ninja -B build-ninja -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_ENABLE_TESTS=TRUE && \
+          cd build-ninja
+          nix develop -c ninja assigner clang transpiler
+
+          # Build IR of the C++ examples
+          nix develop -c ninja -k 0 compile_cpp_examples
+          ls -al ./examples/cpp
+
+          # Build circuits(.crct) of the C++ examples
+          nix develop ../ -c ninja -k 0 cpp_examples_generate_crct
+          ls -al ./examples/cpp
+
+          # Build assignment tables(.tbl) of the C++ examples
+          nix develop -c ninja -k 0 cpp_examples_generate_tbl_no_check
+          ls -al ./examples/cpp
+
+          # Copy assigner output from separate generation mode
+          bash ../tests/copy_assigner_outputs.sh ./examples/cpp separate_generatuon
+
+          # Run simultaneous .tbl and .crct generation of the C++ examples
+          nix develop -c ninja -k 0 cpp_examples_generate_both
+          ls -al ./examples/cpp
+
+          # Copy assigner output from simultaneous generation mode
+          bash ../tests/copy_assigner_outputs.sh simultaneous_generation
+
+          # Compare different assigner modes output
+          bash ../tests/compare_folders_content.sh separate_generatuon simultaneous_generation
+
+          # Run size estimation for C++ examples
+          nix develop -c ninja -k 0 cpp_examples_estimate_size
+
+          # Copy examples' circuits and assignments for uploading
+          chmod +x ./examples/copy_artifacts.sh
+          ../examples/copy_artifacts.sh examples/cpp examples_output
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
         with:
