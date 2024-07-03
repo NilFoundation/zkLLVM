@@ -39,56 +39,66 @@ jobs:
             !${{ github.workspace }}/**/.git/**
 
       # nix is taken from the cloud-init template, no need to install it.
-      - name: Build and run tests
+      - name: Setup build
         run: |
           nix develop .?submodules=1# -c cmake -G Ninja -B build-ninja -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_ENABLE_TESTS=TRUE && \
           cd build-ninja
+
+      - name: Build zkllvm
+        run: |
           nix develop -c ninja assigner clang transpiler
 
-          # Build IR of the C++ examples
+      - name: Build IR of the C++ examples
+        run: |
           nix develop -c ninja -k 0 compile_cpp_examples
           ls -al ./examples/cpp
 
-          # Build circuits(.crct) of the C++ examples
+      - name: Build circuits(.crct) of the C++ examples
+        run: |
           nix develop ../ -c ninja -k 0 cpp_examples_generate_crct
           ls -al ./examples/cpp
 
-          # Build assignment tables(.tbl) of the C++ examples
+      - name: Build assignment tables(.tbl) of the C++ examples
+        run: |
           nix develop -c ninja -k 0 cpp_examples_generate_tbl_no_check
           ls -al ./examples/cpp
 
-          # Copy assigner output from separate generation mode
+      - name: Copy assigner output from separate generation mode
+        run: |
           bash ../tests/copy_assigner_outputs.sh ./examples/cpp separate_generatuon
 
-          # Run simultaneous .tbl and .crct generation of the C++ examples
+      - name: Run simultaneous .tbl and .crct generation of the C++ examples
+        run: |
           nix develop -c ninja -k 0 cpp_examples_generate_both
           ls -al ./examples/cpp
 
-          # Copy assigner output from simultaneous generation mode
+      - name: Copy assigner output from simultaneous generation mode
+        run: |
           bash ../tests/copy_assigner_outputs.sh simultaneous_generation
 
-          # Compare different assigner modes output
+      - name: Compare different assigner modes output
+        run: |
           bash ../tests/compare_folders_content.sh separate_generatuon simultaneous_generation
 
-          # Run size estimation for C++ examples
+      - name: Run size estimation for C++ examples
+        run: |
           nix develop -c ninja -k 0 cpp_examples_estimate_size
 
-          # Copy examples' circuits and assignments for uploading
+      - name: Copy examples' circuits and assignments for uploading
+        run: |
           chmod +x ./examples/copy_artifacts.sh
-          ../examples/copy_artifacts.sh examples/cpp examples_output
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
+          bash ../examples/copy_artifacts.sh examples/cpp examples_output
+
+      - name: Set aritfacts' names
+        id: artifact-names
+        run: |
+          echo "transpiler=transpiler-output" >> $GITHUB_OUTPUT
+          echo "examples=circuits-and-assignments" >> $GITHUB_OUTPUT
+
+      - name: Upload examples' circuits and assignments artifact
+        uses: actions/upload-artifact@v3
         with:
-          check_name: "Linux Test Results"
-          files: "results/**/*.xml"
-          comment_mode: ${{ github.event.pull_request.head.repo.fork && 'off' || 'always' }} # Don't create PR comment from fork runs
-          action_fail_on_inconclusive: true # fail, if no reports
-          action_fail: true
-      - name: 'Upload Artifacts'
-        uses: actions/upload-artifact@v4
-        with:
-          name: junit-test-results
-          path: "results/**/*.xml"
-          retention-days: 5
-          if-no-files-found: error
-          overwrite: true
+          name: ${{ steps.artifact-names.outputs.examples }}
+          path: |
+            build-ninja/examples_output
+
