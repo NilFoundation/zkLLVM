@@ -103,7 +103,7 @@ jobs:
       - name: Copy examples' circuits and assignments for uploading
         run: |
           chmod +x ./examples/copy_artifacts.sh
-          bash ../examples/copy_artifacts.sh examples/cpp examples_output
+          bash ./examples/copy_artifacts.sh examples/cpp examples_output
 
       - name: Set aritfacts' names
         id: artifact-names
