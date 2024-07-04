@@ -60,19 +60,46 @@ jobs:
       - name: Setup build
         run: |
           nix develop .?submodules=1# -c cmake -G Ninja -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_ENABLE_TESTS=TRUE \
-          -DGENERATE_EVM_VERIFIER=TRUE \
-          -DZKLLVM_VERSION=0.1.18
+            -DCMAKE_ENABLE_TESTS=TRUE \
+            -DRSLANG_BUILD_EXTENDED=TRUE \
+            -DRSLANG_BUILD_TOOLS=cargo \
+            -DGENERATE_EVM_VERIFIER=TRUE \
+            -DZKLLVM_VERSION=0.1.18
 
       - name: Build zkllvm
         run: |
           nix develop -c ninja -C build assigner clang transpiler
 
+      - name: Build rslang
+        run: |
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib" >> $GITHUB_ENV
+          nix develop -c ninja -C build -k 0 rslang
+
+      - name: Build IR of the Rust examples
+        run: |
+          nix develop -c ninja -C build -k 0 compile_rust_examples
+          ls -al ./build/examples/rust/target/assigner-unknown-unknown/release/examples
+
+      - name: Build circuits(.crct) of the Rust examples
+        run: |
+          nix develop -c ninja -C build -k 0 rust_examples_generate_crct
+          ls -al ./build/examples/cpp
+
+      - name: Build assignment tables(.tbl) of the Rust examples
+        run: |
+          nix develop -c ninja -C build -k 0 rust_examples_generate_tbl
+          ls -al ./build/examples/cpp
+
+      - name: Build proof for the circuit of the Rust examples
+        run: |
+          nix develop -c ninja -C build -k 0 prove_rust_examples
+
       - name: Build IR of the C++ examples
         run: |
           nix develop -c ninja -C build -k 0 compile_cpp_examples
           ls -al ./examples/cpp
-          
+
       - name: Build circuits(.crct) of the C++ examples
         run: |
           nix develop -c ninja -C build -k 0 cpp_examples_generate_crct
