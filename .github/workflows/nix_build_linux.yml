@@ -58,15 +58,7 @@ jobs:
       # nix is taken from the cloud-init template, no need to install it.
       - name: Setup build
         run: |
-          nix develop .?submodules=1# -c cmake -G Ninja -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTS=TRUE
-
-      - name: Get transpiler output for integration testing
-        run: |
-          targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {printf " %s_evm_verifier ", $0}' | sed 's/[[:space:]]*$//')
-          echo "targets: ${targets_str}"
-          nix develop -c ninja -C build -k 0   arithmetics_cpp_example_evm_verifier  polynomial_cpp_example_evm_verifier  poseidon_cpp_example_evm_verifier  merkle_tree_poseidon_cpp_example_evm_verifier  uint_remainder_cpp_evm_verifier  uint_shift_left_evm_verifier  uint_bit_decomposition_evm_verifier  uint_bit_composition_evm_verifier  compare_eq_cpp_evm_verifier  private_input_cpp_evm_verifier
-          echo "build from variable"
-          nix develop -c ninja -C build -k 0  ${targets_str}
+          nix develop .?submodules=1# -c cmake -G Ninja -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTS=TRUE -DGENERATE_EVM_VERIFIER=TRUE
 
       - name: Build zkllvm
         run: |
