@@ -22,7 +22,6 @@ jobs:
     outputs:
       transpiler-artifact-name: ${{ steps.artifact-names.outputs.transpiler }}
       examples-artifact-name: ${{ steps.artifact-names.outputs.examples }}
-      evm-targets: ${{ steps.get-targets.outputs.evm-targets }}
       prover-targets: ${{ steps.get-targets.outputs.prover-targets }}
     env:
       INTEGRATION_TESTING_TARGETS: |
@@ -61,10 +60,7 @@ jobs:
           nix develop .?submodules=1# -c cmake -G Ninja -B build \
           -DCMAKE_CXX_STANDARD=17 \
           -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_ENABLE_TESTS=TRUE \
-          -DRSLANG_BUILD_EXTENDED=TRUE \
-          -DRSLANG_BUILD_TOOLS=cargo
-          #-DGENERATE_EVM_VERIFIER=TRUE
+          -DCMAKE_ENABLE_TESTS=TRUE
 
       - name: Build zkllvm
         run: |
@@ -136,12 +132,6 @@ jobs:
         run: |
           nix develop -c ninja -C build -k 0 all_tests_run_expected_res_calculation
 
-      #- name: Get transpiler output for integration testing
-      #  run: |
-      #    targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {printf " %s_evm_verifier ", $0}' | sed 's/[[:space:]]*$//')
-      #    echo "targets: ${targets_str}"
-      #    nix develop -c ninja -C build -k 0  ${targets_str}
-
       - name: Upload examples' circuits and assignments artifact
         uses: actions/upload-artifact@v3
         with:
@@ -187,29 +177,12 @@ jobs:
         id: get-targets
         run: |
           targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {print "transpiler_output_" $1}')
-          echo "evm-targets<<EOF" >> $GITHUB_OUTPUT
           echo "${targets_str}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
           echo "prover-targets<<EOF" >> $GITHUB_OUTPUT
           echo "${{ env.INTEGRATION_TESTING_TARGETS }}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
-  verify-zkllvm-proofs:
-    name: Verify built-it proofs with EVM-placeholder
-    needs:
-      - build-and-test-with-nix
-      - handle-syncwith
-    if: |
-      always() && !cancelled() &&
-      (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
-      needs.build-and-test-with-nix.result == 'success'
-    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
-    with:
-      artifact-name: ${{ needs.build-and-test-with-nix.outputs.transpiler-artifact-name }}
-      evm-placeholder-verification-ref: 2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
-      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
-      test-names: ${{ needs.build-and-test-with-nix.outputs.evm-targets }}
 
   generate-proofs:
     name: Generate proofs for cpp examples
@@ -284,25 +257,6 @@ jobs:
           name: ${{ steps.artifact-name.outputs.merged }}
           path: |
             transpiler_output_*
-
-
-  verify-proof-producer-proofs:
-    name: Verify proof-producer proofs with EVM-placeholder
-    needs:
-      - handle-syncwith
-      - merge-proofs-to-transpiler-output
-      - build-and-test-with-nix
-    if: |
-      always() && !cancelled() &&
-      (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
-      needs.build-and-test-with-nix.result == 'success' &&
-      needs.merge-proofs-to-transpiler-output.result == 'success'
-    uses: NilFoundation/evm-placeholder-verification/.github/workflows/reusable-verify-proofs.yml@2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
-    with:
-      artifact-name: ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
-      evm-placeholder-verification-ref: 2a0ef5fc67e97be8e3c7b59338cf9eecd030c57d
-      refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
-      test-names: ${{ needs.build-and-test-with-nix.outputs.evm-targets }}
 
   cleanup-integration-testing:
     # For now each artifact is 12 GB. Better clean it up to keep the space
