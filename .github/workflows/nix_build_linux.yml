@@ -58,7 +58,13 @@ jobs:
       # nix is taken from the cloud-init template, no need to install it.
       - name: Setup build
         run: |
-          nix develop .?submodules=1# -c cmake -G Ninja -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTS=TRUE -DGENERATE_EVM_VERIFIER=TRUE
+          nix develop .?submodules=1# -c cmake -G Ninja -B build \
+          -DCMAKE_CXX_STANDARD=17 \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_ENABLE_TESTS=TRUE \
+          -DGENERATE_EVM_VERIFIER=TRUE \
+          -DRSLANG_BUILD_EXTENDED=TRUE \
+          -DRSLANG_BUILD_TOOLS=cargo
 
       - name: Build zkllvm
         run: |
