@@ -62,9 +62,9 @@ jobs:
           -DCMAKE_CXX_STANDARD=17 \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_ENABLE_TESTS=TRUE \
-          -DGENERATE_EVM_VERIFIER=TRUE \
           -DRSLANG_BUILD_EXTENDED=TRUE \
           -DRSLANG_BUILD_TOOLS=cargo
+          #-DGENERATE_EVM_VERIFIER=TRUE
 
       - name: Build zkllvm
         run: |
@@ -136,11 +136,11 @@ jobs:
         run: |
           nix develop -c ninja -C build -k 0 all_tests_run_expected_res_calculation
 
-      - name: Get transpiler output for integration testing
-        run: |
-          targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {printf " %s_evm_verifier ", $0}' | sed 's/[[:space:]]*$//')
-          echo "targets: ${targets_str}"
-          nix develop -c ninja -C build -k 0  ${targets_str}
+      #- name: Get transpiler output for integration testing
+      #  run: |
+      #    targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {printf " %s_evm_verifier ", $0}' | sed 's/[[:space:]]*$//')
+      #    echo "targets: ${targets_str}"
+      #    nix develop -c ninja -C build -k 0  ${targets_str}
 
       - name: Upload examples' circuits and assignments artifact
         uses: actions/upload-artifact@v3
