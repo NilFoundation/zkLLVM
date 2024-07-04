@@ -258,20 +258,3 @@ jobs:
           path: |
             transpiler_output_*
 
-  cleanup-integration-testing:
-    # For now each artifact is 12 GB. Better clean it up to keep the space
-    name: Clean up after integration testing
-    needs:
-      - verify-proof-producer-proofs
-      - verify-zkllvm-proofs
-      - merge-proofs-to-transpiler-output
-      - build-and-test-with-nix
-      - generate-proofs
-    if: always()
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: geekyeggo/delete-artifact@v2
-        with:
-          name: |
-            ${{ needs.merge-proofs-to-transpiler-output.outputs.merged-artifact-name }}
-            ${{ needs.generate-proofs.outputs.artifact-name }}
