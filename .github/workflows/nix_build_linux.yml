@@ -58,7 +58,13 @@ jobs:
       # nix is taken from the cloud-init template, no need to install it.
       - name: Setup build
         run: |
-          nix develop .?submodules=1# -c cmake -G Ninja -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_ENABLE_TESTS=TRUE
+          nix develop .?submodules=1# -c cmake -G Ninja -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTS=TRUE
+
+      - name: Get transpiler output for integration testing
+        run: |
+          targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {printf " %s_evm_verifier ", $0}' | sed 's/[[:space:]]*$//')
+          echo "targets: ${targets_str}"
+          nix develop -c ninja -C build -k 0  ${targets_str}
 
       - name: Build zkllvm
         run: |
@@ -133,6 +139,7 @@ jobs:
       - name: Get transpiler output for integration testing
         run: |
           targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {printf " %s_evm_verifier ", $0}' | sed 's/[[:space:]]*$//')
+          echo "targets: ${targets_str}"
           nix develop -c ninja -C build -k 0  ${targets_str}
 
       - name: Upload examples' circuits and assignments artifact
