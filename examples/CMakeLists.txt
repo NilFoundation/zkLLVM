@@ -34,7 +34,6 @@ function(assign_ir)
             COMMAND $<TARGET_FILE:assigner>
             -b ${binary_name}
             -c circuit_${target}.crct
-            -j table_pieces_${target}.json
             -t assignment_${target}.tbl
             -e ${curve_type}
             --generate-type circuit
@@ -50,7 +49,6 @@ function(assign_ir)
             -i ${INPUTS_DIR}/${input}
             ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
-            -j table_pieces_${target}.json
             -t assignment_${target}.tbl -e ${curve_type} --check
             --generate-type circuit-assignment
             ${max_num_provers_flag} ${max_num_provers_amount}
@@ -65,7 +63,6 @@ function(assign_ir)
             -i ${INPUTS_DIR}/${input}
             ${minus_p} ${private_input_string}
             -c circuit_${target}.crct
-            -j table_pieces_${target}.json
             -t assignment_${target}.tbl -e ${curve_type}
             --generate-type circuit-assignment
             ${max_num_provers_flag} ${max_num_provers_amount}
@@ -92,7 +89,7 @@ function(assign_ir)
             -b ${binary_name}
             -i ${INPUTS_DIR}/${input}
             ${minus_p} ${private_input_string}
-            -j table_pieces_${target}.json
+            -c circuit_${target}.crct
             -t assignment_${target}.tbl -e ${curve_type}
             --generate-type assignment-fast
             ${max_num_provers_flag} ${max_num_provers_amount}
@@ -106,7 +103,7 @@ function(assign_ir)
             -b ${binary_name}
             -i ${INPUTS_DIR}/${input}
             ${minus_p} ${private_input_string}
-            -j table_pieces_${target}.json
+            -c circuit_${target}.crct
             -t assignment_${target}.tbl -e ${curve_type}
             --generate-type assignment-fast
             ${max_num_provers_flag} ${max_num_provers_amount}
@@ -131,7 +128,6 @@ function(assign_ir)
     add_custom_target(${target}_estimate_size
         COMMAND $<TARGET_FILE:assigner>
             -b ${binary_name}
-            -j table_pieces_${target}.json
             -e ${curve_type}
             --generate-type size_estimation
             ${max_num_provers_flag} ${max_num_provers_amount}

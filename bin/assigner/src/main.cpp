@@ -532,6 +532,7 @@ void print_assignment_table_static(
     print_table_kind print_kind,
     std::uint32_t ComponentConstantColumns, std::uint32_t ComponentSelectorColumns,
     std::string assignment_table_file_name,
+    std::string circuit_file_name,
     std::uint32_t idx
  ) {
 
@@ -546,12 +547,12 @@ void print_assignment_table_static(
     otable_header.open(add_filename_prefix("header_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_header)
         throw std::runtime_error("Something wrong with output " + add_filename_prefix("header_", assignment_table_file_name));
-    otable_constants.open(add_filename_prefix("constants_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
+    otable_constants.open(add_filename_prefix("constants_", circuit_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_constants)
-        throw std::runtime_error("Something wrong with output " + add_filename_prefix("constants_", assignment_table_file_name));
-    otable_selectors.open(add_filename_prefix("selectors_", assignment_table_file_name), std::ios_base::binary | std::ios_base::out);
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("constants_", circuit_file_name));
+    otable_selectors.open(add_filename_prefix("selectors_", circuit_file_name), std::ios_base::binary | std::ios_base::out);
     if (!otable_selectors)
-        throw std::runtime_error("Something wrong with output " + add_filename_prefix("selectors_", assignment_table_file_name));
+        throw std::runtime_error("Something wrong with output " + add_filename_prefix("selectors_", circuit_file_name));
 
 
     using AssignmentTableType = assignment_proxy<ArithmetizationType>;
@@ -635,7 +636,6 @@ int curve_dependent_main(std::string bytecode_file_name,
                           std::string private_input_file_name,
                           std::string assignment_table_file_name,
                           std::string circuit_file_name,
-                          std::string table_pieces_file_name,
                           std::string processed_public_input_file_name,
                           long stack_size,
                           bool check_validity,
@@ -699,7 +699,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
     if (gen_mode.has_fast_tbl()) { // if we are generating tables in a fast way then need to parse table_pieces from file
 
-        std::ifstream inp_json(table_pieces_file_name);
+        std::ifstream inp_json(add_filename_prefix("table_pieces_", circuit_file_name));
 
         if (!inp_json.is_open()) {
             std::cerr << "unable to open table_pieces file" << std::endl;
@@ -776,7 +776,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
 
             constants_marshalling_type marshalled_constant_column_data;
-            extract_from_binary_file<constants_marshalling_type>(marshalled_constant_column_data, "constants_", table_file_name);
+            extract_from_binary_file<constants_marshalling_type>(marshalled_constant_column_data, "constants_", circuit_file_name);
 
             table_header_marshalling_type marshalled_table_header;
             extract_from_binary_file<table_header_marshalling_type>(marshalled_table_header, "header_", table_file_name);
@@ -819,11 +819,7 @@ int curve_dependent_main(std::string bytecode_file_name,
         return 0;
     }
 
-    if (table_pieces_file_name == "") {
-        std::cerr << "table_pieces_file_name is not specified, skipping generation\n";
-    }
-
-    if (gen_mode.has_circuit() && table_pieces_file_name != "") {
+    if (gen_mode.has_circuit()) {
 
         boost::json::object top_level_json;
         top_level_json["provers_amount"] = assigner_instance.assignments.size();
@@ -856,7 +852,7 @@ int curve_dependent_main(std::string bytecode_file_name,
 
         std::string serialized = boost::json::serialize(top_level_json);
 
-        std::ofstream file(table_pieces_file_name);
+        std::ofstream file(add_filename_prefix("table_pieces_", circuit_file_name));
         file << serialized;
         file.close();
     }
@@ -964,6 +960,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                 ComponentConstantColumns,
                 ComponentSelectorColumns,
                 assignment_table_file_name,
+                circuit_file_name,
                 0
             );
 
@@ -1046,6 +1043,7 @@ int curve_dependent_main(std::string bytecode_file_name,
                     ComponentConstantColumns,
                     ComponentSelectorColumns,
                     assignment_table_file_name,
+                    circuit_file_name,
                     idx
                 );
             }
@@ -1110,7 +1108,6 @@ int main(int argc, char *argv[]) {
             ("private-input,p", boost::program_options::value<std::string>(), "Private input file")
             ("assignment-table,t", boost::program_options::value<std::string>(), "Assignment table output file")
             ("circuit,c", boost::program_options::value<std::string>(), "Circuit output file")
-            ("table-pieces,j", boost::program_options::value<std::string>(), "Table pieces json file")
             ("input-column", boost::program_options::value<std::string>(), "Output file for public input column")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ("stack-size,s", boost::program_options::value<long>(), "Stack size in bytes")
@@ -1161,7 +1158,6 @@ int main(int argc, char *argv[]) {
     std::string private_input_file_name;
     std::string assignment_table_file_name;
     std::string circuit_file_name;
-    std::string table_pieces_file_name;
     std::string processed_public_input_file_name;
     std::string elliptic_curve;
     nil::blueprint::print_format circuit_output_print_format;
@@ -1232,30 +1228,18 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (gen_mode.has_circuit()) {
+    // if (gen_mode.has_circuit()) {
         if (vm.count("circuit")) {
             circuit_file_name = vm["circuit"].as<std::string>();
-        } else {
-            if (!gen_mode.has_size_estimation()) {
-                std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
-                std::cout << options_desc << std::endl;
-                return 1;
-            }
         }
-    }
-
-    if (vm.count("table-pieces")) {
-        table_pieces_file_name = vm["table-pieces"].as<std::string>();
-    } else {
-        if (gen_mode.has_fast_tbl()) {
-            std::cerr << "Invalid command line argument - table-pieces file name is not specified" << std::endl;
-            std::cout << options_desc << std::endl;
-            return 1;
-        }
-        if (gen_mode.has_circuit()) {
-            std::cerr << "warning: table-pieces command line argument is not specified, file will not be generated" << std::endl;
-        }
-    }
+    //     else {
+    //         if (!gen_mode.has_size_estimation()) {
+    //             std::cerr << "Invalid command line argument - circuit file name is not specified" << std::endl;
+    //             std::cout << options_desc << std::endl;
+    //             return 1;
+    //         }
+    //     }
+    // }
 
     if (vm.count("elliptic-curve-type")) {
         elliptic_curve = vm["elliptic-curve-type"].as<std::string>();
@@ -1398,7 +1382,6 @@ int main(int argc, char *argv[]) {
                                                                           private_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
-                                                                          table_pieces_file_name,
                                                                           processed_public_input_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),
@@ -1428,7 +1411,6 @@ int main(int argc, char *argv[]) {
                                                                           private_input_file_name,
                                                                           assignment_table_file_name,
                                                                           circuit_file_name,
-                                                                          table_pieces_file_name,
                                                                           processed_public_input_file_name,
                                                                           stack_size,
                                                                           vm.count("check"),

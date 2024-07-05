@@ -424,7 +424,7 @@ int curve_dependent_main(
 
         assignment_table_marshalling_type marshalled_table_data =
             extract_table_from_binary_file<assignment_table_marshalling_type>
-                (assignment_table_file_name);
+                (assignment_table_file_name, circuit_file_name);
 
         std::tie(description, table) =
             nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(

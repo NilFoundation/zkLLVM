@@ -58,14 +58,15 @@ void extract_from_binary_file(
 
 template<typename marshalling_type>
 marshalling_type extract_table_from_binary_file(
-    const std::string& file_name
+    const std::string& assignment_file_name,
+    const std::string& circuit_file_name
 ) {
     std::vector<std::uint8_t> file_vector = {};
-    ASSERT(append_binary_file_content_to_vector(file_vector, "header_", file_name));
-    ASSERT(append_binary_file_content_to_vector(file_vector, "witness_", file_name));
-    ASSERT(append_binary_file_content_to_vector(file_vector, "pub_inp_", file_name));
-    ASSERT(append_binary_file_content_to_vector(file_vector, "constants_", file_name));
-    ASSERT(append_binary_file_content_to_vector(file_vector, "selectors_", file_name));
+    ASSERT(append_binary_file_content_to_vector(file_vector, "header_", assignment_file_name));
+    ASSERT(append_binary_file_content_to_vector(file_vector, "witness_", assignment_file_name));
+    ASSERT(append_binary_file_content_to_vector(file_vector, "pub_inp_", assignment_file_name));
+    ASSERT(append_binary_file_content_to_vector(file_vector, "constants_", circuit_file_name));
+    ASSERT(append_binary_file_content_to_vector(file_vector, "selectors_", circuit_file_name));
     marshalling_type marshalling_data;
     unmarshall_from_vector<marshalling_type> (file_vector, marshalling_data);
     return marshalling_data;
