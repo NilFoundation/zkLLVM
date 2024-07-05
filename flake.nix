@@ -1,5 +1,5 @@
 {
-  description = "Nix flake for zkEVM";
+  description = "Nix flake for zkLLVM";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
@@ -73,7 +73,7 @@
       defaultCmakeFlags = [
         "-DCMAKE_CXX_STANDARD=17"
         "-DBUILD_SHARED_LIBS=TRUE"
-        "-DZKLLVM_VERSION=1.2.3" # TODO change this
+        "-DZKLLVM_VERSION=0.1.18"
       ];
 
       releaseBuild = stdenv.mkDerivation {
