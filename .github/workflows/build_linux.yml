@@ -327,11 +327,11 @@ jobs:
       always() && !cancelled() &&
       (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
       needs.build-and-test-linux.result == 'success'
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@ef8cd9152b4bec871e7efdc1d6b606e445bad274
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@f450e9219b0b77fa32ce27c5e9a9d9144cc577dd
     with:
       artifact-name: ${{ needs.build-and-test-linux.outputs.examples-artifact-name }}
       # Update next line if you need new version of proof producer
-      proof-producer-ref: ef8cd9152b4bec871e7efdc1d6b606e445bad274
+      proof-producer-ref: f450e9219b0b77fa32ce27c5e9a9d9144cc577dd
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-linux.outputs.prover-targets }}
 

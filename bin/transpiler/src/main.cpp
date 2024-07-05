@@ -45,6 +45,8 @@
 #include <nil/blueprint/transpiler/evm_verifier_gen.hpp>
 #include <nil/blueprint/transpiler/public_input.hpp>
 
+#include "../../table_packing.hpp"
+
 template<typename BlueprintFieldType, typename ConstraintSystemType, typename ColumnsRotationsType>
 void print_sol_files(
     zk::snark::plonk_table_description<BlueprintFieldType> desc,
@@ -242,6 +244,7 @@ int main(int argc, char *argv[]) {
 
 }
 
+
 template<typename BlueprintFieldType, bool is_multi_prover>
 int curve_dependent_main(
     boost::program_options::options_description options_desc,
@@ -361,26 +364,11 @@ int curve_dependent_main(
 
     AssignmentTableType assignment_table;
     {
-        std::ifstream iassignment;
-        iassignment.open(assignment_table_file_name, std::ios_base::binary | std::ios_base::in);
-        if (!iassignment) {
-            std::cout << "Cannot open " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        std::vector<std::uint8_t> v;
-        iassignment.seekg(0, std::ios_base::end);
-        const auto fsize = iassignment.tellg();
-        v.resize(fsize);
-        iassignment.seekg(0, std::ios_base::beg);
-        iassignment.read(reinterpret_cast<char*>(v.data()), fsize);
-        if (!iassignment) {
-            std::cout << "Cannot parse input file " << assignment_table_file_name << std::endl;
-            return 1;
-        }
-        iassignment.close();
-        table_value_marshalling_type marshalled_table_data;
-        auto read_iter = v.begin();
-        auto status = marshalled_table_data.read(read_iter, v.size());
+
+        table_value_marshalling_type marshalled_table_data =
+            extract_table_from_binary_file<table_value_marshalling_type>
+                (assignment_table_file_name, circuit_file_name);
+
         std::tie(desc, assignment_table) =
             nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
                 marshalled_table_data

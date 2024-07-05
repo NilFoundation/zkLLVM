@@ -53,6 +53,8 @@
 #include <nil/blueprint/transpiler/public_input.hpp>
 #include <nil/blueprint/transpiler/recursive_verifier_generator.hpp>
 
+#include "../../table_packing.hpp"
+
 template<typename StreamType>
 std::optional<StreamType> open_file(const std::string& path, std::ios_base::openmode mode) {
     StreamType file(path, mode);
@@ -105,6 +107,7 @@ std::optional<MarshallingType> decode_marshalling_from_file(
     }
     return marshalled_data;
 }
+
 
 template<typename BlueprintFieldType>
 struct ParametersPolicy {
@@ -414,13 +417,21 @@ int curve_dependent_main(
     public_input_sizes = (*constraint_system).public_input_sizes();
 
     if( vm.count("assignment-table") ){
-        auto marshalled_value = decode_marshalling_from_file<assignment_table_marshalling_type>(assignment_table_file_name);
-        if (!marshalled_value) {
-            return false;
-        }
-        auto [description, table] = nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
-            *marshalled_value
-        );
+
+        AssignmentTableType table;
+        zk::snark::plonk_table_description<BlueprintFieldType> description (
+            WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns);
+
+        assignment_table_marshalling_type marshalled_table_data =
+            extract_table_from_binary_file<assignment_table_marshalling_type>
+                (assignment_table_file_name, circuit_file_name);
+
+        std::tie(description, table) =
+            nil::crypto3::marshalling::types::make_assignment_table<Endianness, AssignmentTableType>(
+                marshalled_table_data
+            );
+
+
         assignment_table.emplace(table);
         desc.emplace(description);
     }

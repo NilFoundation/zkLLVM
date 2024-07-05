@@ -7,7 +7,7 @@ using namespace nil::crypto3::algebra::curves;
 
 [[circuit]] pallas::base_field_type::value_type merkle_tree_poseidon (
     std::array<typename pallas::base_field_type::value_type, 0x20> layer_0_leaves) {
-        
+
         std::array<typename pallas::base_field_type::value_type, 0x10> layer_1_leaves;
         std::size_t layer_1_size = 0x10;
         std::array<typename pallas::base_field_type::value_type, 0x8> layer_2_leaves;
