@@ -42,6 +42,7 @@ target_link_libraries(${CURRENT_PROJECT_NAME}
                       LLVMCore
                       LLVMSupport
                       crypto3::all
+                      crypto3::blueprint
                       ${Boost_LIBRARIES})
 
 target_include_directories(${CURRENT_PROJECT_NAME} PUBLIC
@@ -50,7 +51,6 @@ target_include_directories(${CURRENT_PROJECT_NAME} PUBLIC
                            ${CMAKE_SOURCE_DIR}/libs/circifier/llvm/include
                            ${CMAKE_SOURCE_DIR}/libs/circifier/utils/bazel/llvm-project-overlay/llvm/include
                            ${CMAKE_SOURCE_DIR}/libs/assigner/include
-                           ${CMAKE_SOURCE_DIR}/libs/blueprint/include
                            ${CMAKE_BINARY_DIR}/libs/circifier/llvm/include
                            ${Boost_INCLUDE_DIRS})
 

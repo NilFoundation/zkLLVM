@@ -17,6 +17,7 @@ jobs:
     secrets: inherit
 
   build-and-test-with-nix:
+    name: Build zkLLVM, run local tests, prepare for integration testing
     needs: [ handle-syncwith ]
     runs-on: ["self-hosted", "aws_autoscaling"]
     outputs:
@@ -58,11 +59,46 @@ jobs:
       # nix is taken from the cloud-init template, no need to install it.
       - name: Setup build
         run: |
-          nix develop .?submodules=1# -c cmake -G Ninja -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_ENABLE_TESTS=TRUE -DGENERATE_EVM_VERIFIER=TRUE -DZKLLVM_VERSION=0.1.18
+          nix develop .?submodules=1# -c cmake -G Ninja -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_ENABLE_TESTS=TRUE \
+            -DRSLANG_BUILD_EXTENDED=TRUE \
+            -DRSLANG_BUILD_TOOLS=cargo \
+            -DGENERATE_EVM_VERIFIER=TRUE \
+            -DZKLLVM_VERSION=0.1.18
 
       - name: Build zkllvm
         run: |
           nix develop -c ninja -C build assigner clang transpiler
+
+      - name: Build rslang
+        run: |
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/build/libs/circifier/llvm/lib" >> $GITHUB_ENV
+          nix develop -c ninja -C build -k 0 rslang
+
+      - name: Build IR of the Rust examples
+        run: |
+          nix develop -c ninja -C build -k 0 compile_rust_examples
+          ls -al ./build/examples/rust/target/assigner-unknown-unknown/release/examples
+
+      - name: Build circuits(.crct) of the Rust examples
+        run: |
+          nix develop -c ninja -C build -k 0 rust_examples_generate_crct
+          ls -al ./build/examples/cpp
+
+      - name: Build assignment tables(.tbl) of the Rust examples
+        run: |
+          nix develop -c ninja -C build -k 0 rust_examples_generate_tbl
+          ls -al ./build/examples/cpp
+
+      - name: Build proof for the circuit of the Rust examples
+        run: |
+          nix develop -c ninja -C build -k 0 prove_rust_examples
+
+      - name: Build IR of the C++ examples
+        run: |
+          nix develop -c ninja -C build -k 0 compile_cpp_examples
+          ls -al ./examples/cpp
 
       - name: Build circuits(.crct) of the C++ examples
         run: |
@@ -174,11 +210,6 @@ jobs:
         run: |
           nix develop -c ninja -C build -k 0 recursion
 
-      - name: Build IR of the C++ examples
-        run: |
-          nix develop -c ninja -C build -k 0 compile_cpp_examples
-          ls -al ./examples/cpp
-
       - name: Set targets for integration testing
         id: get-targets
         run: |
@@ -216,11 +247,11 @@ jobs:
       always() && !cancelled() &&
       (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
       needs.build-and-test-with-nix.result == 'success'
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@ef8cd9152b4bec871e7efdc1d6b606e445bad274
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@f3e985dabe0d20ecb75375f86d8cf2a71e2eb58b
     with:
       artifact-name: ${{ needs.build-and-test-with-nix.outputs.examples-artifact-name }}
       # Update next line if you need new version of proof producer
-      proof-producer-ref: ef8cd9152b4bec871e7efdc1d6b606e445bad274
+      proof-producer-ref: f3e985dabe0d20ecb75375f86d8cf2a71e2eb58b
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-with-nix.outputs.prover-targets }}
 

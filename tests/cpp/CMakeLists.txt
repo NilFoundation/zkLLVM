@@ -19,6 +19,7 @@ add_custom_target(all_tests_run)
 
 cm_test_link_libraries(
                        crypto3::all
+                       crypto3::assigner
                        ${Boost_LIBRARIES})
 
 
@@ -131,14 +132,14 @@ file(REMOVE ../../build/tests/cpp/expected_results_list.txt)
 
 # curve tests
 add_zkllvm_unit_test("algebra/curves/25519_arithmetics/compare")
-# add_zkllvm_unit_test("algebra/curves/25519_arithmetics/add") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
-# add_zkllvm_unit_test("algebra/curves/25519_arithmetics_2/mul") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/25519_arithmetics/add") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/25519_arithmetics_2/mul") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
 
 if(APPLE)
-# add_zkllvm_unit_test("algebra/curves/constructors/zero_pallas") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
-# add_zkllvm_unit_test("algebra/curves/constructors/one_pallas") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
-# add_zkllvm_unit_test("algebra/curves/constructors/zero_ed25519") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
-# add_zkllvm_unit_test("algebra/curves/constructors/one_ed25519") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/constructors/zero_pallas") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/constructors/one_pallas") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/constructors/zero_ed25519") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/constructors/one_ed25519") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
 endif()
 
 add_zkllvm_unit_test("algebra/curves/pallas_arithmetics/compare")
@@ -189,12 +190,12 @@ add_zkllvm_unit_test_pallas_multiprover("multi_provers/if" 2)
 add_zkllvm_unit_test("custom_cases/getelementptr_as_constant/getelementptr_as_constant")
 
 #libc functions
-#add_zkllvm_unit_test("libc/memset/memset")
-#add_zkllvm_unit_test("libc/strlen/strlen")
-#add_zkllvm_unit_test("libc/strcmp/strcmp")
-#add_zkllvm_unit_test("libc/strncmp/strncmp")
-#add_zkllvm_unit_test("libc/strcpy/strcpy")
-#add_zkllvm_unit_test("libc/strncpy/strncpy")
+#add_zkllvm_unit_test("libc/memset/memset") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+#add_zkllvm_unit_test("libc/strlen/strlen") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+#add_zkllvm_unit_test("libc/strcmp/strcmp") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+#add_zkllvm_unit_test("libc/strncmp/strncmp") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+#add_zkllvm_unit_test("libc/strcpy/strcpy") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+#add_zkllvm_unit_test("libc/strncpy/strncpy") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
 
 # hashes
 add_zkllvm_unit_test("hashes/sha256/sha2_256")
