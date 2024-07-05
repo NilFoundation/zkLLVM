@@ -64,6 +64,11 @@ jobs:
         run: |
           nix develop -c ninja -C build assigner clang transpiler
 
+      - name: Build IR of the C++ examples
+        run: |
+          nix develop -c ninja -C build -k 0 compile_cpp_examples
+          ls -al ./examples/cpp
+          
       - name: Build circuits(.crct) of the C++ examples
         run: |
           nix develop -c ninja -C build -k 0 cpp_examples_generate_crct
@@ -173,11 +178,6 @@ jobs:
       - name: Run recursive verifier tests
         run: |
           nix develop -c ninja -C build -k 0 recursion
-
-      - name: Build IR of the C++ examples
-        run: |
-          nix develop -c ninja -C build -k 0 compile_cpp_examples
-          ls -al ./examples/cpp
 
       - name: Set targets for integration testing
         id: get-targets
