@@ -1,6 +1,3 @@
-[submodule "cmake-modules"]
-	path = cmake/modules
-	url = ../../BoostCMake/cmake_modules.git
 [submodule "zkllvm-assigner"]
 	path = libs/assigner
 	url = ../../NilFoundation/zkllvm-assigner.git
