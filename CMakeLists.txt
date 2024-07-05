@@ -44,6 +44,7 @@ include(CircuitCompile)
 find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter)
 
 find_package(crypto3 REQUIRED)
+find_package(crypto3_blueprint REQUIRED)
 find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system random unit_test_framework timer)
 
 if(BUILD_WITH_BOOST_STATIC_LIBS)
