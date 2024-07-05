@@ -55,51 +55,20 @@ jobs:
             !${{ github.workspace }}/
             !${{ github.workspace }}/**/.git/**
 
-      # nix is taken from the cloud-init template, no need to install it.
-      - name: Setup build
+      - name: Build zkLLVM, run local tests, prepare for integration testing
         run: |
-          nix develop .?submodules=1# -c cmake -G Ninja -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_ENABLE_TESTS=TRUE -DGENERATE_EVM_VERIFIER=TRUE -DZKLLVM_VERSION=0.1.18
-
-      - name: Build zkllvm
-        run: |
-          nix develop -c ninja -C build assigner clang transpiler
-
-      - name: Build circuits(.crct) of the C++ examples
-        run: |
-          nix develop -c ninja -C build -k 0 cpp_examples_generate_crct
-          ls -al ./examples/cpp
-
-      - name: Build assignment tables(.tbl) of the C++ examples
-        run: |
-          nix develop -c ninja -C build -k 0 cpp_examples_generate_tbl_no_check
-          ls -al ./examples/cpp
-
-      - name: Copy assigner output from separate generation mode
-        run: |
-          bash ./tests/copy_assigner_outputs.sh ./build/examples/cpp/ build/separate_generatuon
-
-      - name: Run simultaneous .tbl and .crct generation of the C++ examples
-        run: |
-          nix develop -c ninja -C build -k 0 cpp_examples_generate_both
-          ls -al ./examples/cpp
-
-      - name: Copy assigner output from simultaneous generation mode
-        run: |
-          bash ./tests/copy_assigner_outputs.sh ./build/examples/cpp/ build/simultaneous_generation
-
-      - name: Compare different assigner modes output
-        run: |
-          bash ./tests/compare_folders_content.sh build/separate_generatuon build/simultaneous_generation
-
-      - name: Run size estimation for C++ examples
-        run: |
-          nix develop -c ninja -C build -k 0 cpp_examples_estimate_size
-
-      - name: Copy examples' circuits and assignments for uploading
-        run: |
-          chmod +x ./examples/copy_artifacts.sh
-          ./examples/copy_artifacts.sh build/examples/cpp examples_output
-          ls -al examples_output/
+          nix build -L .?submodules=1#checks.x86_64-linux.debug-tests
+          echo "nix build finished"
+          ls
+          ls -al result/
+          ls -al result/artifacts/
+          cd result
+          find -name "*.ll"
+          find -name "*.tbl"
+          find -name "transpiler_output_*"
+          cd -
+          ls -al result/artifacts/examples_output
+          cp -r result/artifacts/examples_output .
 
       - name: Set aritfacts' names
         id: artifact-names
@@ -113,71 +82,15 @@ jobs:
           name: ${{ steps.artifact-names.outputs.examples }}
           path: |
             examples_output
-
-      - name: Compile tests as cpp code
-        run: |
-          nix develop -c ninja -C build -k 0 all_tests_compile_as_cpp_code
-
-      - name: Compile tests as circuits
-        run: |
-          nix develop -c ninja -C build -k 0 all_tests_compile_as_circuits
-
-      - name: Run tests as cpp code (expected res calculation)
-        run: |
-          nix develop -c ninja -C build -k 0 all_tests_run_expected_res_calculation
-
-      - name: Get transpiler output for integration testing
-        run: |
-          targets_str=$(echo "${{ env.INTEGRATION_TESTING_TARGETS }}" | awk 'NF {printf " %s_evm_verifier ", $0}' | sed 's/[[:space:]]*$//')
-          echo "targets: ${targets_str}"
-          nix develop -c ninja -C build -k 0  ${targets_str}
-          ls -al build/examples/cpp/
+          if-no-files-found: error
 
       - name: Upload examples' circuits and assignments artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.artifact-names.outputs.transpiler }}
           path: |
-            build/examples/cpp/transpiler_output_*
-
-      - name: Run tests as circuits (real res calculation)
-        run: |
-          nix develop -c ninja -C build -k 0 all_tests_assign_circuits
-
-      - name: Compare expected and real test results
-        run: |
-          chmod +x ./tests/run_test_results_comparison.sh
-          bash ./tests/run_test_results_comparison.sh
-
-      - name: Run tests on faulty inputs
-        run: |
-          chmod +x ./tests/run_tests_faulty_input.sh
-          bash ./tests/run_tests_faulty_input.sh pallas
-
-      - name: Run assigner unit tests
-        run: |
-          nix develop -c ninja -C build -k 0 check-crypto3-assigner
-
-      - name: Build proof for the circuit of the C++ examples
-        run: |
-          nix develop -c ninja -C build -k 0 prove_cpp_examples
-
-      - name: Build recursive gen
-        run: |
-          nix develop -c ninja -C build -k 0 recursive_gen
-
-      - name: Build and run transpiler test
-        run: |
-          nix develop -c ninja -C build -k 0 compile_and_run_transpiler_tests
-
-      - name: Run recursive verifier tests
-        run: |
-          nix develop -c ninja -C build -k 0 recursion
-
-      - name: Build IR of the C++ examples
-        run: |
-          nix develop -c ninja -C build -k 0 compile_cpp_examples
-          ls -al ./examples/cpp
+            result/artifacts/cpp/transpiler_output_*
+          if-no-files-found: error
 
       - name: Set targets for integration testing
         id: get-targets
@@ -216,11 +129,11 @@ jobs:
       always() && !cancelled() &&
       (needs.handle-syncwith.result == 'success' || needs.handle-syncwith.result == 'skipped') &&
       needs.build-and-test-with-nix.result == 'success'
-    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@ef8cd9152b4bec871e7efdc1d6b606e445bad274
+    uses: NilFoundation/proof-producer/.github/workflows/reusable-generate-proofs-linux.yml@f3e985dabe0d20ecb75375f86d8cf2a71e2eb58b
     with:
       artifact-name: ${{ needs.build-and-test-with-nix.outputs.examples-artifact-name }}
       # Update next line if you need new version of proof producer
-      proof-producer-ref: ef8cd9152b4bec871e7efdc1d6b606e445bad274
+      proof-producer-ref: f3e985dabe0d20ecb75375f86d8cf2a71e2eb58b
       refs: ${{ needs.handle-syncwith.outputs.prs-refs }}
       targets: ${{ needs.build-and-test-with-nix.outputs.prover-targets }}
 

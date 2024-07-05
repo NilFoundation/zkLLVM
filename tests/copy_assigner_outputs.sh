@@ -1,5 +1,5 @@
-SRC_DIR="$1"
-DEST_DIR="$2"
+SRC_DIR="build/examples/cpp"
+DEST_DIR="$1"
 
 if [ ! -d "$DEST_DIR" ]; then
     mkdir -p "$DEST_DIR"

@@ -1,5 +1,5 @@
 {
-  description = "Nix flake for zkEVM";
+  description = "Nix flake for zkLLVM";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
@@ -14,7 +14,7 @@
     nil-crypto3 = {
       url = "https://github.com/NilFoundation/crypto3";
       type = "git";
-      submodules = true;
+      submodules = false;
       inputs = {
         nixpkgs.follows = "nixpkgs";
       };
@@ -25,110 +25,75 @@
       submodules = true;
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        nil_crypto3.follows = "nil-crypto3";
+        nil-crypto3.follows = "nil-crypto3";
       };
     };
   };
 
-  outputs =
-    { self
+  outputs = { self
     , nixpkgs
     , flake-utils
     , nix-3rdparty
     , nil-crypto3
     , nil-zkllvm-blueprint
     }:
-    flake-utils.lib.eachDefaultSystem (system:
-    let
-      pkgs = import nixpkgs {
-        overlays = [ nix-3rdparty.overlays.${system}.default ];
-        inherit system;
-      };
-      crypto3 = nil-crypto3.packages.${system}.default;
-      blueprint = nil-zkllvm-blueprint.packages.${system}.default;
-
-      # Default env will bring us GCC 13 as default compiler
-      stdenv = pkgs.stdenv;
-
-      defaultNativeBuildInputs = [
-        pkgs.cmake
-        pkgs.ninja
-        pkgs.python3
-        pkgs.git
-      ];
-
-      defaultBuildInputs = [
-        # Default nixpkgs packages
-        pkgs.boost
-        # Repo dependencies
-        crypto3
-        blueprint
-      ];
-
-      defaultDevTools = [
-        pkgs.clang_17 # clang-format and clang-tidy
-      ];
-
-
-      defaultCmakeFlags = [
-        "-DCMAKE_CXX_STANDARD=17"
-        "-DBUILD_SHARED_LIBS=TRUE"
-        "-DZKLLVM_VERSION=1.2.3" # TODO change this
-      ];
-
-      releaseBuild = stdenv.mkDerivation {
-        name = "zkLLVM";
-        cmakeBuildType = "Release";
-        buildInputs = defaultBuildInputs ++ defaultNativeBuildInputs;
-
-        ninjaFlags = "assigner clang transpiler";
-
-        src = self; # Here we should ignore all tests/* test/* examples/* folders to minimize rebuilds
-
-        doCheck = false;
-        dontInstall = true;
-      };
-
-      # TODO: we need to propagate debug mode to dependencies here:
-      debugBuild = releaseBuild.overrideAttrs (finalAttrs: previousAttrs: {
-        name = previousAttrs.name + "-debug";
-        cmakeBuildType = "Debug";
-        buildInputs = defaultBuildInputs ++ defaultNativeBuildInputs;
-      });
-
-      makeDevShell = pkgs.mkShell {
-        nativeBuildInputs = defaultNativeBuildInputs
-          ++ defaultBuildInputs
-          ++ defaultDevTools;
-
-        shellHook = ''
-          echo "zkLLVM dev environment activated"
-          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${placeholder "out"}/libs/circifier/llvm/lib"
-        '';
-      };
-    in
-    {
-      packages = {
-        default = releaseBuild;
-        debug = debugBuild;
-      };
-      apps = {
-        assigner = {
-          type = "app";
-          program = "${self.packages.${system}.default}/bin/assigner";
+    (flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ nix-3rdparty.overlays.${system}.default ];
         };
-        clang = {
-          type = "app";
-          program = "${self.packages.${system}.default}/bin/clang";
+        crypto3 = nil-crypto3.packages.${system}.default;
+        blueprint = nil-zkllvm-blueprint.packages.${system}.default;
+
+      in {
+        packages = rec {
+          inherit pkgs crypto3 blueprint;
+          zkllvm = (pkgs.callPackage ./zkllvm.nix { 
+            src_repo = self;
+            crypto3 = crypto3;
+            blueprint = blueprint;
+          });
+          debug = (pkgs.callPackage ./zkllvm.nix {
+            src_repo = self;
+            enableDebug = true;
+            crypto3 = crypto3;
+            blueprint = blueprint;
+          });
+          release = zkllvm;
+          default = debug;
         };
-        transpiler = {
-          type = "app";
-          program = "${self.packages.${system}.default}/bin/transpiler";
+        checks = rec {
+          release-tests = (pkgs.callPackage ./zkllvm.nix {
+            src_repo = self;
+            crypto3 = crypto3;
+            blueprint = blueprint;
+            enableTesting = true;
+          });
+          debug-tests = (pkgs.callPackage ./zkllvm.nix {
+            src_repo = self;
+            enableDebug = true;
+            crypto3 = crypto3;
+            blueprint = blueprint;
+            enableTesting = true;
+          });
+          default = debug-tests;
         };
-      };
-      devShells.default = makeDevShell;
-    }
-    );
+        apps = {
+          assigner = {
+            type = "app";
+            program = "${self.packages.${system}.default}/bin/assigner";
+          };
+          clang = {
+            type = "app";
+            program = "${self.packages.${system}.default}/bin/clang";
+          };
+          transpiler = {
+            type = "app";
+            program = "${self.packages.${system}.default}/bin/transpiler";
+          };
+        };
+      }));
 }
 
 # To override some inputs:
