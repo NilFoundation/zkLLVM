@@ -37,16 +37,27 @@ Languages currently supported are:
 
 #### Install Dependencies
 
-* [Boost](https://www.boost.org/) >= 1.76.0
-* [CMake](https://cmake.org/) >= 3.5
-* [Clang](https://clang.llvm.org/) >= 12.0
-* [Python](https://www.python.org/) >= 3.7
-* [Rust](https://www.rust-lang.org/) >= 1.68 (if you want to build Rust compiler)
-
-On Debian systems, everything except Boost and Rust can be installed with the following command:
+Install nix using the following command:
 
 ```
-sudo apt install build-essential libssl-dev cmake clang-12 git curl pkg-config
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+```
+
+for most cases, you want to have an incremental build:
+```
+nix develop
+eval "$configurePhase"
+eval "$buildPhase"
+eval "$checkPhase"
+```
+
+only build:
+```
+nix build -L .?submodules=1
+```
+build and test:
+```
+nix build -L .?submodules=1#checks.x86_64-linux.debug-tests
 ```
 
 #### 1. Clone the repository

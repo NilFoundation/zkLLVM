@@ -14,11 +14,9 @@ cmake_policy(SET CMP0028 NEW)
 cmake_policy(SET CMP0057 NEW)
 cmake_policy(SET CMP0063 NEW)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake"
-     "${CMAKE_CURRENT_LIST_DIR}/cmake/packages"
-     "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/share/modules/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-include(CMConfig)
+find_package(CM)
 include(CMSetupVersion)
 
 cm_workspace(zkllvm)
@@ -44,6 +42,7 @@ include(CircuitCompile)
 find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter)
 
 find_package(crypto3 REQUIRED)
+find_package(crypto3_blueprint REQUIRED)
 find_package(Boost COMPONENTS REQUIRED filesystem log log_setup program_options thread system random unit_test_framework timer)
 
 if(BUILD_WITH_BOOST_STATIC_LIBS)
@@ -118,7 +117,7 @@ configure_file("${CMAKE_CURRENT_LIST_DIR}/cmake/zkllvm.conf.in"
                "${CMAKE_CURRENT_BINARY_DIR}/zkllvm.conf"
                NO_SOURCE_PERMISSIONS
                @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/zkllvm.conf" DESTINATION /etc/ld.so.conf.d)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/zkllvm.conf" DESTINATION etc/ld.so.conf.d)
 
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_LIST_DIR}/cmake/triggers")
 set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
@@ -196,3 +195,5 @@ add_custom_target(rslang_dist
                   COMMENT "Building rslang distribution package"
                   USES_TERMINAL
                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
+
+add_executable(test_package bin/test_package.cpp)
