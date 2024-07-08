@@ -14,10 +14,9 @@ cmake_policy(SET CMP0028 NEW)
 cmake_policy(SET CMP0057 NEW)
 cmake_policy(SET CMP0063 NEW)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake"
-     "${CMAKE_CURRENT_LIST_DIR}/cmake/packages"
-     "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/share/modules/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
+find_package(CM)
 include(CMConfig)
 include(CMSetupVersion)
 
