@@ -27,7 +27,7 @@ in stdenv.mkDerivation {
   # enableDebugging will keep debug symbols in boost
   propagatedBuildInputs = [ (if enableDebug then (enableDebugging boost_lib) else boost_lib) ];
 
-  buildInputs = [crypto3 blueprint cmake_modules pkgs.python3 pkgs.git];
+  buildInputs = [crypto3 blueprint cmake_modules pkgs.python3 pkgs.git pkgs.cargo pkgs.openssl];
 
   cmakeFlags =
     [
