@@ -36,6 +36,7 @@ in stdenv.mkDerivation {
       (if enableDebug then "-DCMAKE_BUILD_TYPE=Debug" else "-DCMAKE_BUILD_TYPE=Release")
       (if enableDebug then "-DCMAKE_CXX_FLAGS=-ggdb" else "")
       "-DZKLLVM_VERSION=0.1.18"
+      "-DGENERATE_EVM_VERIFIER=TRUE"
     ];
 
   ninjaFlags = "assigner clang transpiler";
