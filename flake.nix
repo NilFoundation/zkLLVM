@@ -24,7 +24,7 @@
       submodules = true;
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        nil_crypto3.follows = "nil-crypto3";
+        nil-crypto3.follows = "nil-crypto3";
       };
     };
   };
