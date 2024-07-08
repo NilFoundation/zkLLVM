@@ -131,14 +131,14 @@ file(REMOVE ../../build/tests/cpp/expected_results_list.txt)
 
 # curve tests
 add_zkllvm_unit_test("algebra/curves/25519_arithmetics/compare")
-# add_zkllvm_unit_test("algebra/curves/25519_arithmetics/add") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
-# add_zkllvm_unit_test("algebra/curves/25519_arithmetics_2/mul") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/25519_arithmetics/add") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/25519_arithmetics_2/mul") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
 
 if(APPLE)
-# add_zkllvm_unit_test("algebra/curves/constructors/zero_pallas") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
-# add_zkllvm_unit_test("algebra/curves/constructors/one_pallas") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
-# add_zkllvm_unit_test("algebra/curves/constructors/zero_ed25519") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
-# add_zkllvm_unit_test("algebra/curves/constructors/one_ed25519") # fails when return value is 0,0 due to crypto3 bug, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/constructors/zero_pallas") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/constructors/one_pallas") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/constructors/zero_ed25519") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
+# add_zkllvm_unit_test("algebra/curves/constructors/one_ed25519") # fails when return value is 0,0 due to https://github.com/NilFoundation/zkLLVM/issues/618, temporarily disabled
 endif()
 
 add_zkllvm_unit_test("algebra/curves/pallas_arithmetics/compare")
