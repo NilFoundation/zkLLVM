@@ -14,6 +14,7 @@
     nil-crypto3 = {
       url = "https://github.com/NilFoundation/crypto3";
       type = "git";
+      submodules = true;
       inputs = {
         nixpkgs.follows = "nixpkgs";
       };
