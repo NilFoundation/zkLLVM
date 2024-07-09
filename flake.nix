@@ -61,9 +61,25 @@
             crypto3 = crypto3;
             blueprint = blueprint;
           });
-          default = zkllvm;
+          release = zkllvm;
+          default = debug;
         };
-
+        checks = rec {
+          release-tests = (pkgs.callPackage ./zkllvm-test.nix {
+            src_repo = self;
+            pkgs=pkgs;
+            crypto3 = crypto3;
+            blueprint = blueprint;
+          });
+          debug-tests = (pkgs.callPackage ./zkllvm-test.nix {
+            src_repo = self;
+            pkgs=pkgs;
+            enableDebug = true;
+            crypto3 = crypto3;
+            blueprint = blueprint;
+          });
+          default = debug-tests;
+        };
         apps = {
           assigner = {
             type = "app";
