@@ -1,4 +1,4 @@
-#include <nil/crypto3/algebra/curves/pallas.hpp>
+#include <crypto3-algebra/include/nil/crypto3/algebra/curves/pallas.hpp>
 
 using namespace nil::crypto3::algebra::curves;
 
