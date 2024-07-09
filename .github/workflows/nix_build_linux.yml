@@ -19,7 +19,7 @@ jobs:
   build-and-test-with-nix:
     needs: [ handle-syncwith ]
     runs-on: ["self-hosted", "aws_autoscaling"]
-    allow-failure: true
+    continue-on-error: true
     outputs:
       transpiler-artifact-name: ${{ steps.artifact-names.outputs.transpiler }}
       examples-artifact-name: ${{ steps.artifact-names.outputs.examples }}
