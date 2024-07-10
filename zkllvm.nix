@@ -54,6 +54,8 @@ in stdenv.mkDerivation {
     echo `pwd`
     ls ../
     bash ../run_tests.sh
+    mkdir -p ${placeholder "out"}/artifacts
+    cp -r ${placeholder "out"}/artifacts/
   '';
 
   shellHook = ''
