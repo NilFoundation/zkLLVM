@@ -48,6 +48,7 @@
 
       in {
         packages = rec {
+          inherit pkgs crypto3 blueprint;
           zkllvm = (pkgs.callPackage ./zkllvm.nix { 
             src_repo = self;
             pkgs=pkgs;

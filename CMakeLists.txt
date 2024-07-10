@@ -17,7 +17,6 @@ cmake_policy(SET CMP0063 NEW)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 find_package(CM)
-include(CMConfig)
 include(CMSetupVersion)
 
 cm_workspace(zkllvm)
