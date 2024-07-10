@@ -72,12 +72,14 @@ in stdenv.mkDerivation rec {
   ninjaFlags = pkgs.lib.strings.concatStringsSep " " (["-k 0"] ++ testList ++ integrationTestingTargets);
 
   doCheck = true;
+  dontInstall = true;
+  dontFixup = true;
 
   checkPhase = ''
     ls -l -a
-    cp * ${placeholder "out"}/build-result;
+    mkdir -p ${placeholder "out"}/artifacts
+    cp -r * ${placeholder "out"}/artifacts
   '';
-  doInstall = false;
 
   shellHook = ''
     echo "Welcome to zkllvm development environment!"
