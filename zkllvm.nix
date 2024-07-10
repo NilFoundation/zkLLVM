@@ -5,15 +5,19 @@
   ninja,
   pkg-config,
   cmake,
-  boost183,
   # We'll use boost183 by default, but you can override it
-  boost_lib ? boost183,
+  boost_lib ? pkgs.boost183,
   gdb,
   cmake_modules,
   crypto3,
   blueprint,
+  python3,
+  git,
+  cargo,
+  openssl,
   enableDebugging,
-  enableDebug ? false
+  enableDebug ? false,
+  enableTesting ? false
   }:
 let
   inherit (lib) optional;
@@ -26,10 +30,14 @@ in stdenv.mkDerivation {
   # enableDebugging will keep debug symbols in boost
   propagatedBuildInputs = [ (if enableDebug then (enableDebugging boost_lib) else boost_lib) ];
 
-  buildInputs = [crypto3 blueprint cmake_modules pkgs.python3 pkgs.git pkgs.cargo pkgs.openssl];
+  buildInputs = [crypto3 blueprint cmake_modules python3 git cargo openssl];
 
   cmakeFlags =
     [
+      (if enableTesting then "-DENABLE_TESTS=TRUE" else "")
+      (if enableTesting then "-DBUILD_TESTS=TRUE" else "")
+      (if enableTesting then "-DCMAKE_ENABLE_TESTS=TRUE" else "")
+
       (if enableDebug then "-DCMAKE_BUILD_TYPE=Debug" else "-DCMAKE_BUILD_TYPE=Release")
       (if enableDebug then "-DCMAKE_CXX_FLAGS=-ggdb" else "")
       "-DZKLLVM_VERSION=0.1.18"
@@ -37,7 +45,16 @@ in stdenv.mkDerivation {
     ];
 
   ninjaFlags = "assigner clang transpiler";
-  dontInstall = true;
+  dontFixCmake = true;
+
+  doCheck = enableTesting;
+
+  checkPhase = ''
+    echo "pwd:"
+    echo `pwd`
+    ls ../
+    bash ../run_tests.sh
+  '';
 
   shellHook = ''
     echo "Welcome to zkllvm development environment!"

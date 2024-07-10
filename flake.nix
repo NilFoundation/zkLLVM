@@ -51,13 +51,11 @@
           inherit pkgs crypto3 blueprint;
           zkllvm = (pkgs.callPackage ./zkllvm.nix { 
             src_repo = self;
-            pkgs=pkgs;
             crypto3 = crypto3;
             blueprint = blueprint;
           });
           debug = (pkgs.callPackage ./zkllvm.nix {
             src_repo = self;
-            pkgs=pkgs;
             enableDebug = true;
             crypto3 = crypto3;
             blueprint = blueprint;
@@ -66,18 +64,18 @@
           default = debug;
         };
         checks = rec {
-          release-tests = (pkgs.callPackage ./zkllvm-test.nix {
+          release-tests = (pkgs.callPackage ./zkllvm.nix {
             src_repo = self;
-            pkgs=pkgs;
             crypto3 = crypto3;
             blueprint = blueprint;
+            enableTesting = true;
           });
-          debug-tests = (pkgs.callPackage ./zkllvm-test.nix {
+          debug-tests = (pkgs.callPackage ./zkllvm.nix {
             src_repo = self;
-            pkgs=pkgs;
             enableDebug = true;
             crypto3 = crypto3;
             blueprint = blueprint;
+            enableTesting = true;
           });
           default = debug-tests;
         };
