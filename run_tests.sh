@@ -105,3 +105,5 @@ ninja -k 0 compile_and_run_transpiler_tests
 echo "Run recursive verifier tests"
 ninja -k 0 recursion
 
+echo "finish"
+
