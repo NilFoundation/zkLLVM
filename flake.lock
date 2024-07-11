@@ -65,16 +65,16 @@
         "lastModified": 1720625736,
         "narHash": "sha256-hN9H6kpGAUn0JJQDCgZi8PjR2lOvMxC9M/Nm3D7ngs0=",
         "ref": "refs/heads/master",
-        "rev": "3bd5b8df2091274abaa28fd86b9e3e89d661b95a",
-        "revCount": 9150,
-        "submodules": true,
+        "rev": "3033b706940d20433651963d4ee8b751805d388f",
+        "revCount": 9151,
+        "submodules": false,
         "type": "git",
-        "url": "https://github.com/NilFoundation/crypto3?submodules=0&rev=caf78b83692b39f504c4ee74a3834a4c38662a77"
+        "url": "https://github.com/NilFoundation/crypto3"
       },
       "original": {
-        "submodules": true,
+        "submodules": false,
         "type": "git",
-        "url": "https://github.com/NilFoundation/crypto3?submodules=0&rev=caf78b83692b39f504c4ee74a3834a4c38662a77"
+        "url": "https://github.com/NilFoundation/crypto3"
       }
     },
     "nil-zkllvm-blueprint": {
@@ -88,11 +88,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1720092182,
-        "narHash": "sha256-WTjhgYwkHjDCSDmDX1SwCH+cuz6OWl9vQaOYCUKOw7c=",
+        "lastModified": 1720537031,
+        "narHash": "sha256-ucn4h+p17acwRv7GjpwtPj99mUk3WHqA7Ag4zvTvJ8U=",
         "ref": "refs/heads/master",
-        "rev": "73d6a40e39b6b6fc7b1c84441e62337206dc0815",
-        "revCount": 1246,
+        "rev": "30377e6d7d1b71a3c777c326d2140945398f651f",
+        "revCount": 1249,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/NilFoundation/zkllvm-blueprint"
@@ -150,11 +150,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1720423415,
-        "narHash": "sha256-/cRAZMXoZSPHEGyuYkyNSqZ/XbGvW0vXU0Ktz9BJvTI=",
+        "lastModified": 1720679975,
+        "narHash": "sha256-8yHvqa7P7y4kFiNW9BPgeQdZ6FVFXD3Sp/oUVRyzYpA=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "c5027e9aa5978597f1b09057cc6345f987226d44",
+        "rev": "1f86d2ae2cb15b411e11ff1e4638beb079b7190d",
         "type": "github"
       },
       "original": {
