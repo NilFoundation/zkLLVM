@@ -1,27 +1,6 @@
 #!/usr/bin/env bash
 
 df -h 
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/libs/circifier/llvm/lib"
-echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/libs/circifier/llvm/lib"
-
-echo "Build IR of the Rust examples"
-df -h
-ninja -k 0 compile_rust_examples
-ls -al ./examples/rust/target/assigner-unknown-unknown/release/examples
-
-echo "Build circuits(.crct) of the Rust examples"
-df -h
-ninja -k 0 rust_examples_generate_crct
-ls -al ./examples/cpp
-
-echo "Build assignment tables(.tbl) of the Rust examples"
-df -h
-ninja -k 0 rust_examples_generate_tbl
-ls -al ./examples/cpp
-
-echo "Build proof for the circuit of the Rust examples"
-df -h
-ninja -k 0 prove_rust_examples
 
 echo "Build IR of the C++ examples"
 df -h
