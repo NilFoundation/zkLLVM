@@ -55,10 +55,6 @@ jobs:
             !${{ github.workspace }}/
             !${{ github.workspace }}/**/.git/**
 
-      - name: Cleanup garbage
-        run: |
-          nix-collect-garbage --delete-older-than 5d
-
       - name: Build with nix
         run: |
           nix build -L .?submodules=1#checks.x86_64-linux.debug-tests
