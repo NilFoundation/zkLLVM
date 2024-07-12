@@ -45,7 +45,10 @@ in stdenv.mkDerivation {
     ];
 
   ninjaFlags = "assigner clang transpiler";
+  dontInstall = true;
   dontFixCmake = true;
+  dontFixup = true;
+
 
   doCheck = enableTesting;
 
