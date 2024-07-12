@@ -67,11 +67,11 @@ ls -al examples_output/
 
 echo "Compile tests as cpp code"
 df -h
-ninja -k 0 all_tests_compile_as_cpp_code
+ninja -k 0 all_tests_compile_as_cpp_code -j8
 
 echo "Compile tests as circuits"
 df -h
-ninja -k 0 all_tests_compile_as_circuits
+ninja -k 0 all_tests_compile_as_circuits -j8
 
 echo "Run tests as cpp code (expected res calculation)"
 df -h
