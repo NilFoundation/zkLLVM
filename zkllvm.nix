@@ -45,16 +45,11 @@ in stdenv.mkDerivation {
     ];
 
   ninjaFlags = "assigner clang transpiler";
-  dontInstall = true;
   dontFixCmake = true;
-  dontFixup = true;
 
   doCheck = enableTesting;
 
   checkPhase = ''
-    echo "pwd:"
-    echo `pwd`
-    ls ../
     bash ../run_tests.sh
     mkdir -p ${placeholder "out"}/artifacts
     cp -r * ${placeholder "out"}/artifacts/
