@@ -37,7 +37,6 @@ in stdenv.mkDerivation {
     ];
 
   ninjaFlags = "assigner clang transpiler";
-  dontInstall = true;
 
   shellHook = ''
     echo "Welcome to zkllvm development environment!"

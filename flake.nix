@@ -12,7 +12,7 @@
       };
     };
     nil-crypto3 = {
-      url = "https://github.com/NilFoundation/crypto3?submodules=0&rev=caf78b83692b39f504c4ee74a3834a4c38662a77";
+      url = "https://github.com/NilFoundation/crypto3";
       type = "git";
       inputs = {
         nixpkgs.follows = "nixpkgs";
