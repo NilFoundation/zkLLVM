@@ -56,9 +56,6 @@ in stdenv.mkDerivation {
 
     mkdir -p "$ARTIFACTS_DIR"cpp
     mv examples/cpp/transpiler_output_* "$ARTIFACTS_DIR"cpp
-
-    mkdir -p "$ARTIFACTS_DIR"examples_output
-    mv examples_output "$ARTIFACTS_DIR"examples_output
   '';
 
   shellHook = ''
