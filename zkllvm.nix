@@ -51,7 +51,7 @@ in stdenv.mkDerivation {
   checkPhase = ''
     export ARTIFACTS_DIR="$out/artifacts/"
     echo "ARTIFACTS_DIR=$ARTIFACTS_DIR"
-    mkdir -p "$ARTIFACTS_DIR/artifacts
+    mkdir -p "$ARTIFACTS_DIR/artifacts"
     bash ../run_tests.sh
 
     mkdir -p "$ARTIFACTS_DIR"cpp
