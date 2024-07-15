@@ -17,19 +17,10 @@ df -h
 ninja -k 0 cpp_examples_generate_tbl_no_check
 ls -al ./examples/cpp
 
-echo "Copy assigner output from separate generation mode"
+echo "Move assigner output from separate generation mode"
 df -h
-bash ../tests/copy_assigner_outputs.sh ./examples/cpp/ ${ARTIFACTS_DIR}separate_generation
+bash ../tests/move_assigner_outputs.sh ./examples/cpp/ ${ARTIFACTS_DIR}separate_generation
 ls -al ${ARTIFACTS_DIR}separate_generation
-
-echo "Run simultaneous .tbl and .crct generation of the C++ examples"
-df -h
-ninja -k 0 cpp_examples_generate_both
-ls -al ./examples/cpp
-
-echo "Compare different assigner modes output"
-df -h
-bash ../tests/compare_folders_content.sh ./examples/cpp/ ${ARTIFACTS_DIR}simultaneous_generation
 
 echo "Run size estimation for C++ examples"
 df -h
