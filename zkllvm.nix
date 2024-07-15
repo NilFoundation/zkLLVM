@@ -49,9 +49,16 @@ in stdenv.mkDerivation {
   doCheck = enableTesting;
 
   checkPhase = ''
+    export ARTIFACTS_DIR="$out/artifacts/"
+    echo "ARTIFACTS_DIR=$ARTIFACTS_DIR"
+    mkdir -p "$ARTIFACTS_DIR/artifacts
     bash ../run_tests.sh
-    mkdir -p ${placeholder "out"}/artifacts
-    cp -r * ${placeholder "out"}/artifacts/
+
+    mkdir -p "$ARTIFACTS_DIR"cpp
+    mv examples/cpp/transpiler_output_* "$ARTIFACTS_DIR"cpp
+
+    mkdir -p "$ARTIFACTS_DIR"examples_output
+    mv examples_output "$ARTIFACTS_DIR"examples_output
   '';
 
   shellHook = ''

@@ -19,7 +19,8 @@ ls -al ./examples/cpp
 
 echo "Copy assigner output from separate generation mode"
 df -h
-bash ../tests/copy_assigner_outputs.sh ./examples/cpp/ separate_generatuon
+bash ../tests/copy_assigner_outputs.sh ./examples/cpp/ ${ARTIFACTS_DIR}separate_generation
+ls -al ${ARTIFACTS_DIR}separate_generation
 
 echo "Run simultaneous .tbl and .crct generation of the C++ examples"
 df -h
@@ -28,11 +29,12 @@ ls -al ./examples/cpp
 
 echo "Copy assigner output from simultaneous generation mode"
 df -h
-bash ../tests/copy_assigner_outputs.sh ./examples/cpp/ simultaneous_generation
+bash ../tests/copy_assigner_outputs.sh ./examples/cpp/ ${ARTIFACTS_DIR}simultaneous_generation
+ls -al ${ARTIFACTS_DIR}simultaneous_generation
 
 echo "Compare different assigner modes output"
 df -h
-bash ../tests/compare_folders_content.sh separate_generatuon simultaneous_generation
+bash ../tests/compare_folders_content.sh ${ARTIFACTS_DIR}separate_generation ${ARTIFACTS_DIR}simultaneous_generation
 
 echo "Run size estimation for C++ examples"
 df -h
@@ -40,17 +42,17 @@ ninja -k 0 cpp_examples_estimate_size
 
 echo "Copy examples' circuits and assignments for uploading"
 df -h
-chmod +x ./examples/copy_artifacts.sh
-bash ../examples/copy_artifacts.sh examples/cpp examples_output
-ls -al examples_output/
+chmod +x ../examples/copy_artifacts.sh
+bash ../examples/copy_artifacts.sh examples/cpp ${ARTIFACTS_DIR}examples_output
+ls -al ${ARTIFACTS_DIR}examples_output/
 
 echo "Compile tests as cpp code"
 df -h
-ninja -k 0 all_tests_compile_as_cpp_code -j8
+ninja -k 0 all_tests_compile_as_cpp_code
 
 echo "Compile tests as circuits"
 df -h
-ninja -k 0 all_tests_compile_as_circuits -j8
+ninja -k 0 all_tests_compile_as_circuits
 
 echo "Run tests as cpp code (expected res calculation)"
 df -h
@@ -82,12 +84,12 @@ ninja -k 0 all_tests_assign_circuits
 
 echo "Compare expected and real test results"
 df -h
-chmod +x ./tests/run_test_results_comparison.sh
+chmod +x ../tests/run_test_results_comparison.sh
 bash ../tests/run_test_results_comparison.sh
 
 echo "Run tests on faulty inputs"
 df -h
-chmod +x ./tests/run_tests_faulty_input.sh
+chmod +x ../tests/run_tests_faulty_input.sh
 bash ../tests/run_tests_faulty_input.sh pallas
 
 echo "Run assigner unit tests"
