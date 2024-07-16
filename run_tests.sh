@@ -70,13 +70,16 @@ ninja -k 0 all_tests_assign_circuits
 
 echo "Compare expected and real test results"
 df -h
-chmod +x ../tests/run_test_results_comparison.sh
-bash ../tests/run_test_results_comparison.sh
+cd ..
+  # the following scripts are expected to run from the root of repository
+  chmod +x ./tests/run_test_results_comparison.sh
+  bash ./tests/run_test_results_comparison.sh
 
-echo "Run tests on faulty inputs"
-df -h
-chmod +x ../tests/run_tests_faulty_input.sh
-bash ../tests/run_tests_faulty_input.sh pallas
+  echo "Run tests on faulty inputs"
+  df -h
+  chmod +x ./tests/run_tests_faulty_input.sh
+  bash ./tests/run_tests_faulty_input.sh pallas
+cd -
 
 echo "Run assigner unit tests"
 df -h
