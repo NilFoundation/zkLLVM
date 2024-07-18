@@ -98,17 +98,17 @@ jobs:
       - name: Build IR of the C++ examples
         run: |
           nix develop -c ninja -C build -k 0 compile_cpp_examples
-          ls -al ./examples/cpp
+          ls -al ./build/examples/cpp
 
       - name: Build circuits(.crct) of the C++ examples
         run: |
           nix develop -c ninja -C build -k 0 cpp_examples_generate_crct
-          ls -al ./examples/cpp
+          ls -al ./build/examples/cpp
 
       - name: Build assignment tables(.tbl) of the C++ examples
         run: |
           nix develop -c ninja -C build -k 0 cpp_examples_generate_tbl_no_check
-          ls -al ./examples/cpp
+          ls -al ./build/examples/cpp
 
       - name: Copy assigner output from separate generation mode
         run: |
@@ -117,7 +117,7 @@ jobs:
       - name: Run simultaneous .tbl and .crct generation of the C++ examples
         run: |
           nix develop -c ninja -C build -k 0 cpp_examples_generate_both
-          ls -al ./examples/cpp
+          ls -al ./build/examples/cpp
 
       - name: Copy assigner output from simultaneous generation mode
         run: |
