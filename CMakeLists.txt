@@ -195,5 +195,3 @@ add_custom_target(rslang_dist
                   COMMENT "Building rslang distribution package"
                   USES_TERMINAL
                   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/libs/rslang)
-
-add_executable(test_package bin/test_package.cpp)
