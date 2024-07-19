@@ -5,7 +5,7 @@ list(APPEND LLVM_BINARIES clang llvm-link)
 
 # Link directory would differ for cases when we have DESTDIR from CPack or simple installation
 if (DEFINED ENV{DESTDIR})
-    set(LINK_DESTDIR $ENV{DESTDIR}/var/empty/bin)
+    set(LINK_DESTDIR $ENV{DESTDIR}/usr/bin)
 else()
     set(LINK_DESTDIR ${CMAKE_INSTALL_PREFIX}/bin)
 endif()
