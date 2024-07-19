@@ -94,4 +94,3 @@ df -h
 ninja -k 0 recursion
 
 echo "finish"
-
