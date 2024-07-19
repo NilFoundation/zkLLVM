@@ -43,8 +43,6 @@ target_link_libraries(${CURRENT_PROJECT_NAME}
                       ${Boost_LIBRARIES})
 
 target_include_directories(${CURRENT_PROJECT_NAME} PUBLIC
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                            ${CMAKE_SOURCE_DIR}/libs/circifier/llvm/include
                            ${CMAKE_SOURCE_DIR}/libs/circifier/utils/bazel/llvm-project-overlay/llvm/include
                            ${CMAKE_BINARY_DIR}/libs/circifier/llvm/include
