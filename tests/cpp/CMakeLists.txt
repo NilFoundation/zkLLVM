@@ -19,6 +19,7 @@ add_custom_target(all_tests_run)
 
 cm_test_link_libraries(
                        crypto3::all
+                       crypto3::assigner
                        ${Boost_LIBRARIES})
 
 
@@ -44,7 +45,6 @@ macro(define_zkllvm_test test curve_type provers_max_num)
     target_include_directories(${full_test_name} PRIVATE
                                ${CMAKE_CURRENT_SOURCE_DIR}/include>
                                ${CMAKE_BINARY_DIR}/include
-                               ${CMAKE_SOURCE_DIR}/libs/assigner/include
                                ${Boost_INCLUDE_DIRS})
 
     set_target_properties(${full_test_name} PROPERTIES CXX_STANDARD 17)
