@@ -58,6 +58,7 @@ jobs:
       - name: Build zkLLVM, run local tests, prepare for integration testing
         run: |
           nix build -L .?submodules=1#checks.x86_64-linux.debug-tests
+          echo "nix build finished"
           ls
           ls -al result/
           ls -al result/artifacts/
