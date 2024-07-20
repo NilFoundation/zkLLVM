@@ -17,6 +17,7 @@ jobs:
     secrets: inherit
 
   build-and-test-with-nix:
+    name: Build zkLLVM, run local tests, prepare for integration testing
     needs: [ handle-syncwith ]
     runs-on: ["self-hosted", "aws_autoscaling"]
     outputs:
