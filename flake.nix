@@ -17,6 +17,7 @@
       submodules = false;
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
       };
     };
     nil-zkllvm-blueprint = {
@@ -24,6 +25,7 @@
       type = "git";
       submodules = true;
       inputs = {
+        flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
         nil-crypto3.follows = "nil-crypto3";
       };
