@@ -9,7 +9,6 @@ on:
 
 jobs:
   handle-syncwith:
-    if: github.event_name == 'pull_request'
     name: Call Reusable SyncWith Handler
     uses: NilFoundation/ci-cd/.github/workflows/reusable-handle-syncwith.yml@v1
     with:
