@@ -45,7 +45,7 @@
           inherit system;
           overlays = [ nix-3rdparty.overlays.${system}.default ];
         };
-        crypto3 = nil-crypto3.packages.${system}.default;
+        crypto3 = nil-crypto3.packages.${system}.crypto3;
         blueprint = nil-zkllvm-blueprint.packages.${system}.default;
 
       in {
