@@ -537,7 +537,6 @@ int curve_dependent_main(std::string bytecode_file_name,
     auto assigner_instance_creation_start = std::chrono::high_resolution_clock::now();
     nil::blueprint::assigner<BlueprintFieldType> assigner_instance(
         desc,
-        stack_size,
         log_level,
         max_num_provers,
         target_prover,
