@@ -77,7 +77,7 @@ jobs:
           echo "examples=circuits-and-assignments" >> $GITHUB_OUTPUT
 
       - name: Upload examples' circuits and assignments artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: ${{ steps.artifact-names.outputs.examples }}
           path: |
@@ -85,7 +85,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload examples' circuits and assignments artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: ${{ steps.artifact-names.outputs.transpiler }}
           path: |
@@ -150,12 +150,12 @@ jobs:
       merged-artifact-name: ${{ steps.artifact-name.outputs.merged }}
     steps:
       - name: Download artifact with proofs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.6.0
         with:
           name: ${{ needs.generate-proofs.outputs.artifact-name }}
 
       - name: Download artifact with transpiler output
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.6.0
         with:
           name: ${{ needs.build-and-test-with-nix.outputs.transpiler-artifact-name }}
 
@@ -188,7 +188,7 @@ jobs:
           echo "merged=transpiler-output-merged-proofs" >> $GITHUB_OUTPUT
 
       - name: Upload merged artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: ${{ steps.artifact-name.outputs.merged }}
           path: |
