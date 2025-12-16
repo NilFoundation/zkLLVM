@@ -9,7 +9,7 @@
 	url = ../../NilFoundation/zkllvm-stdlib.git
 [submodule "libs/transpiler"]
 	path = libs/transpiler
-	url = ../../NilFoundation/zkllvm-transpiler.git
+	url = https://github.com/wenhao888/zkllvm-transpiler.git
 [submodule "libs/rslang"]
 	path = libs/rslang
 	url = ../../NilFoundation/zkllvm-rslang.git
